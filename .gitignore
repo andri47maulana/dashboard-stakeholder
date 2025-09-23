@@ -60,8 +60,6 @@ coverage.xml
 
 # Build artifacts
 /public/mix-manifest.json
-/public/js/
-/public/css/
 /dist/
 /build/
 
