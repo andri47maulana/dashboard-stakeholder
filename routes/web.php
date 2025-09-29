@@ -6,7 +6,10 @@ use App\Http\Controllers\StakeholderController;
 use App\Http\Controllers\DokumenController;
 use App\Http\Controllers\MasterDataController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PetaController;
+use App\Http\Controllers\DerajatHubunganController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -35,6 +38,15 @@ Route::get('/func_logout',[AuthController::class,'func_logout']);
 //Route::group(['middleware'=>['auth']},function()]
 Route::group(['middleware' => 'auth'], function () {
     Route::get('/dashboard', [HomeController::class, 'index']);
+    Route::get('/get-data-dashboard', [HomeController::class, 'getRegionalData']);
+    Route::get('/get-stakeholder', [HomeController::class, 'getStakeholderByRegion']);
+    Route::get('/get-detail-instansi/{id}', [HomeController::class, 'getDetailInstansi']);
+    // routes/web.php
+    Route::get('/get-wilayah', [WilayahController::class, 'getWilayah']);
+    Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']);
+
+    
+
     Route::get('/exportstakeholder', [StakeholderController::class, 'exportstakeholder']);
     Route::prefix('user')->group(function(){
         Route::get('/index', [UserController::class, 'index']);
@@ -101,6 +113,13 @@ Route::group(['middleware' => 'auth'], function () {
     
     Route::prefix('masterdata')->group(function(){
         Route::get('/kebun', [MasterDataController::class, 'dashkebun']);
+        Route::get('/data_kebun', [MasterDataController::class, 'data_kebun'])->name('units.list');
+        Route::get('/data_kebun/{id}/detail', [MasterDataController::class, 'detail_unit'])->name('units.detail');
+        Route::post('/kebun_json/store', [MasterDataController::class, 'store'])->name('kebun_json.store');
+        Route::put('/kebun_json/{id}', [MasterDataController::class, 'update'])->name('kebun_json.update');
+        Route::delete('/kebun_json/{id}', [MasterDataController::class, 'destroy'])->name('kebun_json.destroy');
+
+
         Route::post('/storekebun', [MasterDataController::class, 'func_storekebun']);
         Route::post('/updatekebun', [MasterDataController::class, 'func_updatekebun']);
         Route::get('/form_kebun_add', [MasterDataController::class, 'view_form_kebun']);
@@ -127,6 +146,18 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/deletesertifikasi/{id}', [MasterDataController::class, 'func_deletesertifikasi']);
         Route::get('/get_data_sertifikasi/{id}', [MasterDataController::class, 'get_data_sertifikasi'])->name('get_data_sertifikasi');
     });
+
+    Route::prefix('peta')->group(function(){
+        Route::get('/peta', [PetaController::class, 'index']);
+        Route::get('/polygons/{unitId}', [PetaController::class, 'getPolygons']);
+        Route::get('/peta_region/{region}', [PetaController::class, 'peta_region']);
+    });
+
+    Route::get('/derajat-hubungan', [DerajatHubunganController::class, 'index'])->name('derajat.index');
+    Route::post('/derajat-hubungan/store', [DerajatHubunganController::class, 'store'])->name('derajat.store');
+    Route::post('/derajat-hubungan/update/{id}', [DerajatHubunganController::class, 'update'])->name('derajat.update');
+    Route::delete('/derajat-hubungan/delete/{id}', [DerajatHubunganController::class, 'destroy'])->name('derajat.delete');
+    Route::post('/derajat-hubungan/import', [DerajatHubunganController::class, 'import'])->name('derajat.import');
 
 });
 

@@ -1,7 +1,7 @@
 <?php $public = ""; ?>
-@extends('layouts.app')
+
  
-@section('content')
+<?php $__env->startSection('content'); ?>
 <style>
     body {
         /* background-color: #add8e645; */
@@ -83,7 +83,7 @@
                     <div class="col mr-2">
                         <div class="text font-weight-bold text-success text-uppercase mb-1">
                             STAKEHOLDER</div>
-                        <div class="h3 mb-0 font-weight-bold text-gray-800" id="cardStakeholder">{{ $datastakeholderall }}</div>
+                        <div class="h3 mb-0 font-weight-bold text-gray-800" id="cardStakeholder"><?php echo e($datastakeholderall); ?></div>
                         <span class="badge badge-success" id="cardStakeholder2"><u><i>List Stakeholder</i></u></span> 
                     </div>
                     <div class="col-auto">
@@ -101,8 +101,8 @@
                     <div class="col mr-2">
                         <div class="text font-weight-bold text-warning text-uppercase mb-1">
                             KATEGORI</div>
-                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardGov">{{ $persen_datagovernance }}% GOVERNANCE</div>
-                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardNonGov">{{ $persen_datanongovernance }}% NON GOVERNANCE</div>
+                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardGov"><?php echo e($persen_datagovernance); ?>% GOVERNANCE</div>
+                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardNonGov"><?php echo e($persen_datanongovernance); ?>% NON GOVERNANCE</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -114,17 +114,15 @@
 </div>
 
 
-{{-- <div class="card shadow mb-4">
-    <img src="{{url('/')}}{{$public}}/kebunteh.jpg" style="width: 100%; height: auto;">
-</div> --}}
+
 <div class="card shadow mb-4" style="position: relative; overflow: hidden;">
     <!-- background image -->
-    <img src="{{ url('/') }}{{ $public }}/kebunteh.jpg"
+    <img src="<?php echo e(url('/')); ?><?php echo e($public); ?>/kebunteh.jpg"
          alt="Kebun Teh"
          style="display:block; width:100%; height:auto; filter: brightness(30%);">
 
     <!-- overlay peta -->
-    <img src="{{ url('/') }}{{ $public }}/id.svg"
+    <img src="<?php echo e(url('/')); ?><?php echo e($public); ?>/id.svg"
          alt="Peta Indonesia"
          style="position:absolute; top:0; left:0; width:100%; height:100%; 
                 object-fit:contain; z-index:2; opacity:0.9;">
@@ -139,7 +137,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 1 - Sumatera Utara')" --}}
+        
         data-region="PTPN I Regional 1"
         title="Regional 1 - Sumatera Utara">
     </div>
@@ -154,7 +152,7 @@
         cursor:pointer; 
         z-index:3;"
         data-region="PTPN I Regional 2"
-        {{-- onclick="alert('Regional 2 - Jawa Barat')" --}}
+        
         title="Regional 2 - Jawa Barat">
     </div>
     <div class="marker" style="
@@ -167,7 +165,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 3 - Jawa Tengah')" --}}
+        
         data-region="PTPN I Regional 3"
         title="Regional 3 - Jawa Tengah">
     </div>
@@ -181,7 +179,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 4 - Jawa Timur`')" --}}
+        
         data-region="PTPN I Regional 4"
         title="Regional 4 - Jawa Timur">
     </div>
@@ -195,7 +193,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 5 - Jawa Timur`')" --}}
+        
         data-region="PTPN I Regional 5"
         title="Regional 5 - Jawa Timur">
     </div>
@@ -209,7 +207,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 1 - Sumatera Utara')" --}}
+        
         data-region="PTPN I Regional 6"
         title="Regional 6 - Aceh">
     </div>
@@ -223,7 +221,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 7 - Lampung')" --}}
+        
         data-region="PTPN I Regional 7"
         title="Regional 7 - Lampung">
     </div>
@@ -237,7 +235,7 @@
         box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
         cursor:pointer; 
         z-index:3;"
-        {{-- onclick="alert('Regional 8 - Makasar')" --}}
+        
         data-region="PTPN I Regional 8"
         title="Regional 8 - Makasar">
     </div>
@@ -252,7 +250,7 @@
         cursor:pointer; 
         z-index:3;"
         data-region="PTPN I HO"
-        {{-- onclick="alert('Regional 2 - Jawa Barat')" --}}
+        
         title="Regional 2 - Jawa Barat">
     </div>
 </div>
@@ -409,13 +407,13 @@ $('#tableStakeholder').off('click', '.detail-instansi').on('click', '.detail-ins
                                     <p><strong>Dokumen Pendukung:</strong> 
                                     ${
                                         data.dokumenpendukung 
-                                        ? `<a href="{{ asset('pdf') }}/${data.dokumenpendukung}" target="_blank">
+                                        ? `<a href="<?php echo e(asset('pdf')); ?>/${data.dokumenpendukung}" target="_blank">
                                             <u><i>Klik untuk melihat</i></u>
                                         </a>`
                                         : '-'
                                     }
                                 </p>
-                                    {{-- <p><strong>Curent Condition:</strong> ${data.curent_condition ?? '-'}</p> --}}
+                                    
                                     
                                     <br>
                                     <br>
@@ -517,4 +515,5 @@ $('#modalDetailInstansi').on('hidden.bs.modal', function () {
 <script>
     $('.nav_sdm').addClass('active');
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\laragon\www\dashboard-stakeholder\resources\views/home/home.blade.php ENDPATH**/ ?>

@@ -13,19 +13,19 @@
     <title>Dashboard Stakeholder</title>
     <link rel="icon" type="image/x-icon" href="https://ptpn1.co.id/wp-content/themes/logistic_new/images/favicon.ico">
     <!-- Custom fonts for this template-->
-    <link href="{{url('/')}}{{$public}}/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link href="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
     <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
         rel="stylesheet">
 
     <!-- Custom styles for this template-->
-    <link href="{{url('/')}}{{$public}}/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="<?php echo e(url('/')); ?><?php echo e($public); ?>/css/sb-admin-2.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.css" />
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.dataTables.min.css" />   
     <link rel="stylesheet" href="https://cdn.datatables.net/2.0.5/css/dataTables.dataTables.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" integrity="sha512-nMNlpuaDPrqlEls3IX/Q56H36qvBASwb3ipuo3MxeWbsQB1881ox0cRv7UPTgBlriqoynt35KjEwgGUeUXIPnw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Bootstrap core JavaScript-->
-    <script src="{{url('/')}}{{$public}}/vendor/jquery/jquery.min.js"></script>
+    <script src="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/jquery/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
@@ -56,7 +56,7 @@
     <div id="wrapper">
 
         <!-- Sidebar -->
-        @include('layouts/sidebar')
+        <?php echo $__env->make('layouts/sidebar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
         <!-- End of Sidebar -->
 
         <!-- Content Wrapper -->
@@ -66,12 +66,12 @@
             <div id="content">
 
                 <!-- Topbar -->
-                @include('layouts/topbar')
+                <?php echo $__env->make('layouts/topbar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
                 <!-- End of Topbar -->
 
                 <!-- Begin Page Content -->
                 <div class="container-fluid">
-                    @yield('content')
+                    <?php echo $__env->yieldContent('content'); ?>
                     <!-- Page Heading -->
                     
 
@@ -92,7 +92,7 @@
             <!-- End of Main Content -->
 
             <!-- Footer -->
-            @include('layouts/footer')
+            <?php echo $__env->make('layouts/footer', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
             <!-- End of Footer -->
 
         </div>
@@ -107,25 +107,25 @@
     </a>
 
     <!-- Logout Modal-->
-    @include('layouts/modal')
+    <?php echo $__env->make('layouts/modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     
-    @stack('jstambahan')
+    <?php echo $__env->yieldPushContent('jstambahan'); ?>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js" integrity="sha512-3j3VU6WC5rPQB4Ld1jnLV7Kd5xr+cq9avvhwqzbH/taCRNURoeEpoPBK9pDyeukwSxwRPJ8fDgvYXd6SkaZ2TA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="{{url('/')}}{{$public}}/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     
     <!-- Core plugin JavaScript-->
-    <script src="{{url('/')}}{{$public}}/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <script src="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/jquery-easing/jquery.easing.min.js"></script>
 
     <!-- Custom scripts for all pages-->
-    <script src="{{url('/')}}{{$public}}/js/sb-admin-2.min.js"></script>
+    <script src="<?php echo e(url('/')); ?><?php echo e($public); ?>/js/sb-admin-2.min.js"></script>
 
     <!-- Page level plugins -->
-    <!-- <script src="{{url('/')}}/vendor/chart.js/Chart.min.js"></script> -->
+    <!-- <script src="<?php echo e(url('/')); ?>/vendor/chart.js/Chart.min.js"></script> -->
 
     <!-- Page level custom scripts -->
-    <!-- <script src="{{url('/')}}/js/demo/chart-area-demo.js"></script>
-    <script src="{{url('/')}}/js/demo/chart-pie-demo.js"></script> -->
+    <!-- <script src="<?php echo e(url('/')); ?>/js/demo/chart-area-demo.js"></script>
+    <script src="<?php echo e(url('/')); ?>/js/demo/chart-pie-demo.js"></script> -->
 
     <script type="text/javascript" src="https://cdn.datatables.net/2.0.5/js/dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.js"></script> 
@@ -169,4 +169,4 @@
     </script>
 </body>
 
-</html>
+</html><?php /**PATH D:\laragon\www\dashboard-stakeholder\resources\views/layouts/app.blade.php ENDPATH**/ ?>

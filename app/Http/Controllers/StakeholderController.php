@@ -44,7 +44,7 @@ class StakeholderController extends Controller
             $searchkategori = $_COOKIE['kategori'];
             $dataallusers = $dataallusers->where('kategori','like',$_COOKIE['kategori']);
         }
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::user()->region === "PTPN I HO")
         {
             $dataallusers = $dataallusers;
         }
@@ -172,7 +172,22 @@ class StakeholderController extends Controller
     
     public function view_form_stakeholder($id = null){
         //dd($id);
-        $datauser= DB::connection('mysql')->table('stakeholder')->where('id',$id)->first();
+        // $datauser= DB::connection('mysql')->table('stakeholder')->where('id',$id)->first();
+        $datauser= DB::table('stakeholder as s')
+        ->where('s.id', $id)
+        ->leftJoin('wilayah as prov', 'prov.kode', '=', 's.prov_id')
+        ->leftJoin('wilayah as kab', 'kab.kode', '=', 's.kab_id')
+        ->leftJoin('wilayah as kec', 'kec.kode', '=', 's.kec_id')
+        ->leftJoin('wilayah as desa', 'desa.kode', '=', 's.desa_id')
+        ->select(
+            's.*',
+            'prov.nama as prov_nama',
+            'kab.nama as kab_nama',
+            'kec.nama as kec_nama',
+            'desa.nama as desa_nama'
+        )
+        ->first();
+        // dd($datauser);
         if($id){
             
             if(isset($datauser)){
@@ -190,13 +205,44 @@ class StakeholderController extends Controller
     }
 
     public function get_data_stakeholder($id = null){
-        $datauser= DB::connection('mysql')->table('stakeholder')->where('id',$id)->first();
-        return response()->json($datauser);
+        // $datauser= DB::connection('mysql')->table('stakeholder')->where('id',$id)->first();
+        // return response()->json($datauser);
+        $data = DB::table('stakeholder as s')
+        ->where('s.id', $id)
+        ->leftJoin('wilayah as prov', 'prov.kode', '=', 's.prov_id')
+        ->leftJoin('wilayah as kab', 'kab.kode', '=', 's.kab_id')
+        ->leftJoin('wilayah as kec', 'kec.kode', '=', 's.kec_id')
+        ->leftJoin('wilayah as desa', 'desa.kode', '=', 's.desa_id')
+        ->select(
+            's.*',
+            'prov.nama as prov_nama',
+            'kab.nama as kab_nama',
+            'kec.nama as kec_nama',
+            'desa.nama as desa_nama'
+        )
+        ->first();
+
+    return response()->json($data);
     }
 
     public function view_detail_stakeholder($id = null){
         //dd($id);
-        $datauser= DB::connection('mysql')->table('stakeholder')->where('id',$id)->first();
+        // $datauser= DB::connection('mysql')->table('stakeholder')->where('id',$id)->first();
+        $datauser= DB::table('stakeholder as s')
+        ->where('s.id', $id)
+        ->leftJoin('wilayah as prov', 'prov.kode', '=', 's.prov_id')
+        ->leftJoin('wilayah as kab', 'kab.kode', '=', 's.kab_id')
+        ->leftJoin('wilayah as kec', 'kec.kode', '=', 's.kec_id')
+        ->leftJoin('wilayah as desa', 'desa.kode', '=', 's.desa_id')
+        ->select(
+            's.*',
+            'prov.nama as prov_nama',
+            'kab.nama as kab_nama',
+            'kec.nama as kec_nama',
+            'desa.nama as desa_nama'
+        )
+        ->first();
+        // dd($datauser);
         if($id){
             
             if(isset($datauser)){
@@ -214,12 +260,13 @@ class StakeholderController extends Controller
     }
 
     public function func_storestakeholder(Request $request){
+        // dd( $request->all());
         $validate = Validator::make($request->all(), [
             'region' => 'required',
             'kebun' => 'required',
-            'desa' => 'required',
+            'kategori' => 'required',
             'nama_instansi' => 'required',
-            'daerah_instansi' => 'required',
+            'desaw' => 'required',
             'nama_pic' => 'required',
             'jabatan_pic' => 'required',
         ]);
@@ -232,21 +279,31 @@ class StakeholderController extends Controller
             'id'=> $request->id,
             'region'=>$request->region,
             'kebun'=>$request->kebun,
-            'desa'=>$request->desa,
+            'desa_id'=>$request->desaw,
             'curent_condition'=>$request->curent_condition,
             'nama_instansi'=>$request->nama_instansi,
-            'daerah_instansi'=>$request->daerah_instansi,
+            'prov_id'=>$request->provinsi,
+            'kab_id'=>$request->kabupaten,
+            'kec_id'=>$request->kecamatan,
             'nama_pic'=>$request->nama_pic,
             'jabatan_pic'=>$request->jabatan_pic,
             'nomorkontak_pic'=>$request->nomorkontak_pic,
+            'nama_pic2'=>$request->nama_pic2,
+            'jabatan_pic2'=>$request->jabatan_pic2,
+            'nomorkontak_pic2'=>$request->nomorkontak_pic2,
             'derajat_hubungan'=>$request->derajat_hubungan,
             'kategori'=>$request->kategori,
             'tipe_stakeholder'=>$request->tipe_stakeholder,
-            'skala_kekuatan'=>$request->skala_kekuatan,
+            'skala_pengaruh'=>$request->skala_pengaruh,
             'skala_kepentingan'=>$request->skala_kepentingan,
             'email'=>$request->email,
+            'email2'=>$request->email2,
             'ekspektasi_ptpn'=>$request->ekspektasi_ptpn,
-            'ekspektasi_stakeholder'=>$request->ekspektasi_stakeholder
+            'ekspektasi_stakeholder'=>$request->ekspektasi_stakeholder,
+            'saranbagimanajemen'=>$request->saran_bagi_manajemen,
+            'hasil_skala'=>$request->keterangan_kuadran,
+            'modified_date' => now(),
+            'input_date' => now(),
         ];
         
         if ($request->hasFile('dokumenpendukung')) {
@@ -268,29 +325,41 @@ class StakeholderController extends Controller
     public function func_updatestakeholder(Request $request){
         $idnourut = $request->id;
         $addstakeholder=[
-            'region'=>$request->region,
-            'kebun'=>$request->kebun,
-            'desa'=>$request->desa,
-            'curent_condition'=>$request->curent_condition,
-            'nama_instansi'=>$request->nama_instansi,
-            'daerah_instansi'=>$request->daerah_instansi,
-            'nama_pic'=>$request->nama_pic,
-            'jabatan_pic'=>$request->jabatan_pic,
-            'nomorkontak_pic'=>$request->nomorkontak_pic,
-            'derajat_hubungan'=>$request->derajat_hubungan,
-            'kategori'=>$request->kategori,
-            'tipe_stakeholder'=>$request->tipe_stakeholder,
-            'skala_kekuatan'=>$request->skala_kekuatan,
-            'skala_kepentingan'=>$request->skala_kepentingan,
-            'email'=>$request->email,
-            'ekspektasi_ptpn'=>$request->ekspektasi_ptpn,
-            'ekspektasi_stakeholder'=>$request->ekspektasi_stakeholder
+            'region'=>$request->edit_region,
+            'kebun'=>$request->edit_kebun,
+            // 'desa'=>$request->edit_desa,
+            'curent_condition'=>$request->edit_curent_condition,
+            'nama_instansi'=>$request->edit_nama_instansi,
+            // 'daerah_instansi'=>$request->edit_daerah_instansi,
+            'nama_pic'=>$request->edit_nama_pic,
+            'jabatan_pic'=>$request->edit_jabatan_pic,
+            'nomorkontak_pic'=>$request->edit_nomorkontak_pic,
+            // 'derajat_hubungan'=>$request->edit_derajat_hubungan,
+            'kategori'=>$request->edit_kategori,
+            // 'tipe_stakeholder'=>$request->edit_tipe_stakeholder,
+            'skala_kepentingan'=>$request->edit_skala_kepentingan,
+            'skala_pengaruh'=>$request->edit_skala_pengaruh,
+            'email'=>$request->edit_email,
+            'ekspektasi_ptpn'=>$request->edit_ekspektasi_ptpn,
+            'ekspektasi_stakeholder'=>$request->edit_ekspektasi_stakeholder,
+            // 'dokumenpendukung'=>$request->edit_dokumenpendukung,
+            'nama_pic2'=>$request->edit_nama_pic2,
+            'jabatan_pic2'=>$request->edit_jabatan_pic2,
+            'nomorkontak_pic2'=>$request->edit_nomorkontak_pic2,
+            'saranbagimanajemen'=>$request->edit_saran_bagi_manajemen,
+            'prov_id'=>$request->edit_provinsi,
+            'kab_id'=>$request->edit_kabupaten,
+            'kec_id'=>$request->edit_kecamatan,
+            'desa_id'=>$request->edit_desaw,
+            'hasil_skala'=>$request->edit_keterangan_kuadran,
+            'email2'=>$request->edit_email2,
+            'modified_date' => now(),
+
         ];
         // dd($request->hasFile('dokumenpendukung'));
-        if ($request->hasFile('dokumenpendukung')) {
-            
+        if ($request->hasFile('edit_dokumenpendukung')) {
 
-            $file = $request->file('dokumenpendukung');
+            $file = $request->file('edit_dokumenpendukung');
             $fileName = time() . '_' . $file->getClientOriginalName();
             $file->move(public_path('pdf'), $fileName);
             $addstakeholder['dokumenpendukung'] = $fileName;
@@ -309,6 +378,19 @@ class StakeholderController extends Controller
         DB::connection('mysql')->table('stakeholder')->where('id',$id)->delete();
         return redirect('/dash/stakeholder')->with('suksesdelete','Berhasil Menghapus Data Stakeholder');
 
+    }
+
+    Public function getKebunByRegion(Request $request)
+    {
+        $region = $request->region;
+
+        $kebun = DB::table('tb_unit')
+            ->select('id', 'unit')
+            ->where('region', $region)
+            ->orderBy('unit', 'asc')
+            ->get();
+
+        return response()->json($kebun);
     }
     
 }

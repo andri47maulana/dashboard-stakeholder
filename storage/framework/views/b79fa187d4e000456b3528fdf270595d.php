@@ -1,7 +1,7 @@
-@extends('layouts.app')
+
  
-@section('content')
-{{-- <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> --}}
+<?php $__env->startSection('content'); ?>
+
 <style>
     body {
         /* background-color: #add8e645; */
@@ -39,25 +39,25 @@
 <h1 class="h3 mb-2 text-gray-800">Menu Stakeholder</h1>
     <div class="card shadow mb-4">
         <div class="card-body row" style="font-size: 0.85em;">
-            @if(Auth::user()->hakakses =='Admin')
+            <?php if(Auth::user()->hakakses =='Admin'): ?>
             <div class="col-md-3">
                 
                 <div class="form-group row">
                     <label for="region" class="col-md-4 control-label" style="text-align: right"><strong>Region</strong></label>
                     <select name="region" id="region" class="col-sm-7 form-control">
-                    @if($searchregion!="")
+                    <?php if($searchregion!=""): ?>
                     
                         <option value="">Pilih..</option>
-                        <option value="PTPN I HO" @if($searchregion=="PTPN I HO") selected @endif>PTPN I HO</option>
-                        <option value="PTPN I Regional 1" @if($searchregion=="PTPN I Regional 1") selected @endif>PTPN I Regional 1</option>
-                        <option value="PTPN I Regional 2" @if($searchregion=="PTPN I Regional 2") selected @endif>PTPN I Regional 2</option>
-                        <option value="PTPN I Regional 3" @if($searchregion=="PTPN I Regional 3") selected @endif>PTPN I Regional 3</option>
-                        <option value="PTPN I Regional 4" @if($searchregion=="PTPN I Regional 4") selected @endif>PTPN I Regional 4</option>
-                        <option value="PTPN I Regional 5" @if($searchregion=="PTPN I Regional 5") selected @endif>PTPN I Regional 5</option>
-                        <option value="PTPN I Regional 6" @if($searchregion=="PTPN I Regional 6") selected @endif>PTPN I Regional 6</option>
-                        <option value="PTPN I Regional 7" @if($searchregion=="PTPN I Regional 7") selected @endif>PTPN I Regional 7</option>
-                        <option value="PTPN I Regional 8" @if($searchregion=="PTPN I Regional 8") selected @endif>PTPN I Regional 8</option>
-                    @else
+                        <option value="PTPN I HO" <?php if($searchregion=="PTPN I HO"): ?> selected <?php endif; ?>>PTPN I HO</option>
+                        <option value="PTPN I Regional 1" <?php if($searchregion=="PTPN I Regional 1"): ?> selected <?php endif; ?>>PTPN I Regional 1</option>
+                        <option value="PTPN I Regional 2" <?php if($searchregion=="PTPN I Regional 2"): ?> selected <?php endif; ?>>PTPN I Regional 2</option>
+                        <option value="PTPN I Regional 3" <?php if($searchregion=="PTPN I Regional 3"): ?> selected <?php endif; ?>>PTPN I Regional 3</option>
+                        <option value="PTPN I Regional 4" <?php if($searchregion=="PTPN I Regional 4"): ?> selected <?php endif; ?>>PTPN I Regional 4</option>
+                        <option value="PTPN I Regional 5" <?php if($searchregion=="PTPN I Regional 5"): ?> selected <?php endif; ?>>PTPN I Regional 5</option>
+                        <option value="PTPN I Regional 6" <?php if($searchregion=="PTPN I Regional 6"): ?> selected <?php endif; ?>>PTPN I Regional 6</option>
+                        <option value="PTPN I Regional 7" <?php if($searchregion=="PTPN I Regional 7"): ?> selected <?php endif; ?>>PTPN I Regional 7</option>
+                        <option value="PTPN I Regional 8" <?php if($searchregion=="PTPN I Regional 8"): ?> selected <?php endif; ?>>PTPN I Regional 8</option>
+                    <?php else: ?>
                         <option value="">Pilih..</option>
                         <option value="PTPN I HO">PTPN I HO</option>
                         <option value="PTPN I Regional 1">PTPN I Regional 1</option>
@@ -68,25 +68,25 @@
                         <option value="PTPN I Regional 6">PTPN I Regional 6</option>
                         <option value="PTPN I Regional 7">PTPN I Regional 7</option>
                         <option value="PTPN I Regional 8">PTPN I Regional 8</option>
-                    @endif
+                    <?php endif; ?>
                         
                     </select>
                 </div>
             </div>
-            @endif
+            <?php endif; ?>
             <div class="col-md-3">
                 <div class="form-group row">
                     <label for="kategori" class="col-md-4 control-label" style="text-align: right"><strong>Kategori</strong></label>
                     <select name="kategori" id="kategori" class="col-sm-7 form-control">
-                    @if($searchkategori!="")
+                    <?php if($searchkategori!=""): ?>
                         <option value="">Pilih..</option>
-                        <option value="Governance" @if($searchkategori=="Governance") selected @endif>Governance</option>
-                        <option value="Non Governance" @if($searchkategori=="Non Governance") selected @endif>Non Governance</option>
-                    @else
+                        <option value="Governance" <?php if($searchkategori=="Governance"): ?> selected <?php endif; ?>>Governance</option>
+                        <option value="Non Governance" <?php if($searchkategori=="Non Governance"): ?> selected <?php endif; ?>>Non Governance</option>
+                    <?php else: ?>
                         <option value="">Pilih..</option>
                         <option value="Governance">Governance</option>
                         <option value="Non Governance">Non Governance</option>
-                    @endif                                   
+                    <?php endif; ?>                                   
                         
                     </select>
                 </div>
@@ -97,9 +97,9 @@
                     <label for="kebun" class="col-md-4 control-label" style="text-align: right"><strong>Kebun</strong></label>
                     <select name="kebun" id="kebun" class="col-sm-7 form-control">
                     <option value="">Pilih..</option>
-                    @foreach($datakebun as $kebun)
-                    <option value="{{$kebun->kebun}}" @if($searchkebun==$kebun->kebun) selected @endif>{{$kebun->kebun}}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $datakebun; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $kebun): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($kebun->kebun); ?>" <?php if($searchkebun==$kebun->kebun): ?> selected <?php endif; ?>><?php echo e($kebun->kebun); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         
                     </select>
                 </div>
@@ -110,9 +110,9 @@
                     <label for="desa" class="col-md-4 control-label" style="text-align: right"><strong>Desa</strong></label>
                     <select name="desa" id="desa" class="col-sm-7 form-control">
                     <option value="">Pilih..</option>
-                    @foreach($datadesa as $desa)
-                    <option value="{{$desa->desa}}" @if($searchdesa==$desa->desa) selected @endif>{{$desa->desa}}</option>
-                    @endforeach
+                    <?php $__currentLoopData = $datadesa; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $desa): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <option value="<?php echo e($desa->desa); ?>" <?php if($searchdesa==$desa->desa): ?> selected <?php endif; ?>><?php echo e($desa->desa); ?></option>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         
                     </select>
                 </div>
@@ -120,7 +120,7 @@
             -->
         </div>
         <div class="card-footer">
-            <!-- <a href="{{url('/')}}/dash/stakeholder"> -->
+            <!-- <a href="<?php echo e(url('/')); ?>/dash/stakeholder"> -->
             <button class="btn btn-outline-warning float-right btn-sm cancelsearch" style="margin-right: 10px;"><i class="fas fa-fw fa-stop"></i> Batalkan </button>
             <!-- </a> -->
             &nbsp;
@@ -131,7 +131,7 @@
     <div class="card shadow mb-4">
         
         <div class="card-body">
-            <!-- <a href="{{url('/dash/form_stakeholder_add')}}">
+            <!-- <a href="<?php echo e(url('/dash/form_stakeholder_add')); ?>">
                 <button class="btn btn-primary btn-rounded add_user">
                 <i class="fas fa-fw fa-plus"></i> Tambah Data
                 </button>
@@ -140,7 +140,8 @@
               <i class="fas fa-fw fa-plus"></i> Tambah Data
             </button>
             <a href="
-                {{url('/exportstakeholder')}}?region={{$searchregion}}&kategori={{$searchkategori}}&kebun={{$searchkebun}}
+                <?php echo e(url('/exportstakeholder')); ?>?region=<?php echo e($searchregion); ?>&kategori=<?php echo e($searchkategori); ?>&kebun=<?php echo e($searchkebun); ?>
+
             ">
                 <button class="btn btn-success btn-rounded add_user">
                 <i class="fas fa-fw fa-download"></i> Export
@@ -163,22 +164,22 @@
                     </thead>
                     <tbody style='font-size: 0.85em;'>
                         <?php $i = 1; ?>
-                        @foreach($dataalluser as $key)
+                        <?php $__currentLoopData = $dataalluser; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <tr>
-                            <td>{{$i++}}</td>
-                            <td ><a href="{{url('/dash/form_stakeholder_detail')}}/{{$key->id}}"><i class="fas fa-fw fa-search"></i></a> {{$key->nama_instansi}}</td>
-                            <td >{{$key->nama_pic}} <br><span>{{$key->nomorkontak_pic}}</td>
-                            <td >{{$key->jabatan_pic}}</td>
-                            <td >{{$key->daerah_instansi}}</td>
-                            <td style="text-align:center">{{$key->input_date}}</td>
+                            <td><?php echo e($i++); ?></td>
+                            <td ><a href="<?php echo e(url('/dash/form_stakeholder_detail')); ?>/<?php echo e($key->id); ?>"><i class="fas fa-fw fa-search"></i></a> <?php echo e($key->nama_instansi); ?></td>
+                            <td ><?php echo e($key->nama_pic); ?> <br><span><?php echo e($key->nomorkontak_pic); ?></td>
+                            <td ><?php echo e($key->jabatan_pic); ?></td>
+                            <td ><?php echo e($key->daerah_instansi); ?></td>
+                            <td style="text-align:center"><?php echo e($key->input_date); ?></td>
                             <td style="text-align:center" width="100">
-                                <btn class="btn btn-warning btn-sm editdata" id="{{$key->id}}"><i class="fas fa-fw fa-edit"></i></btn>
-                                <a href="{{url('/dash/deletestakeholder')}}/{{$key->id}}">
+                                <btn class="btn btn-warning btn-sm editdata" id="<?php echo e($key->id); ?>"><i class="fas fa-fw fa-edit"></i></btn>
+                                <a href="<?php echo e(url('/dash/deletestakeholder')); ?>/<?php echo e($key->id); ?>">
                                     <btn class="btn btn-danger btn-sm deletedata"><i class="fas fa-fw fa-trash"></i></btn>
                                 </a>
                             </td>
                         </tr>
-                        @endforeach
+                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     </tbody>
                 </table>
             </div>
@@ -195,8 +196,8 @@
                     <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form action="{{ url('/dash/storestakeholder') }}" enctype="multipart/form-data" method="post">
-                @csrf
+                <form action="<?php echo e(url('/dash/storestakeholder')); ?>" enctype="multipart/form-data" method="post">
+                <?php echo csrf_field(); ?>
                 <div class="modal-body">
                 <div class="row">
                     <!-- Kolom Kiri -->
@@ -206,7 +207,7 @@
                         <i class="fas fa-building"></i> Data Wilayah
                         </div>
                         <div class="card-body" style="font-size:0.9em;">
-                        @if(Auth::user()->hakakses == 'Admin')
+                        <?php if(Auth::user()->hakakses == 'Admin'): ?>
                         <div class="form-group row">
                             <label for="region" class="col-md-4 col-form-label">Region</label>
                             <div class="col-md-8">
@@ -224,16 +225,16 @@
                             </select>
                             </div>
                         </div>
-                        @else
+                        <?php else: ?>
                         <div class="form-group row">
                             <label for="region" class="col-md-4 col-form-label">Region</label>
                             <div class="col-md-8">
                             <select name="region" id="region" class="form-control" required>
-                                <option value="{{ Auth::user()->region }}">{{ Auth::user()->region }}</option>
+                                <option value="<?php echo e(Auth::user()->region); ?>"><?php echo e(Auth::user()->region); ?></option>
                             </select>
                             </div>
                         </div>
-                        @endif
+                        <?php endif; ?>
 
                         <div class="form-group row">
                             <label for="kebun" class="col-md-4 col-form-label">Kebun</label>
@@ -379,9 +380,9 @@
                                             <div class="col-md-8">
                                             <select name="skala_kepentingan" id="skala_kepentingan" class="form-control">
                                                 <option value="">Pilih..</option>
-                                                @for ($i = 1; $i <= 15; $i++)
-                                                    <option value="{{ $i }}">{{ $i }}</option>
-                                                @endfor
+                                                <?php for($i = 1; $i <= 15; $i++): ?>
+                                                    <option value="<?php echo e($i); ?>"><?php echo e($i); ?></option>
+                                                <?php endfor; ?>
                                             </select>
                                             </div>
                                         </div>
@@ -393,9 +394,9 @@
                                             <div class="col-md-8">
                                             <select name="skala_pengaruh" id="skala_pengaruh" class="form-control" required>
                                                 <option value="">Pilih..</option>
-                                                @for ($i = 1; $i <= 15; $i++)
-                                                    <option value="{{ $i }}">{{ $i }}</option>
-                                                @endfor
+                                                <?php for($i = 1; $i <= 15; $i++): ?>
+                                                    <option value="<?php echo e($i); ?>"><?php echo e($i); ?></option>
+                                                <?php endfor; ?>
                                             </select>
                                             </div>
                                         </div>
@@ -485,8 +486,8 @@
                 </button>
             </div>
 
-            <form id="formEditStakeholder" action="{{ url('/dash/updatestakeholder') }}" enctype="multipart/form-data" method="post">
-                @csrf
+            <form id="formEditStakeholder" action="<?php echo e(url('/dash/updatestakeholder')); ?>" enctype="multipart/form-data" method="post">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="id" id="edit_id">
 
                 <div class="modal-body">
@@ -499,8 +500,8 @@
                                 </div>
                                 <div class="card-body" style="font-size:0.9em;">
                                     
-                                    {{-- Region --}}
-                                    @if(Auth::user()->hakakses == 'Admin')
+                                    
+                                    <?php if(Auth::user()->hakakses == 'Admin'): ?>
                                         <div class="form-group row">
                                             <label class="col-md-4 col-form-label">Region</label>
                                             <div class="col-md-8">
@@ -518,18 +519,18 @@
                                                 </select>
                                             </div>
                                         </div>
-                                    @else
+                                    <?php else: ?>
                                         <div class="form-group row">
                                             <label class="col-md-4 col-form-label">Region</label>
                                             <div class="col-md-8">
                                                 <select name="edit_region" id="edit_region" class="form-control" required>
-                                                    <option value="{{ Auth::user()->region }}">{{ Auth::user()->region }}</option>
+                                                    <option value="<?php echo e(Auth::user()->region); ?>"><?php echo e(Auth::user()->region); ?></option>
                                                 </select>
                                             </div>
                                         </div>
-                                    @endif
+                                    <?php endif; ?>
 
-                                    {{-- Kebun --}}
+                                    
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Kebun</label>
                                         <div class="col-md-8">
@@ -539,7 +540,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- Kategori --}}
+                                    
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Kategori</label>
                                         <div class="col-md-8 d-flex align-items-center">
@@ -554,7 +555,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- Nama Instansi --}}
+                                    
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Nama Instansi</label>
                                         <div class="col-md-8">
@@ -562,7 +563,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- Provinsi - Desa --}}
+                                    
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Provinsi</label>
                                         <div class="col-md-8">
@@ -588,7 +589,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- Dokumen --}}
+                                    
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Dokumen Pendukung</label>
                                         <div class="col-md-8">
@@ -634,7 +635,7 @@
                                         </div>
                                     </div>
 
-                                    {{-- PIC 2 --}}
+                                    
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Nama PIC 2</label>
                                         <div class="col-md-8">
@@ -680,9 +681,9 @@
                                                 <div class="col-md-8">
                                                 <select name="edit_skala_kepentingan" id="edit_skala_kepentingan" class="form-control">
                                                     <option value="">Pilih..</option>
-                                                    @for ($i = 1; $i <= 15; $i++)
-                                                        <option value="{{ $i }}">{{ $i }}</option>
-                                                    @endfor
+                                                    <?php for($i = 1; $i <= 15; $i++): ?>
+                                                        <option value="<?php echo e($i); ?>"><?php echo e($i); ?></option>
+                                                    <?php endfor; ?>
                                                 </select>
                                                 </div>
                                             </div>
@@ -693,9 +694,9 @@
                                                 <div class="col-md-8">
                                                 <select name="edit_skala_pengaruh" id="edit_skala_pengaruh" class="form-control">
                                                     <option value="">Pilih..</option>
-                                                    @for ($i = 1; $i <= 15; $i++)
-                                                        <option value="{{ $i }}">{{ $i }}</option>
-                                                    @endfor
+                                                    <?php for($i = 1; $i <= 15; $i++): ?>
+                                                        <option value="<?php echo e($i); ?>"><?php echo e($i); ?></option>
+                                                    <?php endfor; ?>
                                                 </select>
                                                 </div>
                                             </div>
@@ -770,29 +771,29 @@
     var modaladddata = $('.modaladddata').detach();
     var modaleditdata = $('.modaleditdata').detach();
 
-    @if($errors->any())
+    <?php if($errors->any()): ?>
         Swal.fire({
             title: "Error",
-            text: "@foreach ($errors->all() as $error){{ $error }},@endforeach",
+            text: "<?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php echo e($error); ?>,<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>",
             icon: "error"
         });
         
-    @endif
-    @if(session('suksesdelete'))
+    <?php endif; ?>
+    <?php if(session('suksesdelete')): ?>
         Swal.fire({
             title: "Data ini telah dihapus!",
             text: "Berhasil.",
             icon: "success"
         });
-    @endif
+    <?php endif; ?>
     
-    @if(session('sukses'))
+    <?php if(session('sukses')): ?>
         Swal.fire({
             title: "Sukses",
-            text: "{{session('sukses')}}",
+            text: "<?php echo e(session('sukses')); ?>",
             icon: "success"
         });
-    @endif
+    <?php endif; ?>
     
     
 
@@ -831,7 +832,7 @@
         var id = $(this).attr('id');
         console.log(id);
         $.ajax({
-            url: "{{url('/dash/get_data_stakeholder')}}/"+id,
+            url: "<?php echo e(url('/dash/get_data_stakeholder')); ?>/"+id,
             type: "GET",
             dataType: "json",
             success: function(response) {
@@ -948,7 +949,7 @@
     });
     // $('.nav_sdm').addClass('active');
 </script>
-{{-- <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> --}}
+
 <script>
     $(function () {
         // Set modal sebagai parent dropdown
@@ -1399,6 +1400,7 @@ $(document).on("click", ".editdata", function () {
 });
 
 </script>
-{{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
 
-@endsection
+
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH D:\laragon\www\dashboard-stakeholder\resources\views/stakeholder/stakeholder.blade.php ENDPATH**/ ?>

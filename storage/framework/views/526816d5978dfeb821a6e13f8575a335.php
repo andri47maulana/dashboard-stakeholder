@@ -43,9 +43,9 @@
 <ul class="fixedstyle navbar-nav bg-gradient-primarys sidebar sidebar-dark accordion" id="accordionSidebar">
 
     <!-- Sidebar - Brand -->
-    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{url('/')}}/">
+    <a class="sidebar-brand d-flex align-items-center justify-content-center" href="<?php echo e(url('/')); ?>/">
         <div class="sidebar-brand-icon" style="width: 30%;">
-            <img src="{{url('/')}}{{$public}}/ptpn.png" alt="Logo" style="width: 100%;">
+            <img src="<?php echo e(url('/')); ?><?php echo e($public); ?>/ptpn.png" alt="Logo" style="width: 100%;">
         </div>
         <div class="sidebar-brand-text">
             PTPN 1
@@ -56,7 +56,7 @@
     <hr class="sidebar-divider my-0">
     <!-- Nav Item - Dashboard -->
     <li class="nav-item <?php echo Request::is('dashboard') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/dashboard">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/dashboard">
             <i class="fas fa-fw fa-tachometer-alt"></i>
             <span>Dashboard</span>
         </a>
@@ -65,28 +65,28 @@
     <!-- Divider -->
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('dash/stakeholder') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/dash/stakeholder">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/dash/stakeholder">
             <i class="fas fa-fw fa-book"></i>
             <span>Stakeholder</span>
         </a>
     </li>
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('derajat-hubungan') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/derajat-hubungan">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/derajat-hubungan">
             <i class="fas fa-fw fa-book"></i>
             <span>Derajat Hubungan</span>
         </a>
     </li>
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('peta/peta') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/peta/peta">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/peta/peta">
             <i class="fas fa-fw fa-book"></i>
             <span>Peta</span>
         </a>
     </li>
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('masterdata/data_kebun') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/masterdata/data_kebun">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/masterdata/data_kebun">
             <i class="fas fa-fw fa-book"></i>
             <span>Data Kebun</span>
         </a>
@@ -100,7 +100,7 @@
         </a>
         <div id="collapseRegional" class="collapse" aria-labelledby="headingRegional" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{url('/')}}/peta/peta_region/PTPN I Regional 1"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/peta/peta_region/PTPN I Regional 1"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
                 
             </div>
         </div>
@@ -116,16 +116,16 @@
         </a>
         <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{url('/')}}/dokumen/perizinan"><i class="fas fa-fw fa-file"></i> Perizinan</a>
-                <a class="collapse-item" href="{{url('/')}}/dokumen/sertifikasi"><i class="fas fa-fw fa-certificate"></i> Sertifikasi</a>
-                <a class="collapse-item" href="{{url('/')}}/dokumen/perjanjiankerjasama"><i class="fas fa-fw fa-table"></i> Perjanjian Kerjasama</a>
-                <a class="collapse-item" href="{{url('/')}}/dokumen/mou"><i class="fas fa-fw fa-newspaper"></i> Nota Kesepahaman</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/dokumen/perizinan"><i class="fas fa-fw fa-file"></i> Perizinan</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/dokumen/sertifikasi"><i class="fas fa-fw fa-certificate"></i> Sertifikasi</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/dokumen/perjanjiankerjasama"><i class="fas fa-fw fa-table"></i> Perjanjian Kerjasama</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/dokumen/mou"><i class="fas fa-fw fa-newspaper"></i> Nota Kesepahaman</a>
             </div>
         </div>
     </li>           
     -->
     <!-- Divider -->
-    @if(Auth::user()->hakakses =='Admin')
+    <?php if(Auth::user()->hakakses =='Admin'): ?>
     <!-- Divider -->
     <hr class="sidebar-divider">
     <li class="nav-item">
@@ -136,29 +136,29 @@
         </a>
         <div id="collapseMasterData" class="collapse" aria-labelledby="headingMasterData" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{url('/')}}/masterdata/kebun"><i class="fas fa-fw fa-map-pin"></i>Kebun</a>
-                <a class="collapse-item" href="{{url('/')}}/masterdata/data_kebun"><i class="fas fa-fw fa-map-pin"></i>Data Kebun</a>
-                <a class="collapse-item" href="{{url('/')}}/peta/peta"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
-                <a class="collapse-item" href="{{url('/')}}/derajat-hubungan"><i class="fas fa-fw fa-map-pin"></i>Data Derajat Hubungan</a>
-                <a class="collapse-item" href="{{url('/')}}/masterdata/perizinan"><i class="fas fa-fw fa-list"></i>Daftar Perizinan</a>
-                <a class="collapse-item" href="{{url('/')}}/masterdata/sertifikasi"><i class="fas fa-fw fa-paperclip"></i>Daftar Sertifikasi</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/kebun"><i class="fas fa-fw fa-map-pin"></i>Kebun</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/data_kebun"><i class="fas fa-fw fa-map-pin"></i>Data Kebun</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/peta/peta"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/derajat-hubungan"><i class="fas fa-fw fa-map-pin"></i>Data Derajat Hubungan</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/perizinan"><i class="fas fa-fw fa-list"></i>Daftar Perizinan</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/sertifikasi"><i class="fas fa-fw fa-paperclip"></i>Daftar Sertifikasi</a>
             </div>
         </div>
     </li>       
 
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('user/index') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/user/index">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/user/index">
             <i class="fas fa-users"></i>
             <span>User Management</span>
         </a>
     </li>
-    @endif
+    <?php endif; ?>
 
     <!-- Divider -->
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('func_logout') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/func_logout">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/func_logout">
             <i class="fas fa-sign-out-alt"></i>
             <span>Keluar</span>
         </a>
@@ -195,11 +195,11 @@
         ->count();
     ?>
     <div class="sidebar-card d-none d-lg-flex" style="margin-top: 1rem; background-color: rgb(41 236 58 / 38%);">
-        <p class="text-center mb-2" style="font-size:1.1em; color:#000; margin-bottom: 0 !important;"><strong >Team Member<br>{{$membercount}}</strong></p>
+        <p class="text-center mb-2" style="font-size:1.1em; color:#000; margin-bottom: 0 !important;"><strong >Team Member<br><?php echo e($membercount); ?></strong></p>
     </div>
-    @if(Auth::user()->hakakses =='Admin')
+    <?php if(Auth::user()->hakakses =='Admin'): ?>
     <div class="sidebar-card d-none d-lg-flex" style="background-color: rgb(229 41 236 / 38%);">
-        <p class="text-center mb-2" style="font-size:1.1em; color:#000; margin-bottom: 0 !important;"><strong >Admin<br>{{$admincount}}</strong></p>
+        <p class="text-center mb-2" style="font-size:1.1em; color:#000; margin-bottom: 0 !important;"><strong >Admin<br><?php echo e($admincount); ?></strong></p>
     </div>
-    @endif
-</ul>
+    <?php endif; ?>
+</ul><?php /**PATH D:\laragon\www\dashboard-stakeholder\resources\views/layouts/sidebar.blade.php ENDPATH**/ ?>

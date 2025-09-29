@@ -485,5 +485,151 @@ class MasterDataController extends Controller
     }
 
    }
+
+
+   public function data_kebun()
+    {
+        $user = Auth::user()->region;
+        if ($user === "PTPN I HO") {
+            $units = DB::table('tb_unit')->get(); // query langsung ke tabel units
+        } else {
+            $units = DB::table('tb_unit')->where('region', $user)->get();
+        }
+        return view('masterdata/data_kebun', compact('units'));
+    }
+
+    public function detail_unit($id)
+    {
+        // ambil unit berdasarkan id
+        $unit = DB::table('tb_unit')->where('id', $id)->first();
+
+        // ambil data kebun_json berdasarkan unit_id
+        $kebunJsons = DB::table('kebun_json')->where('unit_id', $id)->get();
+
+        // decode JSON agar bisa dipakai di view
+        foreach ($kebunJsons as $kebun) {
+            $kebun->decoded = json_decode($kebun->json, true);
+        }
+
+        return view('masterdata/detail_unit', compact('unit', 'kebunJsons'));
+    }
+
+    public function store(Request $request)
+    {
+        // Validasi input
+        $request->validate([
+            'unit_id' => 'required|exists:tb_unit,id',
+            'polygon_type' => 'required|in:url,json',
+            'polygon_url' => 'required_if:polygon_type,url|nullable|url',
+            'polygon_json' => 'required_if:polygon_type,json|nullable|string',
+            'judul' => 'required|string',
+        ]);
+
+        $jsonData = null;
+
+        if($request->polygon_type === 'url'){
+            // Ambil JSON dari URL
+            try {
+                $jsonData = file_get_contents($request->polygon_url);
+                if(!$jsonData){
+                    return back()->with('error', 'Gagal mengambil data dari URL.');
+                }
+                // Validasi JSON
+                json_decode($jsonData, true);
+                if(json_last_error() !== JSON_ERROR_NONE){
+                    return back()->with('error', 'Data dari URL bukan JSON valid.');
+                }
+            } catch (\Exception $e){
+                return back()->with('error', 'Error mengambil data dari URL: '.$e->getMessage());
+            }
+        } else {
+            // Ambil JSON dari textarea
+            $jsonData = $request->polygon_json;
+            json_decode($jsonData, true);
+            if(json_last_error() !== JSON_ERROR_NONE){
+                return back()->with('error', 'Data JSON tidak valid.');
+            }
+        }
+
+        // Simpan ke database
+        DB::table('kebun_json')->insert([
+            'unit_id' => $request->unit_id,
+            'json' => $jsonData,
+            'created_at' => now(),
+            'updated_at' => now(),
+            'title' => $request->judul,
+        ]);
+
+        return back()->with('success', 'Polygon berhasil disimpan.');
+    }
+
+    // Update polygon
+    public function update(Request $request, $id)
+    {
+        // dd($id);
+        // dd(DB::table('kebun_json')->where('id', $id)->first());
+        $request->validate([
+            'judul_edit' => 'required|string|max:255',
+            'polygon_type_edit' => 'required|in:url,json',
+            'polygon_url_edit' => 'required_if:polygon_type,url|nullable|url',
+            'polygon_json_edit' => 'required_if:polygon_type,json|nullable',
+        ]);
+
+        // Siapkan data update
+        $data = [
+            'title' => $request->judul_edit,
+            'updated_at' => now(),
+        ];
+        $jsonData = null;
+        if ($request->polygon_type_edit === 'url') {
+            // $data['json'] = json_encode(['tileurl' => $request->polygon_url_edit]);
+            try {
+                $jsonData = file_get_contents($request->polygon_url_edit);
+                if(!$jsonData){
+                    return back()->with('error', 'Gagal mengambil data dari URL.');
+                }
+                // Validasi JSON
+                json_decode($jsonData, true);
+                if(json_last_error() !== JSON_ERROR_NONE){
+                    return back()->with('error', 'Data dari URL bukan JSON valid.');
+                }
+                $data['json'] = $jsonData;
+            } catch (\Exception $e){
+                return back()->with('error', 'Error mengambil data dari URL: '.$e->getMessage());
+            }
+        } else {
+            $decoded = json_decode($request->polygon_json_edit, true);
+            if ($decoded === null) {
+                return back()->withErrors(['polygon_json' => 'JSON tidak valid']);
+            }
+            $data['json'] = json_encode($decoded);
+            
+        }
+        // dd($data['json']);
+        // dd($data);
+        // Update langsung
+        // DB::table('kebun_json')->where('id', $id)->update($data);
+        DB::table('kebun_json')->where('id', $id)->update($data);
+        // $affected =DB::connection('mysql')->table('kebun_json')->where('id',$id)->update($data);
+
+        // if ($affected) {
+        //     dd("Update berhasil, $affected baris terpengaruh");
+        // } else {
+        //     dd("Tidak ada baris yang berubah");
+        // }
+
+
+        return redirect()->back()->with('success', 'Polygon berhasil diupdate!');
+    }
+
+
+
+    // Delete polygon
+    public function destroy($id)
+    {
+        DB::table('kebun_json')->where('id', $id)->delete();
+        return back()->with('success', 'Polygon berhasil dihapus.');
+    }
+
    
 }
