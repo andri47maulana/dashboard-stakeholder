@@ -92,4 +92,25 @@ class DerajatHubunganController extends Controller
         Excel::import(new DerajatHubunganImport, $request->file('file'));
         return back()->with('success', 'Import berhasil!');
     }
+
+    public function isu_store(Request $request)
+    {
+        $request->validate([
+            'id_unit' => 'required|exists:tb_unit,id',
+            'isu_strategis' => 'required|string',
+            'tahun' => 'required|integer',
+        ]);
+
+        $data = [
+            'id_unit' => $request->id_unit,
+            'isu_strategis' => $request->isu_strategis,
+            'tahun' => $request->tahun,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        \DB::table('tb_isu_strategis')->insert($data);
+
+        return response()->json(['success' => true, 'message' => 'Isu strategis berhasil disimpan.']);
+    }
 }

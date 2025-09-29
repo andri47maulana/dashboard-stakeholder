@@ -158,6 +158,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/derajat-hubungan/update/{id}', [DerajatHubunganController::class, 'update'])->name('derajat.update');
     Route::delete('/derajat-hubungan/delete/{id}', [DerajatHubunganController::class, 'destroy'])->name('derajat.delete');
     Route::post('/derajat-hubungan/import', [DerajatHubunganController::class, 'import'])->name('derajat.import');
+    Route::post('/isu/store', [DerajatHubunganController::class, 'isu_store'])->name('isu.store');
 
 });
 

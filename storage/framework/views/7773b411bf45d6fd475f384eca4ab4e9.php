@@ -115,6 +115,15 @@
                             Lihat Detail
                         </button>
 
+                        <button class="btn btn-sm btn-success isuBtn"
+                            data-id="<?php echo e($row->id); ?>"
+                            data-unit="<?php echo e($row->id_unit); ?>"
+                            data-tahun="<?php echo e($row->tahun); ?>"
+                            data-toggle="modal"
+                            data-target="#modalIsu">
+                            Input Isu
+                        </button>
+
                     <button class="btn btn-danger btn-sm deleteBtn" data-id="<?php echo e($row->id); ?>">Delete</button>
                 </td>
             </tr>
@@ -396,6 +405,123 @@
     </form>
   </div>
 </div>
+
+
+
+
+<!-- Modal Input Isu -->
+<div class="modal fade" id="modalIsu" tabindex="-1" aria-labelledby="modalIsuLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form id="formIsu" method="POST" action="<?php echo e(route('isu.store')); ?>">
+        <?php echo csrf_field(); ?>
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalIsuLabel">Input Isu & Desa</h5>
+          <button type="button" class="btn-close" data-dismiss="modal">X</button>
+        </div>
+        <div class="modal-body">
+            
+            <!-- Container Input Dinamis -->
+            <div id="isu-container">
+                <div class="row g-2 isu-row mb-2">
+                    <div class="col-md-3">
+                        <label>Isu</label>
+                        <select name="isu[]" class="form-control" required>
+                            <option value="">Pilih Isu</option>
+                            <option value="Ekonomi">Ekonomi</option>
+                            <option value="Sosial">Sosial & Kesejahteraan</option>
+                            <option value="Lingkungan">Lingkungan</option>
+                            <option value="Pendidikan">Pendidikan</option>
+                            <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label>Keterangan</label>
+                        <textarea name="keterangan[]" class="form-control" required rows="2"></textarea>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-remove">-</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Tombol tambah -->
+            <button type="button" class="btn btn-primary mt-2" id="btn-add">+ Tambah Isu</button>
+
+            <div id="isu-container">
+                <div class="row g-2 isu-row mb-2">
+                    <div class="col-md-3">
+                        <label>Instansi</label>
+                        <select name="instansi[]" class="form-control" required>
+                            <option value="">Pilih Instansi</option>
+                            <option value="Instansi 1">Instansi 1</option>
+                            <option value="Instansi 2">Instansi 2</option>
+                            <option value="Instansi 3">Instansi 3</option>
+                        </select>
+                    </div>
+                    <div class="col-md-8">
+                        <label>Keterangan</label>
+                        <textarea name="keterangan[]" class="form-control" required rows="2"></textarea>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-remove">-</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Tombol tambah -->
+            <button type="button" class="btn btn-primary mt-2" id="btn-add">+ Tambah Isu</button>
+
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+$(document).ready(function(){
+    // Tambah row baru
+    $("#btn-add").click(function(){
+        let newRow = `
+        <div class="row g-2 isu-row mb-2">
+            <div class="col-md-3">
+                <label>Isu</label>
+                <select name="isu[]" class="form-control" required>
+                    <option value="">Pilih Isu</option>
+                    <option value="Ekonomi">Ekonomi</option>
+                    <option value="Sosial">Sosial & Kesejahteraan</option>
+                    <option value="Lingkungan">Lingkungan</option>
+                    <option value="Pendidikan">Pendidikan</option>
+                    <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label>Keterangan</label>
+                <textarea name="keterangan[]" class="form-control" required rows="2"></textarea>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-remove">-</button>
+            </div>
+        </div>`;
+        $("#isu-container").append(newRow);
+    });
+
+    // Hapus row (minimal 1)
+    $(document).on("click", ".btn-remove", function(){
+        if ($(".isu-row").length > 1) {
+            $(this).closest(".isu-row").remove();
+        } else {
+            alert("Minimal harus ada 1 inputan isu.");
+        }
+    });
+});
+</script>
+
+
+
+
+
 
 
 <script>
