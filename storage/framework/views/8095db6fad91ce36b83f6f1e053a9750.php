@@ -70,6 +70,42 @@
             <span>Stakeholder</span>
         </a>
     </li>
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('derajat-hubungan') ? 'active' : ''; ?>">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/derajat-hubungan">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Derajat Hubungan</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('peta/peta') ? 'active' : ''; ?>">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/peta/peta">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Peta</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('masterdata/data_kebun') ? 'active' : ''; ?>">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/masterdata/data_kebun">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Data Kebun</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+    <li class="nav-item">
+        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRegional"
+        aria-expanded="true" aria-controls="collapseRegional">
+        <i class="fas fa-fw fa-bars"></i>
+        <span>Regional</span>
+        </a>
+        <div id="collapseRegional" class="collapse" aria-labelledby="headingRegional" data-parent="#accordionSidebar">
+            <div class="bg-white py-2 collapse-inner rounded">
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/peta/peta_region/PTPN I Regional 1"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
+                
+            </div>
+        </div>
+    </li>
+                
     <!-- Divider 
     <hr class="sidebar-divider">
     <li class="nav-item">
@@ -101,6 +137,9 @@
         <div id="collapseMasterData" class="collapse" aria-labelledby="headingMasterData" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
                 <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/kebun"><i class="fas fa-fw fa-map-pin"></i>Kebun</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/data_kebun"><i class="fas fa-fw fa-map-pin"></i>Data Kebun</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/peta/peta"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
+                <a class="collapse-item" href="<?php echo e(url('/')); ?>/derajat-hubungan"><i class="fas fa-fw fa-map-pin"></i>Data Derajat Hubungan</a>
                 <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/perizinan"><i class="fas fa-fw fa-list"></i>Daftar Perizinan</a>
                 <a class="collapse-item" href="<?php echo e(url('/')); ?>/masterdata/sertifikasi"><i class="fas fa-fw fa-paperclip"></i>Daftar Sertifikasi</a>
             </div>

@@ -28,7 +28,26 @@
     <script src="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/jquery/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    
+    <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css" rel="stylesheet" />
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+        .maplibregl-ctrl-basemaps {
+            background: white;
+            font-family: sans-serif;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .maplibregl-ctrl-basemaps button {
+            display: block;
+            width: 120px;
+            margin: 2px 0;
+            padding: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 
 <body id="page-top">
