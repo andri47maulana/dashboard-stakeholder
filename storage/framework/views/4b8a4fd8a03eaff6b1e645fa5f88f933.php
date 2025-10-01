@@ -1,10 +1,6 @@
 
 
 
-
-
-
-
 <?php $__env->startSection('content'); ?>
 <style>
     .content-body .container {
@@ -39,7 +35,9 @@
 <p class="mb-4">Master Data Kebun PT Perkebunan Nusantara I.</p>
 
 <div class="card shadow mb-4">
-    <div class="container">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
         <h2>Detail Unit: <?php echo e($unit->unit); ?> (<?php echo e($unit->region); ?>)</h2>
         <a href="<?php echo e(route('units.list')); ?>" class="btn btn-secondary mb-3">Kembali</a>
 
@@ -87,7 +85,8 @@
         <?php endif; ?>
     </div>
 </div>
-
+    </div>
+    </div>
 <!-- Modal Single Kebun -->
 <div class="modal fade" id="mapModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl" style="max-width:90%">
@@ -291,122 +290,6 @@ $(document).ready(function(){
 <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
 
 <script>
-// var kebunJsons = <?php echo json_encode($kebunJsons->map(fn($k) => $k->decoded), 15, 512) ?>;
-// var mapSingle, mapAll;
-// var colors = ["#FF5733","#33C1FF","#28A745","#FFC300","#9B59B6","#E67E22"];
-
-// function getColor(index){ return colors[index % colors.length]; }
-
-// // ===== Single Map per Kebun =====
-// $(document).on("click", ".lihat-map", function() {
-//     var index = $(this).data("index");
-//     var json = kebunJsons[index];
-//     var color = getColor(index);
-
-//     // Tutup modal All Map dulu kalau masih terbuka
-//     var modalAllEl = document.getElementById('mapModalAll');
-//     if ($(modalAllEl).hasClass('show')) {
-//         bootstrap.Modal.getInstance(modalAllEl).hide();
-//     }
-
-//     var mapModal = new bootstrap.Modal(document.getElementById('mapModal'), {
-//         backdrop: 'static',
-//         keyboard: true
-//     });
-//     mapModal.show();
-
-//     setTimeout(() => {
-//         if(mapSingle) mapSingle.remove();
-
-//         mapSingle = L.map('mapContainer');
-//         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapSingle);
-
-//         // Pertebal garis polygon
-//         L.vectorGrid.protobuf(json.tileurl, {
-//             vectorTileLayerStyles: {
-//                 [json.id || index]: {
-//                     fillColor: color,
-//                     fillOpacity: 0.5,
-//                     color: color,
-//                     weight: 3 // garis diperlebar
-//                 }
-//             },
-//             interactive: true
-//         }).addTo(mapSingle);
-
-//         if(json.bounds?.length === 4){
-//             mapSingle.fitBounds([[json.bounds[1],json.bounds[0]], [json.bounds[3],json.bounds[2]]]);
-//         } else {
-//             mapSingle.setView([json.center[1], json.center[0]], 14);
-//         }
-//     }, 300);
-// });
-
-// // ===== Semua Map Kebun =====
-// $(document).on("click", ".lihat-mapall", function() {
-//     var mapModal = new bootstrap.Modal(document.getElementById('mapModalAll'), {
-//         backdrop: 'static',
-//         keyboard: true
-//     });
-//     mapModal.show();
-
-//     setTimeout(() => {
-//         if(mapAll) mapAll.remove();
-
-//         mapAll = L.map('mapContainerAll');
-//         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapAll);
-
-//         var allBounds = L.latLngBounds([]);
-//         var legendHtml = '<div class="map-legend"><b>Legend:</b><br>';
-
-//         kebunJsons.forEach((json, index) => {
-//             var color = getColor(index);
-
-//             L.vectorGrid.protobuf(json.tileurl, {
-//                 vectorTileLayerStyles: {
-//                     [json.id || index]: {
-//                         fillColor: color,
-//                         fillOpacity: 0.5,
-//                         color: color,
-//                         weight: 3 // garis diperlebar
-//                     }
-//                 },
-//                 interactive: true
-//             }).addTo(mapAll).bindPopup(`<b>${json.name}</b>`).on('click', function(e){
-//                 // Pastikan modal All Map tertutup dulu
-//                 var allModalInstance = bootstrap.Modal.getInstance(document.getElementById('mapModalAll'));
-//                 if(allModalInstance){
-//                     allModalInstance.hide();
-//                 }
-//                 // Delay sedikit agar modal tertutup sepenuhnya sebelum memanggil modal single
-//                 setTimeout(() => {
-//                     $('.lihat-map').eq(index).click();
-//                 }, 350); // sesuaikan delay jika perlu
-//             });
-
-//             if(json.bounds?.length === 4){
-//                 allBounds.extend([[json.bounds[1],json.bounds[0]], [json.bounds[3],json.bounds[2]]]);
-//             }
-
-//             legendHtml += `<div><span class="legend-color" style="background:${color}"></span>${json.name}</div>`;
-//         });
-
-//         if(allBounds.isValid()){
-//             mapAll.fitBounds(allBounds, { padding:[30,30] });
-//         }
-
-//         // Legend
-//         var legend = L.control({position: 'topright'});
-//         legend.onAdd = function() {
-//             var div = L.DomUtil.create('div', 'map-legend');
-//             div.innerHTML = legendHtml;
-//             return div;
-//         };
-//         legend.addTo(mapAll);
-
-//         mapAll.invalidateSize();
-//     }, 300);
-// });
 var kebunJsons = <?php echo json_encode($kebunJsons->map(fn($k) => $k->decoded), 15, 512) ?>;
 var mapSingle, mapAll;
 var colors = ["#FF5733","#33C1FF","#28A745","#FFC300","#9B59B6","#E67E22"];

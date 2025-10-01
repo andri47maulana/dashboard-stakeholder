@@ -14,16 +14,16 @@
     .content-body {
         padding: 3px!important;
     }
-    .marker {
-  position: absolute;
-  width: 12px;
-  height: 12px;
-  background: #e74c3c;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 5px rgba(0,0,0,0.3);
-  cursor: pointer;
-  z-index: 3;
+   .marker {
+    position: absolute;
+    width: 1.5%;  /* ukurannya juga responsif */
+    aspect-ratio: 1/1; /* supaya tetap bulat */
+    background: #e74c3c;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    cursor: pointer;
+    z-index: 3;
 }
 
 .marker::after {
@@ -117,143 +117,29 @@
 {{-- <div class="card shadow mb-4">
     <img src="{{url('/')}}{{$public}}/kebunteh.jpg" style="width: 100%; height: auto;">
 </div> --}}
-<div class="card shadow mb-4" style="position: relative; overflow: hidden;">
+<div class="card shadow mb-4 relative overflow-hidden">
     <!-- background image -->
     <img src="{{ url('/') }}{{ $public }}/kebunteh.jpg"
          alt="Kebun Teh"
-         style="display:block; width:100%; height:auto; filter: brightness(30%);">
+         class="w-full h-auto brightness-50">
 
     <!-- overlay peta -->
-    <img src="{{ url('/') }}{{ $public }}/id.svg"
+    <div class="absolute inset-0">
+        <img src="{{ url('/') }}{{ $public }}/id.svg"
          alt="Peta Indonesia"
          style="position:absolute; top:0; left:0; width:100%; height:100%; 
                 object-fit:contain; z-index:2; opacity:0.9;">
-
-    <div class="marker" style="
-        position:absolute; 
-        top:30%; left:11%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 1 - Sumatera Utara')" --}}
-        data-region="PTPN I Regional 1"
-        title="Regional 1 - Sumatera Utara">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:61%; left:25%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        data-region="PTPN I Regional 2"
-        {{-- onclick="alert('Regional 2 - Jawa Barat')" --}}
-        title="Regional 2 - Jawa Barat">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:62%; left:34%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 3 - Jawa Tengah')" --}}
-        data-region="PTPN I Regional 3"
-        title="Regional 3 - Jawa Tengah">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:65%; left:40%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 4 - Jawa Timur`')" --}}
-        data-region="PTPN I Regional 4"
-        title="Regional 4 - Jawa Timur">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:65%; left:42%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 5 - Jawa Timur`')" --}}
-        data-region="PTPN I Regional 5"
-        title="Regional 5 - Jawa Timur">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:26%; left:8%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 1 - Sumatera Utara')" --}}
-        data-region="PTPN I Regional 6"
-        title="Regional 6 - Aceh">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:56%; left:23%;  
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 7 - Lampung')" --}}
-        data-region="PTPN I Regional 7"
-        title="Regional 7 - Lampung">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:56%; left:53%;  
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        {{-- onclick="alert('Regional 8 - Makasar')" --}}
-        data-region="PTPN I Regional 8"
-        title="Regional 8 - Makasar">
-    </div>
-    <div class="marker" style="
-        position:absolute; 
-        top:60%; left:26%; 
-        width:20px; height:20px; 
-        background:#e74c3c;         /* warna merah */
-        border:2px solid #fff;      /* outline putih biar kontras */
-        border-radius:50%; 
-        box-shadow:0 0 5px rgba(0,0,0,0.3); /* bayangan halus */
-        cursor:pointer; 
-        z-index:3;"
-        data-region="PTPN I HO"
-        {{-- onclick="alert('Regional 2 - Jawa Barat')" --}}
-        title="Regional 2 - Jawa Barat">
+        
+        <!-- marker contoh -->
+        <div class="marker" style="top:30%; left:11%;" data-region="PTPN I Regional 1" title="Regional 1 - Sumatera Utara"></div>
+        <div class="marker" style="top:61%; left:25%;" data-region="PTPN I Regional 2" title="Regional 2 - Jawa Barat"></div>
+        <div class="marker" style="top:62%; left:34%;" data-region="PTPN I Regional 3" title="Regional 3 - Jawa Tengah"></div>
+        <div class="marker" style="top:65%; left:40%;" data-region="PTPN I Regional 4" title="Regional 4 - Jawa Timur"></div>
+        <div class="marker" style="top:65%; left:42%;" data-region="PTPN I Regional 5" title="Regional 5 - Jawa Timur"></div>
+        <div class="marker" style="top:26%; left:8%;" data-region="PTPN I Regional 6" title="Regional 6 - Aceh"></div>
+        <div class="marker" style="top:56%; left:23%;" data-region="PTPN I Regional 7" title="Regional 7 - Lampung"></div>
+        <div class="marker" style="top:56%; left:53%;" data-region="PTPN I Regional 8" title="Regional 8 - Makasar"></div>
+        <div class="marker" style="top:60%; left:26%;" data-region="PTPN I HO" title="Head Office"></div>
     </div>
 </div>
 

@@ -68,101 +68,32 @@ class PetaController extends Controller
         return response()->json($data);
     }
 
-
-    // public function peta_regionx($region)
-    // {
-    //     $user = Auth::user()->region;
-    //     // dd($region);
-    //     // Ambil semua json polygon
-    //     $kebunJsons = DB::table('kebun_json as kj')
-    //         ->leftjoin('tb_unit as u', 'u.id', '=', 'kj.unit_id')
-    //         ->where('u.region', $region)
-    //         ->select('kj.*', 'u.unit as nm_unit', 'u.region as nm_region')
-    //         ->get()
-    //         ->map(function ($item) {
-    //             $item->decoded = json_decode($item->json, true);
-    //             return $item;
-    //         });
-    //         // dd($kebunJsons);
-    //     $units = DB::table('tb_unit')
-    //             ->where('region', $region)
-    //             ->select('id', 'unit')
-    //             ->orderBy('unit')
-    //             ->get();
-
-    //     // Ambil derajat_hubungan
-    //     $derajatHubungan = DB::table('tb_derajat_hubungan')
-    //         ->select(
-    //             'id', 'id_unit', 'lingkungan', 'ekonomi', 'pendidikan', 'sosial_kesesjahteraan',
-    //             'okupasi', 'skor_socmap', 'prioritas_socmap', 'kepuasan', 'kontribusi',
-    //             'komunikasi', 'kepercayaan', 'keterlibatan', 'indeks_kepuasan',
-    //             'derajat_hubungan', 'deskripsi', 'tahun','derajat_kepuasan'
-    //         )
-    //         ->get()
-    //         ->groupBy('id_unit'); // biar mudah dicari per unit
-
-    //     return view('peta/peta_region', compact('units', 'kebunJsons', 'derajatHubungan'));
-    // }
-
-    // // public function getRegionalData($region)
-    //  public function peta_region($region)
-    // {
-    //     // ambil unit di region tertentu
-    //     $units = DB::table('tb_unit')
-    //         ->where('region', $region)
-    //         ->pluck('id'); // hanya ambil ID unit
-    //         $unitsx = DB::table('tb_unit')
-    //         ->where('region', $region)
-    //         ->count('id'); // hanya ambil ID unit
-    //         // ->pluck('id'); // hanya ambil ID unit
-    //     dd($unitsx);
-    //     if ($units->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'Tidak ada unit pada region ' . $region
-    //         ], 404);
-    //     }
-
-    //     // ambil data derajat_hubungan berdasarkan unit di region tsb
-    //     $data = DB::table('tb_derajat_hubungan as dh')
-    //         ->join('tb_unit as u', 'u.id', '=', 'dh.id_unit')
-    //         ->whereIn('u.id', $units)
-    //         ->where('dh.tahun', date('Y')) // filter tahun berjalan
-    //         ->select(
-    //             DB::raw('AVG(dh.kepuasan) as avg_kepuasan'),
-    //             DB::raw('AVG(dh.kontribusi) as avg_kontribusi'),
-    //             DB::raw('AVG(dh.komunikasi) as avg_komunikasi'),
-    //             DB::raw('AVG(dh.kepercayaan) as avg_kepercayaan'),
-    //             DB::raw('AVG(dh.keterlibatan) as avg_keterlibatan'),
-    //             DB::raw('AVG(dh.indeks_kepuasan) as avg_indeks_kepuasan')
-    //         )
-    //         ->first();
-    //             // dd($data);
-    //     // hitung jumlah P1 - P4 dari derajat_hubungan
-    //     $counts = DB::table('tb_derajat_hubungan as dh')
-    //         ->join('tb_unit as u', 'u.id', '=', 'dh.id_unit')
-    //         ->whereIn('u.id', $units)
-    //         ->where('dh.tahun', date('Y'))
-    //         ->select(
-    //             DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P1' THEN 1 ELSE 0 END) as total_p1"),
-    //             DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P2' THEN 1 ELSE 0 END) as total_p2"),
-    //             DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P3' THEN 1 ELSE 0 END) as total_p3"),
-    //             DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P4' THEN 1 ELSE 0 END) as total_p4")
-    //         )
-    //         ->first();
-
-    //     return response()->json([
-    //         'region' => $region,
-    //         'rata_rata' => $data,
-    //         'jumlah_prioritas' => $counts
-    //     ]);
-    // }
-    public function peta_region($region)
+    public function peta_region($region = null)
     {
-        $userRegion = Auth::user()->region; 
-        // kalau mau pakai region user, bisa ganti $region dengan $userRegion
+        $userRegion = Auth::user()->region;
+        $region = $region ?? $userRegion;
 
-        // --- AMBIL POLYGON JSON ---
-        $kebunJsons = DB::table('kebun_json as kj')
+        // Tahun unik
+        $tahun = DB::table('tb_derajat_hubungan as dh')
+            ->join('tb_unit as u','u.id','=','dh.id_unit')
+            ->where('u.region', $region)
+            ->distinct('dh.tahun')
+            ->pluck('dh.tahun');
+
+        // Polygon JSON
+        $kebunJsons2 = DB::table('kebun_json as kj')
+            ->join('tb_unit as u','u.id','=','kj.unit_id')
+            ->where('u.region', $region)
+            ->select('kj.*','u.unit as nm_unit','u.region as nm_region')
+            ->get()
+            ->map(fn($item) => (object)[
+                'id' => $item->id,
+                'unit_id' => $item->unit_id,
+                'decoded' => json_decode($item->json, true)
+            ]);
+        
+        // dd($kebunJsons2);
+            $kebunJsons = DB::table('kebun_json as kj')
             ->leftJoin('tb_unit as u', 'u.id', '=', 'kj.unit_id')
             ->where('u.region', $region)
             ->select('kj.*', 'u.unit as nm_unit', 'u.region as nm_region')
@@ -171,35 +102,154 @@ class PetaController extends Controller
                 $item->decoded = json_decode($item->json, true);
                 return $item;
             });
-
-        // --- AMBIL UNIT DI REGION ---
+            // dd($kebunJsons,$kebunJsons1);
+        // Unit di region
         $units = DB::table('tb_unit')
             ->where('region', $region)
-            ->select('id', 'unit')
+            ->select('id','unit')
             ->orderBy('unit')
             ->get();
 
         $unitIds = $units->pluck('id');
         $jlhUnit = $unitIds->count();
 
-        // --- DERAJAT HUBUNGAN PER UNIT ---
-        $derajatHubungan = DB::table('tb_derajat_hubungan')
-            ->whereIn('id_unit', $unitIds)
-            ->where('tahun', date('Y'))
-            ->select(
-                'id', 'id_unit', 'lingkungan', 'ekonomi', 'pendidikan', 'sosial_kesesjahteraan',
-                'okupasi', 'skor_socmap', 'prioritas_socmap', 'kepuasan', 'kontribusi',
-                'komunikasi', 'kepercayaan', 'keterlibatan', 'indeks_kepuasan',
-                'derajat_hubungan', 'deskripsi', 'tahun','derajat_kepuasan'
-            )
-            ->get()
-            ->groupBy('id_unit');
+        // Ambil data default tahun = sekarang-1
+        $yearNow = date('Y');
+        $defaultYear = $yearNow - 1;
 
-        // --- RATA-RATA NILAI (UNTUK CHART GARIS) ---
-        $dataRata = DB::table('tb_derajat_hubungan as dh')
-            ->join('tb_unit as u', 'u.id', '=', 'dh.id_unit')
-            ->whereIn('u.id', $unitIds)
-            ->where('dh.tahun', date('Y'))
+        // Derajat hubungan & rata-rata
+        $rataRata = $this->getRataRata($unitIds, $defaultYear);
+        $jumlahPrioritas = $this->getJumlahPrioritas($unitIds, $defaultYear);
+        $countsPerYear = $this->getCountsPerYear($unitIds);
+
+        return view('peta/peta_region', [
+            'units' => $units,
+            'kebunJsons' => $kebunJsons,
+            'region' => $region,
+            'jlhUnit' => $jlhUnit,
+            'tahun' => $tahun,
+            'yearNow' => $yearNow,
+            'rataRata' => $rataRata,
+            'jumlahPrioritas' => $jumlahPrioritas,
+            'countsPerYear' => $countsPerYear,
+        ]);
+    }
+
+    // --- ENDPOINT AJAX UNTUK UPDATE DATA BERDASARKAN TAHUN ---
+    public function dataByYear($region, $tahun)
+{
+    $units = DB::table('tb_unit')->where('region',$region)->pluck('id');
+
+    $rataRata = $this->getRataRata($units, $tahun);
+    $jumlahPrioritas = $this->getJumlahPrioritas($units, $tahun);
+    $countsPerYear = $this->getCountsPerYear($units);
+
+    // ambil kebun json + derajat_hubungan
+    $kebunJsons = DB::table('kebun_json as kj')
+        ->join('tb_unit as u', 'u.id', '=', 'kj.unit_id')
+        ->leftJoin('tb_derajat_hubungan as dh', function($join) use ($tahun) {
+            $join->on('dh.id_unit','=','u.id')
+                 ->where('dh.tahun',$tahun);
+        })
+        ->where('u.region', $region)
+        ->select(
+            'kj.id','kj.unit_id','kj.json',
+            'u.unit as nm_unit',
+            'dh.derajat_hubungan'
+        )
+        ->get()
+        ->map(function($item){
+            return [
+                'id' => $item->id,
+                'unit_id' => $item->unit_id,
+                'decoded' => json_decode($item->json, true),
+                'derajat' => $item->derajat_hubungan
+            ];
+        });
+
+    return response()->json([
+        'rataRata' => $rataRata,
+        'jumlahPrioritas' => $jumlahPrioritas,
+        'countsPerYear' => $countsPerYear,
+        'jlhUnit' => count($units),
+        'kebunJsons' => $kebunJsons
+    ]);
+}
+
+
+    // --- ENDPOINT AJAX UNTUK MODAL UNIT DETAIL ---
+    public function unitDetail($unitId, $tahun)
+    {
+        $unit = DB::table('tb_unit')->where('id',$unitId)->first();
+        // dd($tahun);
+            $kebunJsons = DB::table('kebun_json')
+                ->where('unit_id', $unitId)
+                ->get()
+                ->map(function($item){
+                    return json_decode($item->json, true); // return langsung hasil decode
+                });
+            // dd($kebunJsons);
+        $derajatHubungan = DB::table('tb_derajat_hubungan')
+            ->where('id_unit',$unitId)
+            ->where('tahun',$tahun)->first();
+        if ($derajatHubungan) {
+            // dd($derajatHubungan->id);
+            $isu=DB::table('tb_isu_detail')->where('derajat_id',$derajatHubungan->id)->get();
+            $desa=DB::table('tb_isu_desa')->leftjoin('wilayah as w','w.kode','=','tb_isu_desa.desa_id')
+                    ->where('derajat_id',$derajatHubungan->id)->select('tb_isu_desa.*','w.nama as nama')
+                    ->get();
+            $lembaga=DB::table('tb_isu_instansi')->leftjoin('stakeholder as i','i.id','=','tb_isu_instansi.instansi_id')
+                    ->where('derajat_id',$derajatHubungan->id)->select('tb_isu_instansi.*','i.nama_instansi as nama')
+                    ->get();
+            $okupasi=DB::table('tb_isu_okupasi')
+                    ->where('derajat_id',$derajatHubungan->id)
+                    ->get();
+            // dd($desa);
+            // Gabungkan data isu
+            $isuDetails = DB::table('tb_derajat_hubungan as derajat')
+                ->leftJoin('tb_isu_detail as detail','detail.derajat_id','=','derajat.id')
+                ->leftJoin('tb_isu_desa as desa','desa.derajat_id','=','derajat.id')
+                ->leftJoin('tb_isu_instansi as inst','inst.derajat_id','=','derajat.id')
+                ->leftJoin('tb_isu_okupasi as okup','okup.derajat_id','=','derajat.id')
+                ->where('derajat.id_unit',$unitId)
+                ->where('derajat.tahun',$tahun)
+                ->select(
+                    'detail.isu as isu','detail.keterangan as ket_isu',
+                    'desa.desa_id as desa','inst.instansi_id as instansi','okup.okupasi as okupasi'
+                )
+                ->get();
+            // dd($unitId);
+            return response()->json([
+                'unit' => $unit,
+                'derajatHubungan' => $derajatHubungan,
+                'isuDetails' => $isuDetails,
+                'isu' => $isu,
+                'desa' => $desa,
+                'lembaga' => $lembaga,
+                'okupasi' => $okupasi,
+                'kebunJsons' => $kebunJsons,
+            ]);
+        } else {
+            return response()->json([
+                'unit' => $unit,
+                'derajatHubungan' => null,
+                'isuDetails' => [],
+                'isu' => [],
+                'desa' => [],
+                'lembaga' => [],
+                'okupasi' => [],
+                'kebunJsons' => $kebunJsons,
+            ]);
+        }
+            
+    }
+
+    // ----------------------- FUNCTION BANTU -----------------------
+    private function getRataRata($unitIds, $tahun)
+    {
+        return DB::table('tb_derajat_hubungan as dh')
+            ->whereIn('dh.id_unit',$unitIds)
+            ->where('dh.tahun',$tahun)
             ->select(
                 DB::raw('AVG(dh.kepuasan) as avg_kepuasan'),
                 DB::raw('AVG(dh.kontribusi) as avg_kontribusi'),
@@ -207,53 +257,68 @@ class PetaController extends Controller
                 DB::raw('AVG(dh.kepercayaan) as avg_kepercayaan'),
                 DB::raw('AVG(dh.keterlibatan) as avg_keterlibatan'),
                 DB::raw('AVG(dh.indeks_kepuasan) as avg_indeks_kepuasan')
-            )
-            ->first();
+            )->first();
+    }
 
-        // --- JUMLAH P1 - P4 (UNTUK DONUT CHART) ---
-        $counts = DB::table('tb_derajat_hubungan as dh')
-            ->join('tb_unit as u', 'u.id', '=', 'dh.id_unit')
-            ->whereIn('u.id', $unitIds)
-            ->where('dh.tahun', date('Y'))
+    private function getJumlahPrioritas($unitIds, $tahun)
+    {
+        return DB::table('tb_derajat_hubungan as dh')
+            ->whereIn('dh.id_unit',$unitIds)
+            ->where('dh.tahun',$tahun)
             ->select(
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P1' THEN 1 ELSE 0 END) as total_p1"),
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P2' THEN 1 ELSE 0 END) as total_p2"),
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P3' THEN 1 ELSE 0 END) as total_p3"),
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P4' THEN 1 ELSE 0 END) as total_p4")
-            )
-            ->first();
-        
-        $yearNow = date('Y');
-        $yearStart = $yearNow - 4; // 5 tahun ke belakang termasuk tahun sekarang
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P1' THEN 1 ELSE 0 END) as total_p1"),
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P2' THEN 1 ELSE 0 END) as total_p2"),
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P3' THEN 1 ELSE 0 END) as total_p3"),
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P4' THEN 1 ELSE 0 END) as total_p4")
+            )->first();
+    }
 
-        $countsPerYear = DB::table('tb_derajat_hubungan as dh')
-            ->join('tb_unit as u', 'u.id', '=', 'dh.id_unit')
-            ->whereIn('u.id', $unitIds)
-            ->whereBetween('dh.tahun', [$yearStart, $yearNow])
+    private function getCountsPerYear($unitIds)
+    {
+        $yearNow = date('Y');
+        $yearStart = $yearNow - 4;
+
+        return DB::table('tb_derajat_hubungan as dh')
+            ->whereIn('dh.id_unit',$unitIds)
+            ->whereBetween('dh.tahun',[$yearStart,$yearNow])
             ->select(
                 'dh.tahun',
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P1' THEN 1 ELSE 0 END) as total_p1"),
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P2' THEN 1 ELSE 0 END) as total_p2"),
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P3' THEN 1 ELSE 0 END) as total_p3"),
-                DB::raw("SUM(CASE WHEN dh.derajat_hubungan = 'P4' THEN 1 ELSE 0 END) as total_p4")
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P1' THEN 1 ELSE 0 END) as total_p1"),
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P2' THEN 1 ELSE 0 END) as total_p2"),
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P3' THEN 1 ELSE 0 END) as total_p3"),
+                DB::raw("SUM(CASE WHEN dh.derajat_hubungan='P4' THEN 1 ELSE 0 END) as total_p4")
             )
             ->groupBy('dh.tahun')
             ->orderBy('dh.tahun')
             ->get();
-
-            // dd($dataRata);
-        // --- KEMBALIKAN KE VIEW ---
-        return view('peta/peta_region', [
-            'units' => $units,
-            'kebunJsons' => $kebunJsons,
-            'derajatHubungan' => $derajatHubungan,
-            'rataRata' => $dataRata,
-            'jumlahPrioritas' => $counts,
-            'region' => $region,
-            'jlhUnit' => $jlhUnit,
-            'countsPerYear' => $countsPerYear,
-            'yearNow' => $yearNow,
-        ]);
     }
+
+    public function petaJsonByYear($region, $tahun)
+    {
+        $kebunJsons = DB::table('kebun_json as kj')
+            ->join('tb_unit as u', 'u.id', '=', 'kj.unit_id')
+            ->leftJoin('tb_derajat_hubungan as dh', function($join) use ($tahun) {
+                $join->on('dh.id_unit','=','u.id')
+                    ->where('dh.tahun',$tahun);
+            })
+            ->where('u.region', $region)
+            ->select(
+                'kj.id','kj.unit_id','kj.json',
+                'u.unit as nm_unit','u.region as nm_region',
+                'dh.derajat_hubungan','dh.tahun'
+            )
+            ->get()
+            ->map(function($item){
+                return [
+                    'id' => $item->id,
+                    'unit_id' => $item->unit_id,
+                    'decoded' => json_decode($item->json,true),
+                    'derajat' => $item->derajat_hubungan
+                ];
+            });
+
+        return response()->json($kebunJsons);
+    }
+
 
 }
