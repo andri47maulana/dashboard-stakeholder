@@ -9,6 +9,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\WilayahController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PetaController;
+use App\Http\Controllers\PolygonController;
 use App\Http\Controllers\DerajatHubunganController;
 /*
 |--------------------------------------------------------------------------
@@ -164,6 +165,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/wilayah/desa', [DerajatHubunganController::class, 'getDesa'])->name('wilayah.desa');
     Route::get('/isu/show/{id}', [DerajatHubunganController::class, 'show'])->name('isu.show');
     Route::put('/isu/update', [DerajatHubunganController::class, 'update_isu'])->name('isu.update');
+
+    Route::get('polygons', [PolygonController::class, 'index']);
+    Route::get('polygons/data', [PolygonController::class, 'getPolygons']);
+    Route::get('/polygons', [PolygonController::class, 'index']);
+    Route::post('/polygons/check-point', [PolygonController::class, 'checkPoint'])->name('polygons.check');
 
 
 });

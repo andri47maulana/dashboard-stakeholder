@@ -198,12 +198,39 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // ================== MAP UTAMA ==================
+    // ================== KONFIGURASI PETA GLOBAL ==================
+    // Definisikan 'resep' basemap di sini agar bisa digunakan kedua peta
+    const basemapConfig = {
+        osm: {
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            options: { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }
+        },
+        satellite: {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            options: { attribution: 'Tiles &copy; Esri &mdash; Source: Esri...', maxZoom: 19 }
+        },
+        topo: {
+            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            options: { attribution: 'Map data: &copy; OSM contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17 }
+        }
+    };
+
+    // ================== INISIALISASI PETA UTAMA ==================
     var map = L.map('map', { zoomControl: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
+    map.createPane('polygonPaneMain');
+    map.getPane('polygonPaneMain').style.zIndex = 450;
+
+    // Buat instance layer KHUSUS untuk peta utama dari resep di atas
+    const mainMapLayers = {
+        "Peta Jalan": L.tileLayer(basemapConfig.osm.url, basemapConfig.osm.options),
+        "Citra Satelit": L.tileLayer(basemapConfig.satellite.url, basemapConfig.satellite.options),
+        "Topografi": L.tileLayer(basemapConfig.topo.url, basemapConfig.topo.options)
+    };
+
+    // Tambahkan kontrol dan basemap default ke peta utama
+    mainMapLayers["Peta Jalan"].addTo(map);
+    L.control.layers(mainMapLayers).addTo(map);
+
     map.fitBounds([[-11,95],[6,141]]);
     L.control.zoom({ position: 'topright' }).addTo(map);
 
@@ -213,11 +240,10 @@ document.addEventListener("DOMContentLoaded", function () {
         polygonLayers = [];
     }
 
-    // ================== CHARTS ==================
+    // ================== CHARTS (Tidak ada perubahan) ==================
     const region = "{{ $region }}";
     let selectedYear = parseInt(document.getElementById('tahun').value) || {{ $yearNow-1 }};
-    let selectedUnitId = null;
-
+    
     let pieCtx = document.getElementById('pieChartPrioritas').getContext('2d');
     let pieChart = new Chart(pieCtx, {
         type: 'pie',
@@ -238,21 +264,19 @@ document.addEventListener("DOMContentLoaded", function () {
         options:{ responsive:true, scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } } }
     });
 
-    // ================== FETCH DATA PER TAHUN ==================
+    // ================== FUNGSI UNTUK MEMUAT DATA ==================
     function loadDataByYear(year){
         fetch(`/peta/peta_region/data/${region}/${year}`)
         .then(res=>res.json())
         .then(data=>{
-            // --- update pie ---
+            // Update Pie Chart
             pieChart.data.datasets[0].data = [
-                data.jumlahPrioritas.total_p1,
-                data.jumlahPrioritas.total_p2,
-                data.jumlahPrioritas.total_p3,
-                data.jumlahPrioritas.total_p4
+                data.jumlahPrioritas.total_p1, data.jumlahPrioritas.total_p2,
+                data.jumlahPrioritas.total_p3, data.jumlahPrioritas.total_p4
             ];
             pieChart.update();
 
-            // --- update line ---
+            // Update Line Chart
             lineChart.data.labels = data.countsPerYear.map(i=>i.tahun);
             lineChart.data.datasets = [
                 {label:'P1', data:data.countsPerYear.map(i=>i.total_p1), borderColor:'#ff0000d5', backgroundColor:'#ff0000d5', tension:0.3},
@@ -262,7 +286,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ];
             lineChart.update();
 
-            // --- update tabel rata-rata ---
+            // Update Tabel Rata-rata
             document.getElementById('avg_kepuasan').innerText = data.rataRata.avg_kepuasan ?? '-';
             document.getElementById('avg_kontribusi').innerText = data.rataRata.avg_kontribusi ?? '-';
             document.getElementById('avg_komunikasi').innerText = data.rataRata.avg_komunikasi ?? '-';
@@ -271,56 +295,44 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('avg_indeks').innerText = data.rataRata.avg_indeks_kepuasan ?? '-';
             document.getElementById('jlhUnit').innerText = data.jlhUnit ?? '-';
 
-            // --- update polygon di map utama ---
+            // Update Poligon di Peta Utama
             const derajatColors = { "P1":"#ff0000d5","P2":"#fd7e14","P3":"#ffff00","P4":"#28a745" };
             clearPolygons();
             let bounds = L.latLngBounds([]);
-
             data.kebunJsons.forEach(jsonData=>{
                 let color = derajatColors[jsonData.derajat] || "#999";
                 let layer = L.vectorGrid.protobuf(jsonData.decoded.tileurl, {
-                    vectorTileLayerStyles: {
-                        [jsonData.decoded.id]: {
-                            weight: 2, color: color, fill: true, fillColor: color, fillOpacity: 0.5
-                        }
-                    }
+                    pane: 'polygonPaneMain',
+                    vectorTileLayerStyles: { [jsonData.decoded.id]: { weight: 2, color: color, fill: true, fillColor: color, fillOpacity: 0.5 } }
                 }).addTo(map);
-
                 polygonLayers.push(layer);
-
                 if(jsonData.decoded.bounds?.length === 4){
-                    bounds.extend([
-                        [jsonData.decoded.bounds[1], jsonData.decoded.bounds[0]],
-                        [jsonData.decoded.bounds[3], jsonData.decoded.bounds[2]]
-                    ]);
+                    bounds.extend([[jsonData.decoded.bounds[1], jsonData.decoded.bounds[0]],[jsonData.decoded.bounds[3], jsonData.decoded.bounds[2]]]);
                 }
             });
-
             if(bounds.isValid()) map.fitBounds(bounds,{padding:[20,20]});
         })
-        .catch(err=>console.error(err));
+        .catch(err=>console.error("Gagal memuat data tahunan:", err));
     }
 
-    // panggil default
+    // Panggil data untuk pertama kali
     loadDataByYear(selectedYear);
 
-    // event tahun
+    // Event listener untuk filter tahun
     document.getElementById('tahun').addEventListener('change', function(){
         selectedYear = parseInt(this.value);
         loadDataByYear(selectedYear);
     });
 
-    // ================== EVENT UNIT (MODAL DETAIL) ==================
+    // ================== LOGIKA UNTUK MODAL DETAIL UNIT ==================
     let mapAll = null;
     document.getElementById('id_unit').addEventListener('change', function(){
-        selectedUnitId = this.value;
+        const selectedUnitId = this.value;
         if(!selectedUnitId) return;
 
         fetch(`/peta/unit/detail/${selectedUnitId}/${selectedYear}`)
         .then(res=>res.json())
         .then(data=>{
-            const kebunJsons = data.kebunJsons;
-
             let color = "#0084ff"; 
             if (data.derajatHubungan && data.derajatHubungan.derajat_hubungan) {
                 switch (data.derajatHubungan.derajat_hubungan) {
@@ -331,77 +343,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             }
 
-            // hapus map lama
-            // if (mapAll) { mapAll.remove(); mapAll = null; }
-            // mapAll = L.map('mapContainerAll');
-            // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapAll);
-
-            // var allBounds = L.latLngBounds([]);
-            // kebunJsons.forEach(json=>{
-            //     L.vectorGrid.protobuf(json.tileurl, {
-            //         vectorTileLayerStyles: {
-            //             [json.id]: {
-            //                 weight: 3, color: color, fill: true, fillColor: color, fillOpacity: 0.5
-            //             }
-            //         }, interactive: false
-            //     }).addTo(mapAll);
-
-            //     if (json.bounds?.length === 4) {
-            //         allBounds.extend([[json.bounds[1],json.bounds[0]], [json.bounds[3],json.bounds[2]]]);
-            //     }
-            // });
-
-            // if(allBounds.isValid()){
-            //     mapAll.fitBounds(allBounds, { padding:[50,50], maxZoom:12 });
-            //     mapAll.setZoom(mapAll.getZoom()-1);
-            // }
             if (mapAll) { 
                 mapAll.remove(); 
                 mapAll = null; 
             }
             mapAll = L.map('mapContainerAll');
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapAll);
+            mapAll.createPane('polygonPaneModal');
+            mapAll.getPane('polygonPaneModal').style.zIndex = 450;
+            
+            // Buat instance layer BARU dan KHUSUS untuk peta modal
+            const modalMapLayers = {
+                "Peta Jalan": L.tileLayer(basemapConfig.osm.url, basemapConfig.osm.options),
+                "Citra Satelit": L.tileLayer(basemapConfig.satellite.url, basemapConfig.satellite.options),
+                "Topografi": L.tileLayer(basemapConfig.topo.url, basemapConfig.topo.options)
+            };
+            modalMapLayers["Peta Jalan"].addTo(mapAll);
+            L.control.layers(modalMapLayers).addTo(mapAll);
 
             var allBounds = L.latLngBounds([]);
-
-            // render polygon jika ada
-            kebunJsons.forEach(json=>{
+            data.kebunJsons.forEach(json=>{
                 L.vectorGrid.protobuf(json.tileurl, {
-                    vectorTileLayerStyles: {
-                        [json.id]: {
-                            weight: 3, color: color, fill: true, fillColor: color, fillOpacity: 0.5
-                        }
-                    }, interactive: false
+                    pane: 'polygonPaneModal',
+                    vectorTileLayerStyles: { [json.id]: { weight: 3, color: color, fill: true, fillColor: color, fillOpacity: 0.5 }},
+                    interactive: false
                 }).addTo(mapAll);
-
-                if (json.bounds?.length === 4) {
-                    allBounds.extend([
-                        [json.bounds[1], json.bounds[0]],
-                        [json.bounds[3], json.bounds[2]]
-                    ]);
-                }
+                if (json.bounds?.length === 4) { allBounds.extend([[json.bounds[1], json.bounds[0]], [json.bounds[3], json.bounds[2]]]); }
             });
 
-            // cek apakah ada polygon valid
             if (allBounds.isValid()) {
                 mapAll.fitBounds(allBounds, { padding:[50,50], maxZoom:12 });
-                mapAll.setZoom(mapAll.getZoom()-1);
             } else {
-                // fallback ke peta Indonesia
                 mapAll.fitBounds([[-11,95],[6,141]],{ padding:[50,50], maxZoom:5 });
-                mapAll.setZoom(mapAll.getZoom()-1);
             }
-
-
-            // legend
-            var legendHtml = `<div class="map-legend"><b>Legend:</b><br>
-                <div><span class="legend-color" style="background:${color}"></span> Semua Polygon</div></div>`;
-            var legend = L.control({position:'topright'});
-            legend.onAdd = function(){ let div = L.DomUtil.create('div','map-legend'); div.innerHTML=legendHtml; return div; };
-            legend.addTo(mapAll);
             mapAll.invalidateSize();
             setTimeout(() => mapAll.invalidateSize(), 300);
-
+// sampe sini
             // isi modal
             document.getElementById('unitDetailModalLabel').innerText = data.unit.unit+' Tahun '+selectedYear;
             document.getElementById('deskripsi').innerText = data.derajatHubungan?.deskripsi ?? '-';

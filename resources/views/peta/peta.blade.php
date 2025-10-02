@@ -13,103 +13,72 @@
     #map {
         width: 100%;
         height: 100%;
-        position: relative !important;
-        z-index: 0;
     }
 
-    /* Panel overlay kiri atas */
     .tree-panel {
         position: absolute;
         top: 10px;
         left: 10px;
         width: 250px;
-        max-height: 600px;
+        max-height: calc(100% - 20px); /* Agar tidak melebihi tinggi peta */
         background: white;
         border: 1px solid #ddd;
         border-radius: 6px;
         padding: 10px;
         overflow-y: auto;
-        z-index: 0; /* lebih tinggi dari leaflet control */
+        z-index: 1000; /* Pastikan di atas peta */
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         font-size: 12px;
     }
 
-    .tree-panel h6 {
-        margin-bottom: 8px;
-        font-size: 13px;
-    }
-    .tree-panel a {
-        cursor: pointer;
-        display: block;
-        padding: 2px 0;
-    }
-
-    /* Tombol reset view */
-    .leaflet-control-reset {
-        background: white;
-        border: 2px solid #ccc;
-        border-radius: 4px;
-        padding: 4px;
-        cursor: pointer;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-    .leaflet-control-reset:hover {
-        background: #f0f0f0;
-    }
-    
     .tree-toggle-btn {
         position: absolute;
         top: 10px;
-        left: 260px; /* sejajar dengan panel */
+        left: 260px; /* Posisi awal saat panel terlihat */
         background: white;
         border: 1px solid #ddd;
         border-radius: 4px;
         padding: 4px 8px;
         cursor: pointer;
-        z-index: 0;
+        z-index: 1000;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         font-size: 14px;
+        transition: left 0.2s; /* Animasi halus */
     }
 
-    .tree-toggle-btn:hover {
-        background: #f5f5f5;
-    }
-    .info-toggle-btn {
-        position: absolute;
-        top: 11px;
-        left: 520px; /* sejajar dengan panel */
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        padding: 4px 8px;
-        cursor: pointer;
-        z-index: 0;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-        font-size: 14px;
-    }
-
-    .info-toggle-btn:hover {
-        background: #f5f5f5;
-    }
-
+    /* CSS BARU: Menggunakan 'right' untuk posisi menempel di kanan */
     #unitInfo {
         position: absolute;
         top: 10px;
-        left: 550px;
+        right: 58px; /* Menempel 10px dari kanan */
+        left: auto;  /* Hapus properti left */
         width: 500px;
         background: white;
         border: 1px solid #ccc;
         border-radius: 6px;
         padding: 10px;
-        display: none;
-        z-index: 0;
+        display: none; /* Sembunyi secara default */
+        z-index: 1000;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        max-height: calc(100% - 20px);
     }
-
-    #unitInfo h6 {
-        margin-bottom: 5px;
+    
+    /* CSS BARU: Tombol toggle juga menempel di kanan */
+    .info-toggle-btn {
+        position: absolute;
+        top: 10px;
+        right: 558px; /* Posisi awal: 500px (lebar panel) + 10px (jarak) + 10px (jarak) */
+        left: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 4px 8px;
+        cursor: pointer;
+        z-index: 1000;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         font-size: 14px;
-        font-weight: bold;
+        display: none; /* Sembunyi juga secara default */
+        transition: right 0.2s; /* Animasi halus */
     }
 
     #unitDetail {
@@ -119,10 +88,15 @@
         line-height: 1.4;
     }
 
-    .bg-yellow {
-        background-color: #ffff00 !important; /* kuning cerah */
-        color: #000 !important; /* teks hitam biar kontras */
+    .leaflet-control-reset {
+        background: white; border: 2px solid #ccc; border-radius: 4px;
+        padding: 4px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
+    .leaflet-control-reset:hover { background: #f0f0f0; }
+    .bg-yellow { background-color: #ffff00 !important; color: #000 !important; }
+    .tree-panel h6 { margin-bottom: 8px; font-size: 13px; }
+    .tree-panel a { cursor: pointer; display: block; padding: 2px 0; }
+    #unitInfo h6 { margin-bottom: 5px; font-size: 14px; font-weight: bold; }
 
 </style>
 {{-- @extends('layouts.app') --}}
@@ -173,7 +147,7 @@
                         @endforeach
                     </ul>
                 </div>
-                <div id="toggleInfo" class="info-toggle-btn"></div>
+                <div id="toggleInfo" class="info-toggle-btn">☰</div>
                 <!-- <div id="unitInfo" class="info-panel">
                     
                     {{-- <h6 id="unitTitle">Info Unit</h6> --}}
@@ -212,13 +186,60 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function(){
-    var map = L.map('map', { zoomControl: false });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
+    // var map = L.map('map', { zoomControl: false });
+    // L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    //     attribution: '&copy; OpenStreetMap contributors',
+    //     maxZoom: 19
+    // }).addTo(map);
     
-    // fokus awal Indonesia
+    // // fokus awal Indonesia
+    // map.fitBounds([[-11,95],[6,141]]);
+    // L.control.zoom({ position: 'topright' }).addTo(map);
+    // var defaultBounds = L.latLngBounds([[-11,95],[6,141]]);
+
+    // // tombol reset
+    // L.Control.Reset = L.Control.extend({
+    //     onAdd: function(map) {
+    //         var btn = L.DomUtil.create('div', 'leaflet-control-reset');
+    //         btn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+    //         btn.title = "Reset view";
+    //         L.DomEvent.disableClickPropagation(btn);
+    //         L.DomEvent.on(btn, 'click', function () {
+    //             map.fitBounds(defaultBounds, { padding:[20,20] });
+    //         });
+    //         return btn;
+    //     }
+    // });
+    // L.control.reset = function(opts){ return new L.Control.Reset(opts); }
+    // L.control.reset({ position:'topright' }).addTo(map);
+    var map = L.map('map', { zoomControl: false });
+
+    // 1. Definisikan Konfigurasi Basemap
+    const basemapConfig = {
+        osm: {
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            options: { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }
+        },
+        satellite: {
+            url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            options: { attribution: 'Tiles &copy; Esri &mdash; Source: Esri...', maxZoom: 19 }
+        },
+        topo: {
+            url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+            options: { attribution: 'Map data: &copy; OSM contributors, SRTM | Map style: &copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17 }
+        }
+    };
+    
+    // 2. Tambahkan Kontrol Pilihan Basemap
+    const baseLayers = {
+        "Peta Jalan": L.tileLayer(basemapConfig.osm.url, basemapConfig.osm.options),
+        "Citra Satelit": L.tileLayer(basemapConfig.satellite.url, basemapConfig.satellite.options),
+        "Topografi": L.tileLayer(basemapConfig.topo.url, basemapConfig.topo.options)
+    };
+    baseLayers["Peta Jalan"].addTo(map);
+    L.control.layers(baseLayers).addTo(map);
+    
+    // Inisialisasi peta lainnya
     map.fitBounds([[-11,95],[6,141]]);
     L.control.zoom({ position: 'topright' }).addTo(map);
     var defaultBounds = L.latLngBounds([[-11,95],[6,141]]);
@@ -238,6 +259,62 @@ document.addEventListener("DOMContentLoaded", function(){
     });
     L.control.reset = function(opts){ return new L.Control.Reset(opts); }
     L.control.reset({ position:'topright' }).addTo(map);
+
+    var kebunJsons = @json($kebunJsons->map(fn($k) => [
+        'id' => $k->id,
+        'unit_id' => $k->unit_id,
+        'decoded' => $k->decoded
+    ]));
+
+    var colors = ["#FF5733","#33C1FF","#28A745","#FFC300","#9B59B6","#E67E22"];
+    function getColor(index){ return colors[index % colors.length]; }
+
+    var currentLayers = [];
+    var selectedUnitId = null;
+    var selectedYear = null;
+
+    function clearPolygons(){
+        currentLayers.forEach(l => map.removeLayer(l));
+        currentLayers = [];
+    }
+
+    function drawPolygons() {
+        clearPolygons();
+        
+        kebunJsons.forEach((jsonData, index) => {
+            if (!jsonData.decoded || !jsonData.decoded.tileurl || !jsonData.decoded.id) {
+                console.error("Data poligon tidak lengkap:", jsonData);
+                return;
+            }
+
+            let polygonColor = getColor(index);
+
+            let layer = L.vectorGrid.protobuf(jsonData.decoded.tileurl, {
+                vectorTileLayerStyles: {
+                    [jsonData.decoded.id]: {
+                        weight: 2,
+                        color: polygonColor,
+                        fill: true,
+                        fillColor: polygonColor,
+                        fillOpacity: 0.4
+                    }
+                }
+            }).addTo(map);
+
+            // --- [PERBAIKAN UTAMA DI SINI] ---
+            // Secara paksa mengatur z-index dari container layer poligon ini
+            // agar selalu di atas basemap (yang z-indexnya ~200).
+            // Kita tidak lagi menggunakan sistem pane kustom.
+            if (layer.getContainer) {
+                layer.getContainer().style.zIndex = 450;
+            }
+
+            currentLayers.push(layer);
+        });
+    }
+
+    // Panggil fungsi untuk menggambar poligon saat halaman pertama kali dimuat
+    drawPolygons();
 
     var kebunJsons = @json($kebunJsons->map(fn($k) => [
         'id' => $k->id,
@@ -389,8 +466,8 @@ $(document).on("click",".tree-link", function(e){
     // isi nama unit & region
     $("#unitName").text(unitName);
     $("#regionName").text(regionName);
-
-
+    $("#unitInfo").show();
+    $("#toggleInfo").show().css('right', '558px').text("☰");
     // reset isi info panel setiap kali klik unit baru
     $("#unitDetail").empty();
     $("#tahunSelect").empty();
@@ -411,6 +488,9 @@ $(document).on("click",".tree-link", function(e){
                 }
             }
         }).addTo(map);
+        if (layer.getContainer) {
+                layer.getContainer().style.zIndex = 450;
+            }
         currentLayers.push(layer);
         if(jsonData.decoded.bounds?.length === 4){
             allBounds.extend([
@@ -424,17 +504,15 @@ $(document).on("click",".tree-link", function(e){
     }
 
     var allDerajat = @json($derajatHubungan);
-    var data = allDerajat[selectedUnitId] ?? [];
-
-    if(data.length > 0){
-        setupYearControlsForUnit(data);
-        $("#toggleInfo").css("left", "520px").text("☰"); 
-        $("#unitInfo").show();
-    } else {
-        $("#unitDetail").html("<i>Tidak ada data derajat hubungan</i>");
-        $("#toggleInfo").css("left", "520px").text("☰"); 
-        $("#unitInfo").show();
-    }
+    var dataForUnit = allDerajat[selectedUnitId] || [];
+        if(dataForUnit.length > 0){
+            setupYearControlsForUnit(dataForUnit);
+            $("#unitInfo, #toggleInfo").show(); // Tampilkan jika ada data
+        } else {
+            $("#unitDetail").html('<div class="text-center p-3"><i>Tidak ada data derajat hubungan untuk unit ini.</i></div>');
+            $("#tahunSelect").empty();
+            $("#unitInfo, #toggleInfo").show();
+        }
 });
 
 
@@ -455,19 +533,19 @@ $(document).on("click",".tree-link", function(e){
     $(document).on("click", "#toggleTree", function(){
         $(".tree-panel").toggle();
         if ($(".tree-panel").is(":visible")) {
-            $(this).css("left", "270px").text("☰");
+            $(this).css("left", "260px").text("☰");
         } else {
             $(this).css("left", "10px").text("⮞");
         }
     });
 
     // toggle info panel
-    $(document).on("click", "#toggleInfo", function(){
-        $(".info-panel").toggle();
-        if ($(".info-panel").is(":visible")) {
-            $(this).css("left", "520px").text("☰"); 
+    $("#toggleInfo").on("click", function(){
+        $("#unitInfo").toggle();
+        if ($("#unitInfo").is(":visible")) {
+            $(this).css('right', '558px').text("☰"); // 500px lebar + 20px buffer
         } else {
-            $(this).css("left", "1020px").text("⮞"); 
+            $(this).css('right', '58px').text("⮜"); // Panah ke kiri
         }
     });
 });

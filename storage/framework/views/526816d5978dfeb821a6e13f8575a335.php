@@ -143,6 +143,14 @@
         </div>
     </li>
 
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('polygons') ? 'active' : ''; ?>">
+        <a class="nav-link" href="<?php echo e(url('/')); ?>/polygons">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Cek Titik Koordinat</span>
+        </a>
+    </li>
+
                 
     <!-- Divider 
     <hr class="sidebar-divider">
