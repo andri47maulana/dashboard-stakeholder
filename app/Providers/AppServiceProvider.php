@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Providers;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\Facades\DB;
 
 use Illuminate\Support\ServiceProvider;
 
@@ -24,5 +26,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         //
+        // Inject data regional ke sidebar
+    // View::composer('layouts.sidebar', function ($view) {
+    //     $regionals = DB::table('tb_unit')
+    //         ->select('region')
+    //         ->distinct()
+    //         ->orderBy('region')
+    //         ->pluck('region');
+
+    //     $view->with('regionals', $regionals);
+    // });
     }
 }
