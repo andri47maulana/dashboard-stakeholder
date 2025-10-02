@@ -151,6 +151,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/peta', [PetaController::class, 'index']);
         Route::get('/polygons/{unitId}', [PetaController::class, 'getPolygons']);
         Route::get('/peta_region/{region}', [PetaController::class, 'peta_region']);
+        Route::get('/peta_region/data/{region}/{tahun}', [PetaController::class,'dataByYear']);
+        Route::get('/unit/detail/{unit}/{tahun}', [PetaController::class,'unitDetail']);
     });
 
     Route::get('/derajat-hubungan', [DerajatHubunganController::class, 'index'])->name('derajat.index');
@@ -158,6 +160,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/derajat-hubungan/update/{id}', [DerajatHubunganController::class, 'update'])->name('derajat.update');
     Route::delete('/derajat-hubungan/delete/{id}', [DerajatHubunganController::class, 'destroy'])->name('derajat.delete');
     Route::post('/derajat-hubungan/import', [DerajatHubunganController::class, 'import'])->name('derajat.import');
+    Route::post('/isu/store', [DerajatHubunganController::class, 'isu_store'])->name('isu.store');
+    Route::get('/wilayah/desa', [DerajatHubunganController::class, 'getDesa'])->name('wilayah.desa');
+    Route::get('/isu/show/{id}', [DerajatHubunganController::class, 'show'])->name('isu.show');
+    Route::put('/isu/update', [DerajatHubunganController::class, 'update_isu'])->name('isu.update');
+
 
 });
 

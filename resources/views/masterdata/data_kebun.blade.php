@@ -33,10 +33,12 @@
 <!-- Page Heading -->
 <h1 class="h3 mb-2 text-gray-800">Master Data Kebun</h1>
     <p class="mb-4">Master Data Kebun PT Perkebunan Nusantara I.</p>
-    
-    <!-- DataTales Example -->
-    <div class="card shadow mb-4">
-        <div class="container">
+
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-12">
+        {{-- <div class="container"> --}}
         <h2 class="mb-4">Daftar Unit</h2>
         <div class="table-responsive">
         <table class="table table-bordered table-striped" id="dataTable" width="100%" cellspacing="0">
@@ -67,7 +69,10 @@
             </tbody>
         </table>
         </div>
+    {{-- </div> --}}
     </div>
     </div>
+    </div>
+</div>
 </script>
 @endsection

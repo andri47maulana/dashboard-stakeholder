@@ -25,7 +25,7 @@
     <div class="card-body">
         <div class="row">
             <div class="col-md-12">
-                <div class="container">
+                {{-- <div class="container"> --}}
     
     <!-- Import Excel -->
     {{-- <form action="{{ route('derajat.import') }}" method="POST" enctype="multipart/form-data" class="mb-3">
@@ -36,7 +36,7 @@
 
     <!-- Tombol tambah -->
     <button class="btn btn-primary mb-2" data-toggle="modal" data-target="#modalAdd">Tambah Data</button>
-    
+    <div class="table-responsive">
     <!-- Tabel -->
     <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
         <thead>
@@ -116,8 +116,60 @@
                             data-deskripsi="{{ $row->deskripsi }}"
                             data-toggle="modal" 
                             data-target="#modalDetail">
-                            Lihat Detail
+                            Detail
                         </button>
+
+                        {{-- <button class="btn btn-sm btn-success isuBtn"
+                            data-id="{{ $row->id }}"
+                            data-idunit="{{ $row->id_unit }}"
+                            data-tahun="{{ $row->tahun }}"
+                            data-unit="{{ $row->unitx->unit }}"
+                            data-region="{{ $row->unitx->region }}"
+                            data-toggle="modal"
+                            data-target="#modalIsu">
+                            Input Isu
+                        </button> --}}
+                        @if(
+    $row->isu_detail_count > 0 ||
+    $row->isu_desa_count > 0 ||
+    $row->isu_instansi_count > 0 ||
+    $row->isu_okupasi_count > 0
+)
+    <!-- Kalau ada data isu -->
+    <button class="btn btn-sm btn-warning editIsuBtn"
+        data-id="{{ $row->id }}"
+        data-idunit="{{ $row->id_unit }}"
+        data-tahun="{{ $row->tahun }}"
+        data-unit="{{ $row->unitx->unit }}"
+        data-region="{{ $row->unitx->region }}"
+        data-toggle="modal"
+        data-target="#modalEditIsu">
+        Edit Isu
+    </button>
+
+    <button class="btn btn-sm btn-info detailIsuBtn"
+        data-id="{{ $row->id }}"
+        data-idunit="{{ $row->id_unit }}"
+        data-tahun="{{ $row->tahun }}"
+        data-unit="{{ $row->unitx->unit }}"
+        data-region="{{ $row->unitx->region }}"
+        data-toggle="modal"
+        data-target="#modalDetailIsu">
+        Detail Isu
+    </button>
+@else
+    <!-- Kalau belum ada data isu -->
+    <button class="btn btn-sm btn-success isuBtn"
+        data-id="{{ $row->id }}"
+        data-idunit="{{ $row->id_unit }}"
+        data-tahun="{{ $row->tahun }}"
+        data-unit="{{ $row->unitx->unit }}"
+        data-region="{{ $row->unitx->region }}"
+        data-toggle="modal"
+        data-target="#modalIsu">
+        Input Isu
+    </button>
+@endif
 
                     <button class="btn btn-danger btn-sm deleteBtn" data-id="{{ $row->id }}">Delete</button>
                 </td>
@@ -125,6 +177,7 @@
             @endforeach
         </tbody>
     </table>
+    {{-- </div> --}}
 </div>
             {{-- </div>
         </div>
@@ -137,7 +190,7 @@
     <div class="modal-content">
       <div class="modal-header bg-info text-white">
         <h5 class="modal-title">Detail Analisis Hubungan Stakeholder</h5>
-        <button type="button" class="btn-close" data-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-dismiss="modal">X</button>
       </div>
       <div class="modal-body" id="detailContent">
         <!-- Isi detail akan di-render lewat JS -->
@@ -405,6 +458,895 @@
 </div>
 
 
+
+
+<!-- Modal Input Isu -->
+<div class="modal fade" id="modalIsu" tabindex="-1" aria-labelledby="modalIsuLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form id="formIsu" action="{{ route('isu.store') }}" method="POST">
+        @csrf
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalIsuLabel">Input Isu & Desa</h5>
+          <button type="button" class="btn-close" data-dismiss="modal">X</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="derajat_id" id="derajat_id">
+          <!-- ISU -->
+          <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-light fw-bold">📌 Isu</div>
+              <div class="card-body">
+                  <div id="isu-container">
+                      <div class="row g-2 isu-row mb-2">
+                          <div class="col-md-3">
+                              <label class="form-label">Isu</label>
+                              <select name="isu[]" class="form-control" required>
+                                  <option value="">Pilih Isu</option>
+                                  <option value="Ekonomi">Ekonomi</option>
+                                  <option value="Sosial">Sosial & Kesejahteraan</option>
+                                  <option value="Lingkungan">Lingkungan</option>
+                                  <option value="Pendidikan">Pendidikan</option>
+                                  <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                              </select>
+                          </div>
+                          <div class="col-md-8">
+                              <label class="form-label">Keterangan</label>
+                              <textarea name="keterangan[]" class="form-control" required rows="2"></textarea>
+                          </div>
+                          <div class="col-md-1 d-flex align-items-end">
+                              <button type="button" class="btn btn-danger btn-remove">-</button>
+                          </div>
+                      </div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-add">+ Tambah Isu</button>
+              </div>
+          </div>
+
+          <!-- DESA -->
+          <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-light fw-bold">🏠 Desa</div>
+              <div class="card-body">
+                  <div id="desa-container">
+                      <div class="row g-2 desa-row mb-2">
+                          <div class="col-md-8">
+                              <label class="form-label">Desa</label>
+                              <select name="desa[]" class="form-control select2-desa" style="width:100%" required></select>
+                          </div>
+                          <div class="col-md-3">
+                              <label class="form-label">Isu</label>
+                              <select name="isu_utama[]" class="form-control" required>
+                                  <option value="">Pilih Isu</option>
+                                  <option value="Ekonomi">Ekonomi</option>
+                                  <option value="Sosial">Sosial & Kesejahteraan</option>
+                                  <option value="Lingkungan">Lingkungan</option>
+                                  <option value="Pendidikan">Pendidikan</option>
+                                  <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                              </select>
+                          </div>
+                          <div class="col-md-1 d-flex align-items-end">
+                              <button type="button" class="btn btn-danger btn-remove-desa">-</button>
+                          </div>
+                      </div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-add-desa">+ Tambah Desa</button>
+              </div>
+          </div>
+
+          <!-- INSTANSI -->
+          <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-light fw-bold">🏢 Instansi</div>
+              <div class="card-body">
+                  <div id="instansi-container">
+                      <div class="row g-2 instansi-row mb-2">
+                          <div class="col-md-5">
+                              <label class="form-label">Instansi</label>
+                              <select name="instansi[]" id="instansiisu" class="form-control select2" required>
+                                  <option value="">Pilih Instansi</option>
+                                  @foreach($stake as $stakeholder)
+                                      <option value="{{ $stakeholder->id }}">{{ $stakeholder->nama_instansi }}</option>
+                                  @endforeach
+                              </select>
+                          </div>
+                          <div class="col-md-6">
+                              <label class="form-label">Program</label>
+                              <textarea name="program[]" class="form-control" required rows="2"></textarea>
+                          </div>
+                          <div class="col-md-1 d-flex align-items-end">
+                              <button type="button" class="btn btn-danger btn-remove-instansi">-</button>
+                          </div>
+                      </div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-add-instansi">+ Tambah Instansi</button>
+              </div>
+          </div>
+
+          <!-- OKUPASI -->
+          <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-light fw-bold">👥 Okupasi</div>
+              <div class="card-body">
+                  <div class="row g-2 okupasi-row mb-2">
+                      <div class="col-md-3">
+                          <label class="form-label">Okupasi</label>
+                          <select name="okupasi" class="form-control" required>
+                              <option value="">Pilih Okupasi</option>
+                              <option value="Rendah">Rendah</option>
+                              <option value="Sedang">Sedang</option>
+                              <option value="Tinggi">Tinggi</option>
+                          </select>
+                      </div>
+                      <div class="col-md-8">
+                          <label class="form-label">Keterangan</label>
+                          <textarea name="keterangan_okupasi" class="form-control" required rows="2"></textarea>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+      </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Edit Isu -->
+<div class="modal fade" id="modalEditIsu" tabindex="-1" aria-labelledby="modalEditIsuLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <form id="formEditIsu" action="{{ route('isu.update') }}" method="POST">
+        @csrf
+        @method('PUT')
+        <input type="hidden" name="derajat_id" id="edit_derajat_id">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditIsuLabel">Edit Isu & Desa</h5>
+          <button type="button" class="btn-close" data-dismiss="modal">X</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- ISU -->
+          <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-light fw-bold">📌 Isu</div>
+            <div class="card-body" id="edit-isu-container">
+              <!-- data isu akan di-load via JS -->
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-add-edit-isu">+ Tambah Isu</button>
+          </div>
+
+          <!-- DESA -->
+          <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-light fw-bold">🏠 Desa</div>
+            <div class="card-body" id="edit-desa-container">
+              <!-- data desa akan di-load via JS -->
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-add-edit-desa">+ Tambah Desa</button>
+          </div>
+
+          <!-- INSTANSI -->
+          <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-light fw-bold">🏢 Instansi</div>
+            <div class="card-body" id="edit-instansi-container">
+              <!-- data instansi akan di-load via JS -->
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-2" id="btn-add-edit-instansi">+ Tambah Instansi</button>
+          </div>
+
+          <!-- OKUPASI -->
+          <div class="card mb-3 shadow-sm">
+            <div class="card-header bg-light fw-bold">👥 Okupasi</div>
+            <div class="card-body" id="edit-okupasi-container">
+              <!-- data okupasi akan di-load via JS -->
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Update</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- Modal Detail Derajat Hubungan -->
+<div class="modal fade" id="derajatDetailModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="derajatDetailModalLabel">Detail Isu</h5>
+        <button type="button" class="btn-close" data-dismiss="modal">X</button>
+      </div>
+      <div class="modal-body">
+        <div class="row">
+          <!-- MAP -->
+          <div class="col-md-6">
+            <div class="card mb-3 shadow-sm">
+              <div id="mapContainerAll" style="height:300px; width:100%"></div>
+            </div>
+          </div>
+
+          <!-- Deskripsi & Isu -->
+          <div class="col-md-6">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Deskripsi</div>
+              <div class="card-body" style="font-size:0.9em; height:250px; display:flex; flex-direction:column; overflow-y:auto;">
+                <p style="text-align:justify; margin-top:8px;" id="deskripsi_isu"></p>
+                <table class="table table-bordered table-sm" id="isuCardTable">
+                  <thead>
+                    <tr>
+                      <th>Isu</th>
+                      <th>Keterangan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <!-- Data akan diisi JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desa Sasaran Utama -->
+          <div class="col-md-3">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Desa Sasaran Utama</div>
+              <div class="card-body" style="font-size:0.9em; height:150px; display:flex; flex-direction:column; overflow-y:auto;">
+                <table class="table table-bordered table-sm" id="sasarandesa">
+                  <thead>
+                    <tr>
+                      <th>Desa</th>
+                      <th>Isu Utama</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prioritas Lembaga/Instansi -->
+          <div class="col-md-6">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Prioritas Lembaga/Instansi</div>
+              <div class="card-body" style="font-size:0.9em; height:150px; display:flex; flex-direction:column; overflow-y:auto;">
+                <table class="table table-bordered table-sm" id="isuLembagaTable">
+                  <thead>
+                    <tr>
+                      <th>Lembaga/Instansi</th>
+                      <th>Program</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Okupasi -->
+          <div class="col-md-3">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Okupasi</div>
+              <div class="card-body flex-grow-1 overflow-auto" id="okupasiCardBody" style="font-size:0.9em; height:150px; display:flex; flex-direction:column; overflow-y:auto;">
+                <!-- Data akan diisi JS -->
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
+<script>
+  let mapAll = null;
+$(document).ready(function(){
+  // let mapAll = null;
+    // Event klik tombol Detail Isu
+    $('.detailIsuBtn').on('click', function() {
+        let derajatId = $(this).data('id');
+        let unitName = $(this).data('unit');
+        let tahun = $(this).data('tahun');
+        let region = $(this).data('region');
+        // let mapAll = null;
+        // Kosongkan konten modal sebelum isi
+        $('#deskripsi_isu').text('');
+        $('#isuCardTable tbody').empty();
+        $('#sasarandesa tbody').empty();
+        $('#isuLembagaTable tbody').empty();
+        $('#okupasiCardBody').empty();
+
+        // Bisa diisi header modal, misal nama unit/tahun
+        // $('#unitName').text(unitName);
+        // $('#unitYear').text(tahun);
+
+        // AJAX ambil data
+        $.ajax({
+            url: '/isu/show/' + derajatId,
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                // 1️⃣ Deskripsi dari derajat (jika ada)
+                // derajatDetailModalLabel
+                $('#derajatDetailModalLabel').text(unitName+' Tahun '+tahun);
+                // console.log(data.derajatHubungan.deskripsi);
+                if(data.derajatHubungan){
+                    $('#deskripsi_isu').text(data.derajatHubungan.deskripsi || '');
+                }
+
+                // 2️⃣ IsuDetail
+                if(data.isu && data.isu.length > 0){
+                    data.isu.forEach(function(item){
+                        $('#isuCardTable tbody').append(
+                            `<tr>
+                                <td>${item.isu || ''}</td>
+                                <td>${item.keterangan || ''}</td>
+                            </tr>`
+                        );
+                    });
+                }
+
+                // 3️⃣ Desa Sasaran Utama
+                if(data.desa && data.desa.length > 0){
+                    data.desa.forEach(function(item){
+                        $('#sasarandesa tbody').append(
+                            `<tr>
+                                <td>${item.desa_nama || item.desa_id}</td>
+                                <td>${item.isu_utama || ''}</td>
+                            </tr>`
+                        );
+                    });
+                }
+
+                // 4️⃣ Instansi / Program
+                if(data.instansi && data.instansi.length > 0){
+                    data.instansi.forEach(function(item){
+                        $('#isuLembagaTable tbody').append(
+                            `<tr>
+                                <td>${item.instansi || ''}</td>
+                                <td>${item.program || ''}</td>
+                            </tr>`
+                        );
+                    });
+                }
+                // console.log(data.okupasi);
+                // 5️⃣ Okupasi
+                if(data.okupasi){
+                  let bg = (data.okupasi.okupasi=="Tinggi")?"bg-danger text-white":(data.okupasi.okupasi=="Sedang")?"bg-warning text-dark":(data.okupasi.okupasi=="Rendah")?"bg-success text-white":"bg-secondary text-white";
+                    $('#okupasiCardBody').append(
+                        `<div class="${bg} p-2 rounded mb-2"><h4 class="text-center mb-0">${data.okupasi.okupasi}</h4></div>
+                        <p style="text-align:justify; margin-top:8px;">${data.okupasi.keterangan||'-'}</p>`
+                    );
+                }
+                // let mapAll = null;
+                const kebunJsons = data.kebunJsons;
+
+            let color = "#0084ff"; 
+            if (data.derajatHubungan && data.derajatHubungan.derajat_hubungan) {
+                switch (data.derajatHubungan.derajat_hubungan) {
+                    case "P1": color = "#dc3545"; break;
+                    case "P2": color = "#fd7e14"; break;
+                    case "P3": color = "#ffff00"; break;
+                    case "P4": color = "#28a745"; break;
+                }
+            }
+
+            if (mapAll) { 
+                mapAll.remove(); 
+                mapAll = null; 
+            }
+            mapAll = L.map('mapContainerAll');
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapAll);
+
+            var allBounds = L.latLngBounds([]);
+
+            // render polygon jika ada
+            kebunJsons.forEach(json=>{
+                L.vectorGrid.protobuf(json.tileurl, {
+                    vectorTileLayerStyles: {
+                        [json.id]: {
+                            weight: 3, color: color, fill: true, fillColor: color, fillOpacity: 0.5
+                        }
+                    }, interactive: false
+                }).addTo(mapAll);
+
+                if (json.bounds?.length === 4) {
+                    allBounds.extend([
+                        [json.bounds[1], json.bounds[0]],
+                        [json.bounds[3], json.bounds[2]]
+                    ]);
+                }
+            });
+
+            // cek apakah ada polygon valid
+            if (allBounds.isValid()) {
+                mapAll.fitBounds(allBounds, { padding:[50,50], maxZoom:12 });
+                mapAll.setZoom(mapAll.getZoom()-1);
+            } else {
+                // fallback ke peta Indonesia
+                mapAll.fitBounds([[-11,95],[6,141]],{ padding:[50,50], maxZoom:5 });
+                mapAll.setZoom(mapAll.getZoom()-1);
+            }
+
+
+            // legend
+            var legendHtml = `<div class="map-legend"><b>Legend:</b><br>
+                <div><span class="legend-color" style="background:${color}"></span> Semua Polygon</div></div>`;
+            var legend = L.control({position:'topright'});
+            legend.onAdd = function(){ let div = L.DomUtil.create('div','map-legend'); div.innerHTML=legendHtml; return div; };
+            legend.addTo(mapAll);
+            mapAll.invalidateSize();
+            setTimeout(() => mapAll.invalidateSize(), 300);
+
+                // Tampilkan modal
+                $('#derajatDetailModal').modal('show');
+            },
+            error: function(xhr, status, error){
+                alert('Gagal mengambil data: ' + error);
+            }
+        });
+
+    });
+
+});
+</script>
+
+
+
+{{-- batas detail --}}
+<script>
+  $(document).on('click', '.editIsuBtn', function () {
+    let id = $(this).data('id');
+    let unit = $(this).data('unit');
+    let region = $(this).data('region');
+    let tahun = $(this).data('tahun');
+
+    // set hidden input
+    $('#edit_derajat_id').val(id);
+
+    // ubah judul modal
+    $('#modalEditIsuLabel').text('Edit Isu & Desa - ' + region + ' | ' + unit + ' (' + tahun + ')');
+
+    // AJAX get data isu
+    $.get("{{ url('isu/show') }}/" + id, function (res) {
+        // === ISU ===
+        let isuHtml = '';
+        res.isu.forEach(function (item) {
+            isuHtml += `
+            <div class="row g-2 isu-row mb-2">
+                <div class="col-md-3">
+                    <label>Isu</label>
+                    <select name="isu[]" class="form-control" required>
+                        <option value="">Pilih Isu</option>
+                        <option value="Ekonomi" ${item.isu == 'Ekonomi' ? 'selected':''}>Ekonomi</option>
+                        <option value="Sosial" ${item.isu == 'Sosial' ? 'selected':''}>Sosial & Kesejahteraan</option>
+                        <option value="Lingkungan" ${item.isu == 'Lingkungan' ? 'selected':''}>Lingkungan</option>
+                        <option value="Pendidikan" ${item.isu == 'Pendidikan' ? 'selected':''}>Pendidikan</option>
+                        <option value="Hubungan Stakeholder" ${item.isu == 'Hubungan Stakeholder' ? 'selected':''}>Hubungan Stakeholder</option>
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label>Keterangan</label>
+                    <textarea name="keterangan[]" class="form-control" required rows="2">${item.keterangan}</textarea>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-remove">-</button>
+                </div>
+            </div>`;
+        });
+        $('#edit-isu-container').html(isuHtml);
+
+        // === DESA ===
+        let desaHtml = '';
+        res.desa.forEach(function (item) {
+            desaHtml += `
+            <div class="row g-2 desa-row mb-2">
+                <div class="col-md-8">
+                    <label>Desa</label>
+                    <select name="desa[]" class="form-control select2-desa" style="width:100%" required></select>
+                </div>
+                <div class="col-md-3">
+                    <label>Isu</label>
+                    <select name="isu_utama[]" class="form-control" required>
+                        <option value="">Pilih Isu</option>
+                        <option value="Ekonomi" ${item.isu_utama == 'Ekonomi' ? 'selected':''}>Ekonomi</option>
+                        <option value="Sosial" ${item.isu_utama == 'Sosial' ? 'selected':''}>Sosial & Kesejahteraan</option>
+                        <option value="Lingkungan" ${item.isu_utama == 'Lingkungan' ? 'selected':''}>Lingkungan</option>
+                        <option value="Pendidikan" ${item.isu_utama == 'Pendidikan' ? 'selected':''}>Pendidikan</option>
+                        <option value="Hubungan Stakeholder" ${item.isu_utama == 'Hubungan Stakeholder' ? 'selected':''}>Hubungan Stakeholder</option>
+                    </select>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-remove-desa">-</button>
+                </div>
+            </div>`;
+        });
+        $('#edit-desa-container').html(desaHtml);
+
+        
+// Inisialisasi Select2 untuk semua select desa
+$('#edit-desa-container').find('.select2-desa').each(function (i, el) {
+    $(el).select2({
+        dropdownParent: $('#modalEditIsu'),
+        ajax: {
+            url: '{{ route("wilayah.desa") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            }
+        }
+    });
+
+    // === inject option terpilih dari controller (res.desa) ===
+    let desaId   = res.desa[i].desa_id;
+    let desaText = res.desa[i].desa_nama; // <- pastikan controller sudah kirim
+    if (desaId && desaText) {
+        let option = new Option(desaText, desaId, true, true);
+        $(el).append(option).trigger('change');
+    }
+});
+
+        // initSelect2Desa($('#edit-desa-container').find('.select2-desa'));
+
+        // === INSTANSI ===
+        let instansiHtml = '';
+        res.instansi.forEach(function (item) {
+            instansiHtml += `
+            <div class="row g-2 instansi-row mb-2">
+                <div class="col-md-5">
+                    <label>Instansi</label>
+                    <select name="instansi[]" class="form-control select2-instansi" required>
+                        <option value="">Pilih Instansi</option>
+                        @foreach($stake as $stakeholder)
+                            <option value="{{ $stakeholder->id }}" ${item.instansi_id == {{ $stakeholder->id }} ? 'selected':''}>{{ $stakeholder->nama_instansi }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label>Program</label>
+                    <textarea name="program[]" class="form-control" required rows="2">${item.program}</textarea>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger btn-remove-instansi">-</button>
+                </div>
+            </div>`;
+        });
+        $('#edit-instansi-container').html(instansiHtml);
+        $('#edit-instansi-container').find('.select2-instansi').select2({
+            dropdownParent: $('#modalEditIsu'),
+            width: '100%'
+        });
+
+        // === OKUPASI ===
+        let okupasiHtml = `
+        <div class="row g-2 okupasi-row mb-2">
+            <div class="col-md-3">
+                <label>Okupasi</label>
+                <select name="okupasi" class="form-control" required>
+                    <option value="">Pilih Okupasi</option>
+                    <option value="Rendah" ${res.okupasi.okupasi == 'Rendah' ? 'selected':''}>Rendah</option>
+                    <option value="Sedang" ${res.okupasi.okupasi == 'Sedang' ? 'selected':''}>Sedang</option>
+                    <option value="Tinggi" ${res.okupasi.okupasi == 'Tinggi' ? 'selected':''}>Tinggi</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label>Keterangan</label>
+                <textarea name="keterangan_okupasi" class="form-control" required rows="2">${res.okupasi.keterangan}</textarea>
+            </div>
+        </div>`;
+        $('#edit-okupasi-container').html(okupasiHtml);
+    });
+
+});
+
+</script>
+{{-- batas edit --}}
+<script>
+  $(document).ready(function () {
+    // Intercept submit form
+    $("#formIsu").on("submit", function (e) {
+        e.preventDefault(); // cegah reload
+
+        let form = $(this);
+        let url = form.attr("action");
+        let formData = form.serialize();
+
+        $.ajax({
+          url: url,
+          method: "POST",
+          data: formData,
+          success: function (data) {
+              if (data.success) {
+                  $("#modalIsu").modal("hide");
+                  showToast("Data berhasil disimpan!", "success");
+                  setTimeout(() => location.reload(), 1500);
+              } else {
+                  // tampilkan pesan dari server
+                  showToast(data.message || "Data gagal disimpan!", "danger");
+              }
+          },
+          error: function () {
+              showToast("Terjadi kesalahan server!", "danger");
+          }
+      });
+
+    });
+});
+
+// Toast function bootstrap 5
+function showToast(message, type = "success") {
+    let toastId = "toast-" + Date.now();
+    let toastHtml = `
+    <div id="${toastId}" class="toast align-items-center text-white bg-${type} border-0"
+         role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000"
+         style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>`;
+
+    $("body").append(toastHtml);
+    let toastEl = new bootstrap.Toast(document.getElementById(toastId));
+    toastEl.show();
+
+    // auto remove setelah hide
+    document.getElementById(toastId).addEventListener("hidden.bs.toast", function () {
+        $(this).remove();
+    });
+}
+
+</script>
+<script>
+  $(document).on('click', '.isuBtn', function () {
+    let unit   = $(this).data('unit');
+    let region = $(this).data('region');
+    let tahun  = $(this).data('tahun');
+    let id   = $(this).data('id');
+    $('#derajat_id').val(id);
+    // ubah judul modal
+    $('#modalIsuLabel').text('Input Isu & Desa - ' + region + ' | ' + unit + ' (' + tahun + ') ');
+});
+
+$(document).ready(function(){
+    // Tambah row baru
+    $("#btn-add").click(function(){
+        let newRow = `
+        <div class="row g-2 isu-row mb-2">
+            <div class="col-md-3">
+                <label>Isu</label>
+                <select name="isu[]" class="form-control" required>
+                    <option value="">Pilih Isu</option>
+                    <option value="Ekonomi">Ekonomi</option>
+                    <option value="Sosial">Sosial & Kesejahteraan</option>
+                    <option value="Lingkungan">Lingkungan</option>
+                    <option value="Pendidikan">Pendidikan</option>
+                    <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label>Keterangan</label>
+                <textarea name="keterangan[]" class="form-control" required rows="2"></textarea>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-remove">-</button>
+            </div>
+        </div>`;
+        $("#isu-container").append(newRow);
+    });
+
+    $("#btn-add-instansi").click(function(){
+        let newRow = `
+          <div class="row g-2 instansi-row mb-2">
+              <div class="col-md-5">
+                  <label class="form-label">Instansi</label>
+                  <select name="instansi[]" class="form-control select2-instansi" required>
+                      <option value="">Pilih Instansi</option>
+                      @foreach($stake as $stakeholder)
+                          <option value="{{ $stakeholder->id }}">{{ $stakeholder->nama_instansi }}</option>
+                      @endforeach
+                  </select>
+              </div>
+              <div class="col-md-6">
+                  <label>Program</label>
+                  <textarea name="program[]" class="form-control" required rows="2"></textarea>
+              </div>
+              <div class="col-md-1 d-flex align-items-end">
+                  <button type="button" class="btn btn-danger btn-remove-instansi">-</button>
+              </div>
+    </div>`;
+
+    let $newRow = $(newRow);
+    $("#instansi-container").append($newRow);
+
+    // aktifkan select2 untuk select baru
+    $newRow.find('.select2-instansi').select2({
+        dropdownParent: $('#modalIsu'),
+        placeholder: "Pilih Instansi",
+        allowClear: true,
+        width: '100%'
+    });
+});
+    // Hapus row (minimal 1)
+    $(document).on("click", ".btn-remove", function(){
+        if ($(".isu-row").length > 1) {
+            $(this).closest(".isu-row").remove();
+        } else {
+            alert("Minimal harus ada 1 inputan isu.");
+        }
+    });
+    $(document).on("click", ".btn-remove-instansi", function(){
+        if ($(".instansi-row").length > 1) {
+            $(this).closest(".instansi-row").remove();
+        } else {
+            alert("Minimal harus ada 1 inputan instansi.");
+        }
+    });
+});
+
+function initSelect2Desa(el) {
+    el.select2({
+        placeholder: 'Cari Desa...',
+        ajax: {
+            url: '{{ route("wilayah.desa") }}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data.results };
+            },
+            cache: true
+        },
+        minimumInputLength: 2,
+        dropdownParent: $('#modalIsu') // modal tempat select berada
+        // e.stopPropagation();
+    });
+}
+
+$(document).ready(function () {
+    // Inisialisasi awal untuk select yang sudah ada
+    initSelect2Desa($('.select2-desa'));
+
+    // Tambah baris baru
+    $("#btn-add-desa").click(function () {
+        let newRow = `
+        <div class="row g-2 desa-row mb-2">
+            <div class="col-md-8">
+                <label>Desa</label>
+                <select name="desa[]" class="form-control select2-desa" style="width:100%" required></select>
+            </div>
+            <div class="col-md-3">
+                <label>Isu</label>
+                <select name="isu_utama[]" class="form-control" required>
+                    <option value="">Pilih Isu</option>
+                    <option value="Ekonomi">Ekonomi</option>
+                    <option value="Sosial">Sosial & Kesejahteraan</option>
+                    <option value="Lingkungan">Lingkungan</option>
+                    <option value="Pendidikan">Pendidikan</option>
+                    <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-remove-desa">-</button>
+            </div>
+        </div>`;
+
+        let $newRow = $(newRow);
+        $("#desa-container").append($newRow);
+
+        // Aktifkan select2 di baris baru
+        initSelect2Desa($newRow.find('.select2-desa'));
+    });
+
+    // Hapus baris
+    $(document).on("click", ".btn-remove-desa", function () {
+        $(this).closest(".desa-row").remove();
+    });
+});
+$('#modalIsu').on('hidden.bs.modal', function () {
+    // reset form
+    $('#formIsu')[0].reset();
+
+    // kosongkan semua select2
+    $(this).find('.select2-desa').val(null).trigger('change');
+
+    // kalau kamu pakai dynamic row, reset ke kondisi awal (1 baris default)
+    $('#isu-container').html(`
+        <div class="row g-2 isu-row mb-2">
+            <div class="col-md-3">
+                <label class="form-label">Isu</label>
+                <select name="isu[]" class="form-control" required>
+                    <option value="">Pilih Isu</option>
+                    <option value="Ekonomi">Ekonomi</option>
+                    <option value="Sosial">Sosial & Kesejahteraan</option>
+                    <option value="Lingkungan">Lingkungan</option>
+                    <option value="Pendidikan">Pendidikan</option>
+                    <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                </select>
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Keterangan</label>
+                <textarea name="keterangan[]" class="form-control" required rows="2"></textarea>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-remove">-</button>
+            </div>
+        </div>
+    `);
+
+    $('#desa-container').html(`
+        <div class="row g-2 desa-row mb-2">
+            <div class="col-md-8">
+                <label class="form-label">Desa</label>
+                <select name="desa[]" class="form-control select2-desa" style="width:100%" required></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Isu</label>
+                <select name="isu_utama[]" class="form-control" required>
+                    <option value="">Pilih Isu</option>
+                    <option value="Ekonomi">Ekonomi</option>
+                    <option value="Sosial">Sosial & Kesejahteraan</option>
+                    <option value="Lingkungan">Lingkungan</option>
+                    <option value="Pendidikan">Pendidikan</option>
+                    <option value="Hubungan Stakeholder">Hubungan Stakeholder</option>
+                </select>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-remove-desa">-</button>
+            </div>
+        </div>
+    `);
+    initSelect2Desa($('.select2-desa'));
+
+    $('#instansi-container').html(`
+        <div class="row g-2 instansi-row mb-2">
+            <div class="col-md-5">
+                              <label class="form-label">Instansi</label>
+                              <select name="instansi[]" id="instansiisu2" class="form-control select2-instansi" required>
+                                  <option value="">Pilih Instansi</option>
+                                  @foreach($stake as $stakeholder)
+                                      <option value="{{ $stakeholder->id }}">{{ $stakeholder->nama_instansi }}</option>
+                                  @endforeach
+                              </select>
+                          </div>
+            <div class="col-md-6">
+                <label class="form-label">Program</label>
+                <textarea name="program[]" class="form-control" required rows="2"></textarea>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-danger btn-remove-instansi">-</button>
+            </div>
+        </div>
+    `);
+});
+
+</script>
+
+
+
+
+
+
+
 <script>
 $(document).ready(function() {
     // Select2 untuk Unit
@@ -417,6 +1359,12 @@ $(document).ready(function() {
     $('#edit_unit').select2({
         dropdownParent: $('#modalEdit'),
         placeholder: "Pilih Unit",
+        allowClear: true,
+        width: '100%'
+    });
+    $('#instansiisu').select2({
+        dropdownParent: $('#modalIsu'),
+        placeholder: "Pilih Instansi",
         allowClear: true,
         width: '100%'
     });
@@ -593,18 +1541,18 @@ $('#modalAdd, #modalEdit').on('shown.bs.modal', function () {
   });
 });
 
-// function hitungSocmap() {
-//     let lingkungan = parseFloat(document.getElementById("lingkungan").value) || 0;
-//     let ekonomi = parseFloat(document.getElementById("ekonomi").value) || 0;
-//     let pendidikan = parseFloat(document.getElementById("pendidikan").value) || 0;
-//     let sosial = parseFloat(document.getElementById("sosial_kesesjahteraan").value) || 0;
-//     let okupasi = parseFloat(document.getElementById("okupasi").value) || 0;
+function hitungSocmapDetail() {
+    let lingkungan = parseFloat(document.getElementById("lingkungan").value) || 0;
+    let ekonomi = parseFloat(document.getElementById("ekonomi").value) || 0;
+    let pendidikan = parseFloat(document.getElementById("pendidikan").value) || 0;
+    let sosial = parseFloat(document.getElementById("sosial_kesesjahteraan").value) || 0;
+    let okupasi = parseFloat(document.getElementById("okupasi").value) || 0;
 
-//     let jumlah = (lingkungan + ekonomi + pendidikan + sosial + okupasi);
+    let jumlah = (lingkungan + ekonomi + pendidikan + sosial + okupasi);
 
-//     document.getElementById("skor_socmap").value = jumlah.toFixed(2); // tampilkan
-//     updateNarasi();
-// }
+    document.getElementById("skor_socmap").value = jumlah.toFixed(2); // tampilkan
+    updateNarasi();
+}
 
 </script>
 <script>
@@ -621,16 +1569,25 @@ function hitungSocmap() {
 
     // Tentukan prioritas berdasarkan skor
     let prioritas = "";
-    if (jumlah === 0) {
-        prioritas = "Null";
-    } else if (jumlah >= 1 && jumlah <= 25) {
-        prioritas = "P1";
-    } else if (jumlah >= 26 && jumlah <= 50) {
-        prioritas = "P2";
-    } else if (jumlah >= 51 && jumlah <= 75) {
-        prioritas = "P3";
-    } else if (jumlah >= 76) {
+    // if (jumlah === 0) {
+    //     prioritas = "Null";
+    // } else if (jumlah >= 0 && jumlah <= 7) {
+    //     prioritas = "P4";
+    // } else if (jumlah >= 8 && jumlah <= 15) {
+    //     prioritas = "P3";
+    // } else if (jumlah >= 16 && jumlah <= 24) {
+    //     prioritas = "P2";
+    // } else if (jumlah > 24) {
+    //     prioritas = "P1";
+    // }
+    if (jumlah >= 0 && jumlah <= 7) {
         prioritas = "P4";
+    } else if (jumlah >= 8 && jumlah <= 15) {
+        prioritas = "P3";
+    } else if (jumlah >= 16 && jumlah <= 24) {
+        prioritas = "P2";
+    } else if (jumlah > 24) {
+        prioritas = "P1";
     }
 
     // Auto-select dropdown
@@ -712,84 +1669,94 @@ function hitungSocmap() {
 
 </script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-  document.querySelectorAll(".detailBtn").forEach(btn => {
-    btn.addEventListener("click", function() {
+document.addEventListener("DOMContentLoaded", function() {
+  // gunakan event delegation
+  document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("detailBtn")) {
+      let btn = e.target;
+
       let item = {
-        unit: this.dataset.unit,
-        region: this.dataset.region,
-        tahun: this.dataset.tahun,
-        prioritas_socmap: this.dataset.prioritas,
-        indeks_kepuasan: this.dataset.indeks,
-        derajat_hubungan: this.dataset.derajat,
-        kepuasan: this.dataset.kepuasan,
-        kontribusi: this.dataset.kontribusi,
-        komunikasi: this.dataset.komunikasi,
-        kepercayaan: this.dataset.kepercayaan,
-        keterlibatan: this.dataset.keterlibatan,
-        lingkungan: this.dataset.lingkungan,
-        ekonomi: this.dataset.ekonomi,
-        pendidikan: this.dataset.pendidikan,
-        sosial_kesesjahteraan: this.dataset.sosial,
-        okupasi: this.dataset.okupasi,
-        skor_socmap: this.dataset.socmap,
-        deskripsi: this.dataset.deskripsi
+        unit: btn.dataset.unit,
+        region: btn.dataset.region,
+        tahun: btn.dataset.tahun,
+        prioritas_socmap1: btn.dataset.prioritas,
+        indeks_kepuasan: btn.dataset.indeks,
+        derajat_hubungan: btn.dataset.derajat,
+        kepuasan: btn.dataset.kepuasan,
+        kontribusi: btn.dataset.kontribusi,
+        komunikasi: btn.dataset.komunikasi,
+        kepercayaan: btn.dataset.kepercayaan,
+        keterlibatan: btn.dataset.keterlibatan,
+        lingkungan: btn.dataset.lingkungan,
+        ekonomi: btn.dataset.ekonomi,
+        pendidikan: btn.dataset.pendidikan,
+        sosial_kesesjahteraan: btn.dataset.sosial,
+        okupasi: btn.dataset.okupasi,
+        skor_socmap: btn.dataset.socmap,
+        deskripsi: btn.dataset.deskripsi
       };
+
+      console.log(item);
+
+      // reset isi modal dulu
+      document.getElementById("detailContent").innerHTML = "";
 
       let bgHubungan = `bg-${item.derajat_hubungan}`;
       let bgKepuasan = `bg-${item.derajat_hubungan}`;
-      let bgSocmap   = `bg-${item.prioritas_socmap}`;
+      let bgSocmap   = `bg-${item.prioritas_socmap1}`;
 
       let html = `
-      <div class="row">
-        <div class="col-md-12">
-          <div class="card mb-3 shadow-sm">
-            <div class="card-header bg-info text-white text-center">Data Analisis Hubungan Stakeholder</div>
-            <div class="card-body" style="font-size:0.9em;">
-              <h6 class="text-center">Derajat Hubungan</h6>
-              <div class="${bgHubungan}"><h4 class="text-center mb-0">${item.derajat_hubungan}</h4></div>
-              <p style="text-align:justify; margin-top:8px;">${item.deskripsi || '-'}</p>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Data Analisis Hubungan Stakeholder</div>
+              <div class="card-body" style="font-size:0.9em;">
+                <h6 class="text-center">Derajat Hubungan</h6>
+                <div class="${bgHubungan}"><h4 class="text-center mb-0">${item.derajat_hubungan}</h4></div>
+                <p style="text-align:justify; margin-top:8px;">${item.deskripsi || '-'}</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Indeks Kepuasan Stakeholder</div>
+              <div class="card-body" style="font-size:0.9em;">
+                <table class="table table-sm">
+                  <tr><td>Kepuasan</td><td>${item.kepuasan ?? '-'}</td></tr>
+                  <tr><td>Kontribusi</td><td>${item.kontribusi ?? '-'}</td></tr>
+                  <tr><td>Komunikasi</td><td>${item.komunikasi ?? '-'}</td></tr>
+                  <tr><td>Kepercayaan</td><td>${item.kepercayaan ?? '-'}</td></tr>
+                  <tr><td>Keterlibatan</td><td>${item.keterlibatan ?? '-'}</td></tr>
+                  <tr><td><b>Total</b></td><td><b>${item.indeks_kepuasan ?? '-'}</b></td></tr>
+                </table>
+                <div class="${bgKepuasan} text-center mt-2"><h4 class="mb-0">${item.derajat_hubungan ?? '-'}</h4></div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card mb-3 shadow-sm">
+              <div class="card-header bg-info text-white text-center">Social Mapping</div>
+              <div class="card-body" style="font-size:0.9em;">
+                <table class="table table-sm">
+                  <tr><td>Lingkungan</td><td>${item.lingkungan ?? '-'}</td></tr>
+                  <tr><td>Ekonomi</td><td>${item.ekonomi ?? '-'}</td></tr>
+                  <tr><td>Pendidikan</td><td>${item.pendidikan ?? '-'}</td></tr>
+                  <tr><td>Sosial</td><td>${item.sosial_kesesjahteraan ?? '-'}</td></tr>
+                  <tr><td>Okupasi</td><td>${item.okupasi ?? '-'}</td></tr>
+                  <tr><td><b>Total</b></td><td><b>${item.skor_socmap ?? '-'}</b></td></tr>
+                </table>
+                <div class="${bgSocmap} text-center mt-2"><h4 class="mb-0">${item.prioritas_socmap1 ?? '-'}</h4></div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-md-6">
-          <div class="card mb-3 shadow-sm">
-            <div class="card-header bg-info text-white text-center">Indeks Kepuasan Stakeholder</div>
-            <div class="card-body" style="font-size:0.9em;">
-              <table style="font-size:0.9em;" class="table table-sm">
-                <tr><td>Kepuasan</td><td>${item.kepuasan ?? '-'}</td></tr>
-                <tr><td>Kontribusi</td><td>${item.kontribusi ?? '-'}</td></tr>
-                <tr><td>Komunikasi</td><td>${item.komunikasi ?? '-'}</td></tr>
-                <tr><td>Kepercayaan</td><td>${item.kepercayaan ?? '-'}</td></tr>
-                <tr><td>Keterlibatan</td><td>${item.keterlibatan ?? '-'}</td></tr>
-                <tr><td><b>Total</b></td><td><b>${item.indeks_kepuasan ?? '-'}</b></td></tr>
-              </table>
-              <div class="${bgKepuasan} text-center mt-2"><h4 class="mb-0">${item.derajat_hubungan ?? '-'}</h4></div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card mb-3 shadow-sm">
-            <div class="card-header bg-info text-white text-center">Social Mapping</div>
-            <div class="card-body" style="font-size:0.9em;">
-              <table style="font-size:0.9em;" class="table table-sm">
-                <tr><td>Lingkungan</td><td>${item.lingkungan ?? '-'}</td></tr>
-                <tr><td>Ekonomi</td><td>${item.ekonomi ?? '-'}</td></tr>
-                <tr><td>Pendidikan</td><td>${item.pendidikan ?? '-'}</td></tr>
-                <tr><td>Sosial</td><td>${item.sosial_kesesjahteraan ?? '-'}</td></tr>
-                <tr><td>Okupasi</td><td>${item.okupasi ?? '-'}</td></tr>
-                <tr><td><b>Total</b></td><td><b>${item.skor_socmap ?? '-'}</b></td></tr>
-              </table>
-              <div class="${bgSocmap} text-center mt-2"><h4 class="mb-0">${item.prioritas_socmap ?? '-'}</h4></div>
-            </div>
-          </div>
-        </div>
-      </div>
       `;
+
       document.getElementById("detailContent").innerHTML = html;
-    });
+    }
   });
 });
+
 
 </script>
 <script>

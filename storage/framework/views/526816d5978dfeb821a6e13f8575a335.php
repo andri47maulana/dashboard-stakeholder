@@ -94,17 +94,55 @@
     <hr class="sidebar-divider">
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRegional"
-        aria-expanded="true" aria-controls="collapseRegional">
-        <i class="fas fa-fw fa-bars"></i>
-        <span>Regional</span>
+        aria-expanded="<?php echo e(request()->is('peta/peta_region/*') ? 'true' : 'false'); ?>"
+        aria-controls="collapseRegional">
+            <i class="fas fa-fw fa-bars"></i>
+            <span>Regional</span>
         </a>
-        <div id="collapseRegional" class="collapse" aria-labelledby="headingRegional" data-parent="#accordionSidebar">
+        <div id="collapseRegional" 
+            class="collapse <?php echo e(request()->is('peta/peta_region/*') ? 'show' : ''); ?>" 
+            aria-labelledby="headingRegional" 
+            data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="<?php echo e(url('/')); ?>/peta/peta_region/PTPN I Regional 1"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 1') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 1')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 1
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 2') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 2')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 2
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 3') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 3')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 3
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 4') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 4')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 4
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 5') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 5')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 5
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 6') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 6')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 6
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 7') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 7')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 7
+                </a>
+                <a class="collapse-item <?php echo e(request()->is('peta/peta_region/PTPN I Regional 8') ? 'active' : ''); ?>" 
+                href="<?php echo e(url('/peta/peta_region/PTPN I Regional 8')); ?>">
+                <i class="fas fa-fw fa-map-pin"></i>Regional 8
+                </a>
+
                 
+
             </div>
         </div>
     </li>
+
                 
     <!-- Divider 
     <hr class="sidebar-divider">
