@@ -289,7 +289,7 @@ $(document).ready(function(){
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
 
-<script>
+{{-- <script>
 var kebunJsons = @json($kebunJsons->map(fn($k) => $k->decoded));
 var mapSingle, mapAll;
 var colors = ["#FF5733","#33C1FF","#28A745","#FFC300","#9B59B6","#E67E22"];
@@ -399,5 +399,160 @@ $(document).on("click", ".lihat-mapall", function() {
     }, 300);
 });
 
+</script> --}}
+<script>
+const basemapConfig = {
+    osm: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }
+    },
+    satellite: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        options: { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
+    },
+    topo: {
+        url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+        options: { attribution: 'Map data: &copy; OSM contributors, SRTM | Map style: &copy; OpenTopoMap', maxZoom: 17 }
+    }
+};
+
+var kebunJsons = @json($kebunJsons->map(fn($k) => $k->decoded));
+var mapSingle, mapAll;
+var colors = ["#FF5733","#33C1FF","#28A745","#FFC300","#9B59B6","#E67E22"];
+
+function getColor(index){ return colors[index % colors.length]; }
+
+// ===== Single Map per Kebun =====
+$(document).on("click", ".lihat-map", function() {
+    var index = $(this).data("index");
+    var json = kebunJsons[index];
+    var color = getColor(index);
+
+    var modalAllEl = document.getElementById('mapModalAll');
+    if ($(modalAllEl).hasClass('show')) {
+        bootstrap.Modal.getInstance(modalAllEl).hide();
+    }
+
+    var mapModal = new bootstrap.Modal(document.getElementById('mapModal'), {
+        backdrop: 'static',
+        keyboard: true
+    });
+    mapModal.show();
+
+    setTimeout(() => {
+        if(mapSingle) mapSingle.remove();
+
+        mapSingle = L.map('mapContainer');
+        
+        const baseLayers = {
+            "Peta Jalan": L.tileLayer(basemapConfig.osm.url, basemapConfig.osm.options),
+            "Citra Satelit": L.tileLayer(basemapConfig.satellite.url, basemapConfig.satellite.options),
+            "Topografi": L.tileLayer(basemapConfig.topo.url, basemapConfig.topo.options)
+        };
+        baseLayers["Peta Jalan"].addTo(mapSingle);
+        L.control.layers(baseLayers).addTo(mapSingle);
+
+        // --- [PERBAIKAN URUTAN] ---
+        // 1. Buat layer dan simpan di variabel
+        let layer = L.vectorGrid.protobuf(json.tileurl, {
+            vectorTileLayerStyles: {
+                [json.id || index]: {
+                    weight: 3, color: color, fill: true, fillColor: color, fillOpacity: 0.5
+                }
+            },
+            interactive: false
+        });
+        
+        // 2. Pasang event listener pada variabel tersebut
+        layer.on('load', function() {
+            if (this.getContainer) {
+                this.getContainer().style.zIndex = 450;
+            }
+        });
+
+        // 3. Baru tambahkan layer ke peta
+        layer.addTo(mapSingle);
+        
+        if(json.bounds?.length === 4){
+            mapSingle.fitBounds([[json.bounds[1],json.bounds[0]], [json.bounds[3],json.bounds[2]]]);
+        } else {
+            mapSingle.setView([json.center[1], json.center[0]], 14);
+        }
+        
+        mapSingle.invalidateSize();
+    }, 300);
+});
+
+// ===== Semua Map Kebun =====
+$(document).on("click", ".lihat-mapall", function() {
+    var mapModal = new bootstrap.Modal(document.getElementById('mapModalAll'), {
+        backdrop: 'static',
+        keyboard: true
+    });
+    mapModal.show();
+
+    setTimeout(() => {
+        if(mapAll) mapAll.remove();
+
+        mapAll = L.map('mapContainerAll');
+        
+        const baseLayers = {
+            "Peta Jalan": L.tileLayer(basemapConfig.osm.url, basemapConfig.osm.options),
+            "Citra Satelit": L.tileLayer(basemapConfig.satellite.url, basemapConfig.satellite.options),
+            "Topografi": L.tileLayer(basemapConfig.topo.url, basemapConfig.topo.options)
+        };
+        baseLayers["Peta Jalan"].addTo(mapAll);
+        L.control.layers(baseLayers).addTo(mapAll);
+
+        var allBounds = L.latLngBounds([]);
+        var legendHtml = '<div class="map-legend"><b>Legend:</b><br>';
+
+        kebunJsons.forEach((json, index) => {
+            var color = getColor(index);
+
+            // --- [PERBAIKAN URUTAN] ---
+            // 1. Buat layer dan simpan di variabel
+            let layer = L.vectorGrid.protobuf(json.tileurl, {
+                vectorTileLayerStyles: {
+                    [json.id || index]: {
+                        weight: 3, color: color, fill: true, fillColor: color, fillOpacity: 0.5
+                    }
+                },
+                interactive: false
+            });
+
+            // 2. Pasang event listener pada variabel tersebut
+            layer.on('load', function() {
+                if (this.getContainer) {
+                    this.getContainer().style.zIndex = 450;
+                }
+            });
+            
+            // 3. Baru tambahkan layer ke peta
+            layer.addTo(mapAll);
+
+            if(json.bounds?.length === 4){
+                allBounds.extend([[json.bounds[1],json.bounds[0]], [json.bounds[3],json.bounds[2]]]);
+            }
+
+            legendHtml += `<div><span class="legend-color" style="background:${color}"></span>${json.name}</div>`;
+        });
+
+        if(allBounds.isValid()){
+            mapAll.fitBounds(allBounds, { padding:[30,30] });
+        }
+
+        // Legend
+        var legend = L.control({position: 'topright'});
+        legend.onAdd = function() {
+            var div = L.DomUtil.create('div', 'map-legend');
+            div.innerHTML = legendHtml + '</div>';
+            return div;
+        };
+        legend.addTo(mapAll);
+
+        mapAll.invalidateSize();
+    }, 300);
+});
 </script>
 @endsection
