@@ -11,6 +11,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PetaController;
 use App\Http\Controllers\PolygonController;
 use App\Http\Controllers\DerajatHubunganController;
+use App\Http\Controllers\TjslController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -46,7 +48,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/get-wilayah', [WilayahController::class, 'getWilayah']);
     Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']);
 
-    
+
 
     Route::get('/exportstakeholder', [StakeholderController::class, 'exportstakeholder']);
     Route::prefix('user')->group(function(){
@@ -57,8 +59,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/form_user_add', [UserController::class, 'view_form_user']);
         Route::get('/form_user_edit/{id}', [UserController::class, 'view_form_user']);
         Route::get('/deleteuser/{id}', [UserController::class, 'func_deleteuser']);
-        
-        
+
+
     });
     Route::prefix('dash')->group(function(){
         Route::get('/stakeholder', [StakeholderController::class, 'dashstakeholder']);
@@ -111,7 +113,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/deletemou/{id}', [DokumenController::class, 'func_deletemou']);
         Route::get('/get_data_mou/{id}', [DokumenController::class, 'get_data_mou'])->name('get_data_mou');
     });
-    
+
     Route::prefix('masterdata')->group(function(){
         Route::get('/kebun', [MasterDataController::class, 'dashkebun']);
         Route::get('/data_kebun', [MasterDataController::class, 'data_kebun'])->name('units.list');
@@ -173,4 +175,10 @@ Route::group(['middleware' => 'auth'], function () {
 
 
 });
+
+Route::resource('tjsl', TjslController::class);
+Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.add-biaya');
+Route::post('tjsl/{id}/publikasi', [TjslController::class, 'addPublikasi'])->name('tjsl.add-publikasi');
+Route::post('tjsl/{id}/dokumen', [TjslController::class, 'addDokumen'])->name('tjsl.add-dokumen');
+Route::post('tjsl/{id}/feedback', [TjslController::class, 'addFeedback'])->name('tjsl.add-feedback');
 
