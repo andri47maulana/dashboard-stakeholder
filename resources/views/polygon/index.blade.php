@@ -356,11 +356,19 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.within_radius && data.within_radius.length) {
                 let listHtml = '<div class="mt-2"><h6>Kebun dalam radius:</h6><ol class="small ps-3">';
                 data.within_radius.forEach(row => {
-                    listHtml += `<li>${row.unit || row.id} (${row.distance_km} km)</li>`;
+                    const dist = (typeof row.distance_km === 'number') ? row.distance_km.toFixed(3) : row.distance_km;
+                    const dtype = (row.distance_type || 'center');
+                        const badgeClass = dtype === 'edge' ? 'bg-success' : (dtype === 'bbox' ? 'bg-info text-dark' : 'bg-secondary');
+                        // Badge tanpa teks: gunakan titik kecil berwarna, tetap beri title untuk aksesibilitas
+                        const badge = `<span class="badge ${badgeClass}" title="${dtype}" style="width:10px;height:10px;display:inline-block;border-radius:8px;padding:0;vertical-align:middle;"></span>`;
+                    const title = row.center_distance_km ? ` title="jarak ke center: ${row.center_distance_km} km"` : '';
+                    listHtml += `<li${title}>${badge} ${row.unit || row.id} (${dist} km)</li>`;
                     if (row.center) {
+                        // Ubah warna marker sesuai tipe jarak
+                        const color = dtype === 'edge' ? 'green' : (dtype === 'bbox' ? 'orange' : 'purple');
                         let m = L.circleMarker([row.center[1], row.center[0]], {
-                            radius: 4, color: 'purple', fillColor: 'purple', fillOpacity: 0.7
-                        }).addTo(map).bindTooltip(`${row.unit || row.id} - ${row.distance_km} km`);
+                            radius: 4, color: color, fillColor: color, fillOpacity: 0.7
+                        }).addTo(map).bindTooltip(`${row.unit || row.id} - ${dist} km (${dtype})`);
                         withinMarkers.push(m);
                     }
                 });

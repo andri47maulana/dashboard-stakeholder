@@ -166,17 +166,46 @@ public function checkPoint(Request $request)
                     $inside['approximate'] = true;
                 }
 
-                // 3. Hitung jarak ke center untuk nearest & within radius
+                // 3. Hitung jarak ke center (untuk nearest dan sebagai fallback)
+                $centerDist = null;
                 if ($center && count($center) === 2) {
-                    $dist = $this->haversine($lat, $lng, $center[1], $center[0]); // km
-                    if ($dist < $nearestDist) {
-                        $nearestDist = $dist;
+                    $centerDist = $this->haversine($lat, $lng, $center[1], $center[0]); // km
+                    if ($centerDist < $nearestDist) {
+                        $nearestDist = $centerDist;
                         $nearest = $this->formatKebun($kebun);
                         $nearest['distance_km'] = round($nearestDist, 3);
+                        $nearest['distance_type'] = 'center';
                     }
-                    if ($radiusKm !== null && $dist <= $radiusKm) {
+                }
+
+                // 4. Jika radius diminta: gunakan jarak ke tepi polygon (edge) jika geometry tersedia
+                if ($radiusKm !== null) {
+                    $edgeDist = null;
+
+                    if ($geometry) {
+                        // Jarak minimal ke sisi polygon; 0 jika di dalam
+                        $edgeDist = $this->minDistanceToGeometry($lat, $lng, $geometry, 0.25); // early-stop 250 m
+                    } elseif ($bounds && count($bounds) === 4) {
+                        // Jika tidak ada geometry tapi ada bounds, gunakan jarak ke bounding box
+                        $edgeDist = $this->minDistanceToBounds($lat, $lng, $bounds);
+                    } elseif ($centerDist !== null) {
+                        // Fallback terakhir: jarak ke center
+                        $edgeDist = $centerDist;
+                    }
+
+                    if ($edgeDist !== null && $edgeDist <= $radiusKm) {
                         $row = $this->formatKebun($kebun);
-                        $row['distance_km'] = round($dist, 3);
+                        $row['distance_km'] = round($edgeDist, 3);
+                        if ($geometry && $edgeDist !== $centerDist) {
+                            $row['distance_type'] = 'edge';
+                        } elseif ($bounds && !$geometry) {
+                            $row['distance_type'] = 'bbox';
+                        } else {
+                            $row['distance_type'] = 'center';
+                        }
+                        if ($centerDist !== null) {
+                            $row['center_distance_km'] = round($centerDist, 3);
+                        }
                         $withinRadius[] = $row;
                     }
                 }
@@ -301,6 +330,103 @@ private function haversine($lat1, $lon1, $lat2, $lon2)
         $lenSq = ($x2 - $x1)**2 + ($y2 - $y1)**2;
         if ($dot > $lenSq) return false;
         return true;
+    }
+
+    /**
+     * Hitung jarak minimum (km) dari titik ke geometry (Polygon/MultiPolygon). 0 jika di dalam.
+     * Menggunakan proyeksi lokal equirectangular untuk aproksimasi cepat dan akurat untuk jarak pendek.
+     * earlyStopKm: jika jarak sudah di bawah threshold, hentikan awal untuk performa.
+     */
+    private function minDistanceToGeometry(float $lat, float $lng, array $geometry, ?float $earlyStopKm = null): ?float
+    {
+        $type = $geometry['type'] ?? null;
+        $coords = $geometry['coordinates'] ?? null;
+        if (!$type || !$coords) return null;
+
+        if ($type === 'Polygon') {
+            return $this->minDistanceToPolygon($lat, $lng, $coords, $earlyStopKm);
+        } elseif ($type === 'MultiPolygon') {
+            $min = PHP_FLOAT_MAX;
+            foreach ($coords as $poly) {
+                $d = $this->minDistanceToPolygon($lat, $lng, $poly, $earlyStopKm);
+                if ($d === 0.0) return 0.0;
+                if ($d !== null && $d < $min) $min = $d;
+                if ($earlyStopKm !== null && $min <= $earlyStopKm) return $min;
+            }
+            return $min === PHP_FLOAT_MAX ? null : $min;
+        }
+        return null;
+    }
+
+    private function minDistanceToPolygon(float $lat, float $lng, array $rings, ?float $earlyStopKm = null): ?float
+    {
+        // Jika di dalam outer dan tidak di dalam hole → jarak 0
+        if ($this->pointInPolygonRings($lat, $lng, $rings)) return 0.0;
+
+        $min = PHP_FLOAT_MAX;
+        // Gunakan proyeksi lokal sekitar titik kueri untuk konversi derajat->meter
+        $lat0 = deg2rad($lat);
+        $mPerDegLat = 111132.0; // kira-kira
+        $mPerDegLon = 111320.0 * cos($lat0);
+
+        foreach ($rings as $ring) {
+            $n = count($ring);
+            if ($n < 2) continue;
+            for ($i = 0, $j = $n - 1; $i < $n; $j = $i++) {
+                $x1 = ($ring[$j][0] - $lng) * $mPerDegLon; // lon
+                $y1 = ($ring[$j][1] - $lat) * $mPerDegLat; // lat
+                $x2 = ($ring[$i][0] - $lng) * $mPerDegLon;
+                $y2 = ($ring[$i][1] - $lat) * $mPerDegLat;
+
+                // Proyeksi P(0,0) ke segmen A(x1,y1)-B(x2,y2)
+                $dx = $x2 - $x1; $dy = $y2 - $y1;
+                $len2 = $dx*$dx + $dy*$dy;
+                if ($len2 == 0) {
+                    $distM = sqrt($x1*$x1 + $y1*$y1);
+                } else {
+                    $t = -($x1*$dx + $y1*$dy) / $len2; // karena P di (0,0)
+                    if ($t < 0) $t = 0; elseif ($t > 1) $t = 1;
+                    $cx = $x1 + $t*$dx; $cy = $y1 + $t*$dy;
+                    $distM = sqrt($cx*$cx + $cy*$cy);
+                }
+                $distKm = $distM / 1000.0;
+                if ($distKm < $min) $min = $distKm;
+                if ($earlyStopKm !== null && $min <= $earlyStopKm) return $min;
+            }
+        }
+        return $min === PHP_FLOAT_MAX ? null : $min;
+    }
+
+    /**
+     * Jarak minimum (km) dari titik ke bounding box [minLng,minLat,maxLng,maxLat]. 0 jika di dalam bbox.
+     */
+    private function minDistanceToBounds(float $lat, float $lng, array $bounds): float
+    {
+        if (count($bounds) !== 4) return PHP_FLOAT_MAX;
+        [$minLng,$minLat,$maxLng,$maxLat] = $bounds;
+
+        // Konversi derajat ke meter di sekitar latitude query
+        $lat0 = deg2rad($lat);
+        $mPerDegLat = 111132.0;
+        $mPerDegLon = 111320.0 * cos($lat0);
+
+        // Hitung delta pada sumbu lon/lat
+        $dx = 0.0; $dy = 0.0;
+        if ($lng < $minLng) {
+            $dx = ($minLng - $lng) * $mPerDegLon;
+        } elseif ($lng > $maxLng) {
+            $dx = ($lng - $maxLng) * $mPerDegLon;
+        }
+
+        if ($lat < $minLat) {
+            $dy = ($minLat - $lat) * $mPerDegLat;
+        } elseif ($lat > $maxLat) {
+            $dy = ($lat - $maxLat) * $mPerDegLat;
+        }
+
+        // Jika di dalam rentang kedua sumbu, dx=dy=0 → jarak 0
+        $distM = sqrt($dx*$dx + $dy*$dy);
+        return $distM / 1000.0;
     }
 
     /**
