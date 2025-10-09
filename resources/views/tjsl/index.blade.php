@@ -21,22 +21,55 @@
         @endif
 
         <!-- Filter Section -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="filterStatus">Filter Status:</label>
-                    <select class="form-control" id="filterStatus">
-                        <option value="">Semua Status</option>
-                        <option value="1">Proposed</option>
-                        <option value="2">Active</option>
-                        <option value="3">Completed</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="searchProgram">Cari Program:</label>
-                    <input type="text" class="form-control" id="searchProgram" placeholder="Masukkan nama program...">
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-md-2">
+                        <label for="filterRegion" class="form-label small text-muted">Region</label>
+                        <select class="form-control form-control-sm" id="filterRegion">
+                            <option value="">Semua Regionals</option>
+                            @foreach ($regions as $region)
+                                <option value="{{ $region }}">{{ $region }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="filterPilar" class="form-label small text-muted">Pilar</label>
+                        <select class="form-control form-control-sm" id="filterPilar">
+                            <option value="">Semua Pilar</option>
+                            @foreach ($pilars as $pilar)
+                                <option value="{{ $pilar->id }}">{{ $pilar->pilar }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="filterKebun" class="form-label small text-muted">Kebun</label>
+                        <select class="form-control form-control-sm" id="filterKebun">
+                            <option value="">Semua Unit</option>
+                            @foreach ($units as $unit)
+                                <option value="{{ $unit->id }}">{{ $unit->unit }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <label for="filterTahun" class="form-label small text-muted">Tahun</label>
+                        <select class="form-control form-control-sm" id="filterTahun">
+                            <option value="">Semua Tahun</option>
+                            @foreach ($tahunList as $tahun)
+                                <option value="{{ $tahun }}">{{ $tahun }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-success btn-sm" id="applyFilter">
+                            <i class="fas fa-filter"></i> Filter
+                        </button>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-warning btn-sm" id="resetFilter">
+                            <i class="fas fa-undo"></i> Reset
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,7 +84,7 @@
                             <!-- Nama Program -->
                             <div class="row no-gutters align-items-center mb-2">
                                 <div class="col">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                    <div class="text-sm font-weight-bold mb-1">
                                         {{ $tjsl->nama_program }}
                                     </div>
                                 </div>
@@ -66,11 +99,11 @@
                                 </div>
                                 <div class="col-auto">
                                     @if ($tjsl->status == 1)
-                                        <span class="badge badge-success">Completed</span>
+                                        <span class="badge badge-primary">Proposed</span>
                                     @elseif($tjsl->status == 2)
-                                        <span class="badge badge-warning">On Progress</span>
-                                    @else
-                                        <span class="badge badge-secondary">Planning</span>
+                                        <span class="badge badge-warning">Active</span>
+                                    @elseif($tjsl->status == 3)
+                                        <span class="badge badge-success">Completed</span>
                                     @endif
                                 </div>
                             </div>
@@ -84,6 +117,7 @@
                                                 <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}" class="me-1"
                                                     style="width: 50px; height: 50px; object-fit: contain;"
                                                     title="{{ $image['alt'] }}">
+                                                <span style="margin-right: 5px;"> </span>
                                             @endforeach
                                         @else
                                             <i class="fas fa-tag fa-sm text-gray-400 me-2"></i>
@@ -96,9 +130,9 @@
                             <!-- Tanggal Mulai -->
                             <div class="row no-gutters align-items-center mb-2">
                                 <div class="col">
-                                    <div class="text-xs mb-0 text-gray-600">
-                                        <i class="fas fa-calendar-alt fa-sm text-gray-400"></i>
-                                        Mulai: {{ $tjsl->tanggal_mulai->format('d M Y') }}
+                                    <div class="text-sm mb-0 text-black-600">
+                                        <i class="fas fa-calendar-alt fa-sm text-black-400"></i>
+                                        Mulai : {{ $tjsl->tanggal_mulai->format('d M Y') }}
                                     </div>
                                 </div>
                             </div>
@@ -106,9 +140,9 @@
                             <!-- Tanggal Akhir -->
                             <div class="row no-gutters align-items-center mb-3">
                                 <div class="col">
-                                    <div class="text-xs mb-0 text-gray-600">
-                                        <i class="fas fa-calendar-check fa-sm text-gray-400"></i>
-                                        Selesai: {{ $tjsl->tanggal_akhir }}
+                                    <div class="text-sm mb-0 text-black-600">
+                                        <i class="fas fa-calendar-check fa-sm text-black-400"></i>
+                                        Selesai: {{ $tjsl->tanggal_akhir->format('d M Y') }}
                                     </div>
                                 </div>
                             </div>
@@ -155,56 +189,152 @@
 
 @push('scripts')
     <script>
+        console.log('Filter region element found:', $('#filterRegion').length);
         $(document).ready(function() {
-            // Filter by status
-            $('#filterStatus').on('change', function() {
-                var selectedStatus = $(this).val();
-                filterCards();
+            console.log('tes');
+            console.log('Document ready - jQuery loaded:', typeof $ !== 'undefined');
+            console.log('Filter region element found:', $('#filterRegion').length);
+
+            // Apply filter button
+            $('#applyFilter').click(function() {
+                applyFilters();
             });
 
-            // Search by program name
-            $('#searchProgram').on('keyup', function() {
-                filterCards();
+            // Auto filter on change (KECUALI region - karena region punya handler khusus)
+            $('#filterPilar, #filterKebun, #filterTahun, #filterStatus').change(function() {
+                applyFilters();
             });
 
-            function filterCards() {
-                var selectedStatus = $('#filterStatus').val();
-                var searchText = $('#searchProgram').val().toLowerCase();
+            // Search on input
+            $('#searchProgram').on('input', function() {
+                clearTimeout(window.searchTimeout);
+                window.searchTimeout = setTimeout(function() {
+                    applyFilters();
+                }, 500);
+            });
 
-                $('.program-card').each(function() {
-                    var cardStatus = $(this).data('status').toString();
-                    var cardProgram = $(this).data('program');
+            function applyFilters() {
+                const filters = {
+                    region: $('#filterRegion').val(),
+                    pilar_id: $('#filterPilar').val(),
+                    unit_id: $('#filterKebun').val(),
+                    tahun: $('#filterTahun').val(),
+                    status: $('#filterStatus').val(),
+                    search: $('#searchProgram').val()
+                };
 
-                    var statusMatch = selectedStatus === '' || cardStatus === selectedStatus;
-                    var programMatch = searchText === '' || cardProgram.includes(searchText);
+                // Build query string
+                const queryString = Object.keys(filters)
+                    .filter(key => filters[key] !== '')
+                    .map(key => key + '=' + encodeURIComponent(filters[key]))
+                    .join('&');
 
-                    if (statusMatch && programMatch) {
-                        $(this).show();
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                // Show/hide empty message
-                var visibleCards = $('.program-card:visible').length;
-                if (visibleCards === 0 && $('.program-card').length > 0) {
-                    if ($('#noResultsMessage').length === 0) {
-                        $('#programCards').append(`
-                    <div class="col-12" id="noResultsMessage">
-                        <div class="card shadow">
-                            <div class="card-body text-center py-4">
-                                <i class="fas fa-search fa-2x text-muted mb-3"></i>
-                                <h6 class="text-muted">Tidak ada program yang sesuai dengan filter</h6>
-                                <p class="text-muted mb-0">Coba ubah kriteria pencarian Anda.</p>
-                            </div>
-                        </div>
-                    </div>
-                `);
-                    }
-                } else {
-                    $('#noResultsMessage').remove();
-                }
+                // Redirect with filters
+                window.location.href = '{{ route('tjsl.index') }}' + (queryString ? '?' + queryString : '');
             }
+
+            // PERBAIKAN: Filter kebun berdasarkan region yang dipilih
+            // Hapus semua event handler yang ada dan buat yang baru
+            $('#filterRegion').on('click', function(e) {
+                console.log('disini');
+
+                const selectedRegion = $(this).val();
+                const kebunSelect = $('#filterKebun');
+
+                console.log('Selected region:', selectedRegion);
+                console.log('Kebun select element found:', kebunSelect.length);
+
+                if (selectedRegion && selectedRegion.trim() !== '') {
+                    console.log('Making AJAX request for region:', selectedRegion);
+
+                    // AJAX call untuk mendapatkan unit berdasarkan region
+                    $.ajax({
+                        url: '{{ route('get.units.by.region') }}',
+                        method: 'GET',
+                        data: {
+                            region: selectedRegion,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        beforeSend: function(xhr) {
+                            console.log('AJAX beforeSend - URL:',
+                                '{{ route('get.units.by.region') }}');
+                            console.log('AJAX beforeSend - Data:', {
+                                region: selectedRegion
+                            });
+                            kebunSelect.html('<option value="">Loading...</option>');
+                        },
+                        success: function(response) {
+                            console.log('AJAX SUCCESS - Response:', response);
+                            console.log('Response type:', typeof response);
+                            console.log('Is array:', Array.isArray(response));
+
+                            kebunSelect.html('<option value="">Semua Kebun</option>');
+
+                            if (response && Array.isArray(response) && response.length > 0) {
+                                console.log('Processing', response.length, 'units');
+                                response.forEach(function(unit, index) {
+                                    console.log('Unit', index + 1, ':', unit);
+                                    kebunSelect.append(
+                                        `<option value="${unit.id}">${unit.unit}</option>`
+                                    );
+                                });
+                                console.log('Units added to dropdown');
+                            } else {
+                                console.log('No units found for region:', selectedRegion);
+                                kebunSelect.append('<option value="">Tidak ada kebun</option>');
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('=== AJAX ERROR ===');
+                            console.error('Status:', status);
+                            console.error('Error:', error);
+                            console.error('Response Text:', xhr.responseText);
+                            console.error('Status Code:', xhr.status);
+
+                            kebunSelect.html('<option value="">Error loading data</option>');
+
+                            // Tampilkan error detail
+                            if (xhr.responseText) {
+                                try {
+                                    const errorResponse = JSON.parse(xhr.responseText);
+                                    console.error('Error Response JSON:', errorResponse);
+                                } catch (e) {
+                                    console.error('Error Response (not JSON):', xhr
+                                        .responseText);
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    console.log('Resetting to all units (empty region)');
+                    // Reset ke semua kebun
+                    kebunSelect.html('<option value="">Semua Kebun</option>');
+                    @foreach ($units as $unit)
+                        kebunSelect.append(
+                            '<option value="{{ $unit->id }}">{{ $unit->unit }}</option>');
+                    @endforeach
+                    console.log('All units restored');
+                }
+            });
+
+            // Reset filter button
+            $('#resetFilter').click(function() {
+                console.log('Reset button clicked');
+                $('#filterRegion').val('').trigger('change');
+                $('#filterPilar').val('');
+                $('#filterKebun').val('');
+                $('#filterTahun').val('');
+                $('#filterStatus').val('');
+                $('#searchProgram').val('');
+                applyFilters();
+            });
+
+            // Test manual trigger (untuk debugging)
+            console.log('=== TESTING MANUAL TRIGGER ===');
+            setTimeout(function() {
+                console.log('Manual trigger test in 2 seconds...');
+                $('#filterRegion').trigger('change');
+            }, 2000);
         });
     </script>
 @endpush

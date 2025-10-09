@@ -13,13 +13,63 @@ use Illuminate\Support\Facades\Auth;
 
 class TjslController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $tjsls = Tjsl::with(['unit', 'creator', 'pilar'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(12); // 12 cards per page (3x4 grid)
+        $query = Tjsl::with(['unit', 'creator', 'pilar']);
 
-        return view('tjsl.index', compact('tjsls'));
+        // Filter berdasarkan region (melalui unit)
+        if ($request->filled('region')) {
+            $query->whereHas('unit', function($q) use ($request) {
+                $q->where('region', $request->region);
+            });
+        }
+
+        // Filter berdasarkan pilar
+        if ($request->filled('pilar_id')) {
+            $query->where('pilar_id', $request->pilar_id);
+        }
+
+        // Filter berdasarkan kebun/unit
+        if ($request->filled('unit_id')) {
+            $query->where('unit_id', $request->unit_id);
+        }
+
+        // Filter berdasarkan tahun tanggal_mulai
+        if ($request->filled('tahun')) {
+            $query->whereYear('tanggal_mulai', $request->tahun);
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search berdasarkan nama program
+        if ($request->filled('search')) {
+            $query->where('nama_program', 'like', '%' . $request->search . '%');
+        }
+
+        $tjsls = $query->orderBy('created_at', 'desc')->paginate(12);
+
+        // Data untuk dropdown filter
+        $pilars = \App\Models\Pilar::orderBy('pilar')->get();
+        $units = \App\Models\Unit::orderBy('unit')->get();
+
+        // Ambil region unik dari tabel unit
+        $regions = \App\Models\Unit::select('region')
+            ->distinct()
+            ->whereNotNull('region')
+            ->orderBy('region')
+            ->pluck('region');
+
+        // Ambil tahun unik dari tanggal_mulai
+        $tahunList = Tjsl::selectRaw('YEAR(tanggal_mulai) as tahun')
+            ->whereNotNull('tanggal_mulai')
+            ->distinct()
+            ->orderBy('tahun', 'desc')
+            ->pluck('tahun');
+
+        return view('tjsl.index', compact('tjsls', 'pilars', 'units', 'regions', 'tahunList'));
     }
 
     public function show($id)
@@ -287,5 +337,16 @@ class TjslController extends Controller
 
         return redirect()->route('tjsl.show', $id)
             ->with('success', 'Feedback berhasil ditambahkan.');
+    }
+
+    public function getUnitsByRegion(Request $request)
+    {
+        $units = Unit::where('region', $request->region)
+            ->orderBy('unit')
+            ->get(['id', 'unit']);
+
+        dd($units);
+
+        return response()->json($units);
     }
 }

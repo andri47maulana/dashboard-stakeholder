@@ -181,4 +181,5 @@ Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.
 Route::post('tjsl/{id}/publikasi', [TjslController::class, 'addPublikasi'])->name('tjsl.add-publikasi');
 Route::post('tjsl/{id}/dokumen', [TjslController::class, 'addDokumen'])->name('tjsl.add-dokumen');
 Route::post('tjsl/{id}/feedback', [TjslController::class, 'addFeedback'])->name('tjsl.add-feedback');
+Route::get('/get-units-by-region', [TjslController::class, 'getUnitsByRegion'])->name('get.units.by.region');
 

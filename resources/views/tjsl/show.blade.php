@@ -33,7 +33,7 @@
                                             </tr>
                                             <tr>
                                                 <td><strong>Kebun/Unit</strong></td>
-                                                <td>: {{ $tjsl->unit->nama_unit ?? '-' }}</td>
+                                                <td>: {{ $tjsl->unit->unit ?? '-' }}</td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Lokasi Program</strong></td>
@@ -42,7 +42,7 @@
                                             <tr>
                                                 <td><strong>Tanggal Pelaksanaan</strong></td>
                                                 <td>: {{ $tjsl->tanggal_mulai->format('d M Y') }} -
-                                                    {{ $tjsl->tanggal_akhir }}</td>
+                                                    {{ $tjsl->tanggal_akhir->format('d M Y') }}</td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Penerima Dampak</strong></td>
@@ -82,10 +82,6 @@
                                 <div class="card mb-3">
                                     <div class="card-header bg-info text-white d-flex justify-content-between">
                                         <h6 class="mb-0">Publikasi Media</h6>
-                                        <button class="btn btn-sm btn-light" data-toggle="modal"
-                                            data-target="#addPublikasiModal">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
                                     </div>
                                     <div class="card-body">
                                         @if ($tjsl->pubTjsl->count() > 0)
@@ -129,10 +125,6 @@
                                 <div class="card mb-3">
                                     <div class="card-header bg-info text-white d-flex justify-content-between">
                                         <h6 class="mb-0">Anggaran</h6>
-                                        <button class="btn btn-sm btn-light" data-toggle="modal"
-                                            data-target="#addBiayaModal">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
                                     </div>
                                     <div class="card-body">
                                         <table class="table table-borderless table-sm">
@@ -164,10 +156,6 @@
                                 <div class="card mb-3">
                                     <div class="card-header bg-info text-white d-flex justify-content-between">
                                         <h6 class="mb-0">Feedback Program</h6>
-                                        <button class="btn btn-sm btn-light" data-toggle="modal"
-                                            data-target="#addFeedbackModal">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
@@ -217,10 +205,6 @@
                                 <div class="card mb-3">
                                     <div class="card-header bg-info text-white d-flex justify-content-between">
                                         <h6 class="mb-0">Dokumentasi</h6>
-                                        <button class="btn btn-sm btn-light" data-toggle="modal"
-                                            data-target="#addDokumenModal">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
                                     </div>
                                     <div class="card-body">
                                         @if ($tjsl->docTjsl->count() > 0)
