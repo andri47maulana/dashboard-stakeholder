@@ -28,9 +28,13 @@
                     <form id="checkPointForm">
                         <div class="mb-3">
                             <label for="coords" class="form-label">Koordinat (format: lat,lng)</label>
-                            <input type="text" id="coords" name="coords" class="form-control" placeholder="contoh: 3.539954,98.766092" required>
+                            <input type="text" id="coords" name="coords" class="form-control" placeholder="contoh: -6.9,107.6" required>
                         </div>
-                        <button type="submit" class="btn btn-primary">Cek Lokasi</button>
+                        <div class="mb-3">
+                            <label for="radius_km" class="form-label">Radius (km) <small class="text-muted">opsional</small></label>
+                            <input type="number" step="0.1" min="0" id="radius_km" name="radius_km" class="form-control" placeholder="misal: 10">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Cek Lokasi</button>
                     </form>
                     <div id="result" class="mt-3"></div>
                 </div>
@@ -51,6 +55,14 @@
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 {{-- 
 <script>
+// Pastikan variabel layer didefinisikan di scope yang sama sebelum dipakai
+let marker = null;
+let polyline = null;
+let highlightLayer = null;
+let boundingBoxLayer = null;
+let radiusCircle = null; // <- definisi awal agar tidak ReferenceError
+let withinMarkers = [];
+
 document.addEventListener("DOMContentLoaded", function () {
     var map = L.map('map', { zoomControl: true });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
@@ -75,15 +87,14 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    let marker = null;
-    let polyline = null;
-    let highlightLayer = null;
-    let boundingBoxLayer = null;
+    // (Variabel layer sudah dideklarasikan di atas)
 
     document.getElementById("checkPointForm").addEventListener("submit", function(e){
         e.preventDefault();
         let coords = document.getElementById("coords").value.trim();
-        let [lat, lng] = coords.split(",").map(c => parseFloat(c.trim()));
+    let [lat, lng] = coords.split(",").map(c => parseFloat(c.trim()));
+    let radius_km = document.getElementById('radius_km').value.trim();
+    if(radius_km === '') radius_km = null; else radius_km = parseFloat(radius_km);
 
         if (isNaN(lat) || isNaN(lng)) {
             document.getElementById("result").innerHTML = `<div class="alert alert-danger">Format koordinat tidak valid.</div>`;
@@ -188,6 +199,10 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script> --}}
 <script>
+// Deklarasi variabel global untuk layer agar tidak ReferenceError
+let marker, polyline, highlightLayer, boundingBoxLayer, radiusCircle;
+let withinMarkers = [];
+
 document.addEventListener("DOMContentLoaded", function () {
     var map = L.map('map', { zoomControl: true });
 
@@ -240,15 +255,18 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    let marker = null;
-    let polyline = null;
-    let highlightLayer = null;
-    let boundingBoxLayer = null;
+    // Inisialisasi (opsional)
+    marker = null;
+    polyline = null;
+    highlightLayer = null;
+    boundingBoxLayer = null;
 
     document.getElementById("checkPointForm").addEventListener("submit", function(e){
         e.preventDefault();
         let coords = document.getElementById("coords").value.trim();
-        let [lat, lng] = coords.split(",").map(c => parseFloat(c.trim()));
+    let [lat, lng] = coords.split(",").map(c => parseFloat(c.trim()));
+    let radius_km = document.getElementById('radius_km').value.trim();
+    if(radius_km === '') radius_km = null; else radius_km = parseFloat(radius_km);
 
         if (isNaN(lat) || isNaN(lng)) {
             document.getElementById("result").innerHTML = `<div class="alert alert-danger">Format koordinat tidak valid.</div>`;
@@ -258,7 +276,7 @@ document.addEventListener("DOMContentLoaded", function () {
         fetch("{{ route('polygons.check') }}", {
             method: "POST",
             headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": "{{ csrf_token() }}" },
-            body: JSON.stringify({ lat: lat, lng: lng })
+            body: JSON.stringify({ lat: lat, lng: lng, radius_km: radius_km })
         })
         .then(res => res.json())
         .then(data => {
@@ -269,12 +287,23 @@ document.addEventListener("DOMContentLoaded", function () {
             if (polyline) map.removeLayer(polyline);
             if (highlightLayer) map.removeLayer(highlightLayer);
             if (boundingBoxLayer) map.removeLayer(boundingBoxLayer);
+            if (typeof radiusCircle !== 'undefined' && radiusCircle) map.removeLayer(radiusCircle);
+            withinMarkers.forEach(m=> map.removeLayer(m));
+            withinMarkers = [];
 
             marker = L.marker([lat, lng]).addTo(map).bindPopup("Titik Anda").openPopup();
             
+            // Gambarkan circle jika ada
+            if (data.circle) {
+                radiusCircle = L.circle([lat, lng], {
+                    radius: data.circle.radius_km * 1000,
+                    color: 'blue', weight: 1, fillOpacity: 0.05
+                }).addTo(map);
+            }
+
             if (data.inside) {
-                resDiv.innerHTML = `<div class="alert alert-success">Titik berada di dalam kebun: <b>${data.inside.title}</b></div>`;
-                map.setView([lat, lng], 15);
+                resDiv.innerHTML += `<div class="alert alert-success p-2">Titik berada di dalam kebun: <b>${data.inside.unit || data.inside.id}</b></div>`;
+                map.setView([lat, lng], 14);
 
             } else if (data.nearest && data.nearest.bounds && data.nearest.center) {
                 const userPoint = turf.point([lng, lat]);
@@ -288,10 +317,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 const nearestPointOnEdge = turf.nearestPointOnLine(boundingBoxLine, userPoint);
                 const distanceToEdgeKm = turf.distance(userPoint, nearestPointOnEdge, { units: 'kilometers' });
 
-                resDiv.innerHTML = `<div class="alert alert-warning">
+                resDiv.innerHTML += `<div class="alert alert-warning p-2 mb-2">
                     Titik tidak berada di dalam kebun manapun.<br>
-                    Kebun terdekat: <b>${data.nearest.title}</b><br>
-                    Jarak terdekat (estimasi): ± <b>${distanceToEdgeKm.toFixed(2)} km</b>
+                    Kebun terdekat: <b>${data.nearest.unit || data.nearest.id}</b><br>
+                    Jarak ke tepi (estimasi bounding box): ± <b>${distanceToEdgeKm.toFixed(2)} km</b><br>
+                    Jarak ke center: <b>${(data.nearest.distance_km ?? 0).toFixed(3)} km</b>
                 </div>`;
                 
                 if (data.nearest.decoded && data.nearest.decoded.tileurl) {
@@ -318,8 +348,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 map.fitBounds(mapBounds, { padding: [50, 50] });
 
             } else {
-                 resDiv.innerHTML = `<div class="alert alert-info">Tidak ditemukan kebun terdekat atau data tidak lengkap.</div>`;
-                 map.setView([lat, lng], 15);
+                 resDiv.innerHTML += `<div class="alert alert-info p-2">Tidak ditemukan kebun terdekat atau data tidak lengkap.</div>`;
+                 map.setView([lat, lng], 12);
+            }
+
+            // Tampilkan daftar within_radius jika ada
+            if (data.within_radius && data.within_radius.length) {
+                let listHtml = '<div class="mt-2"><h6>Kebun dalam radius:</h6><ol class="small ps-3">';
+                data.within_radius.forEach(row => {
+                    listHtml += `<li>${row.unit || row.id} (${row.distance_km} km)</li>`;
+                    if (row.center) {
+                        let m = L.circleMarker([row.center[1], row.center[0]], {
+                            radius: 4, color: 'purple', fillColor: 'purple', fillOpacity: 0.7
+                        }).addTo(map).bindTooltip(`${row.unit || row.id} - ${row.distance_km} km`);
+                        withinMarkers.push(m);
+                    }
+                });
+                listHtml += '</ol></div>';
+                resDiv.innerHTML += listHtml;
             }
         });
     });
