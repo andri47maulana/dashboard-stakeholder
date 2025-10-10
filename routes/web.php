@@ -177,6 +177,7 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 Route::resource('tjsl', TjslController::class);
+Route::get('tjsl/{id}/edit-data', [TjslController::class, 'getEditData'])->name('tjsl.edit-data');
 Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.add-biaya');
 Route::post('tjsl/{id}/publikasi', [TjslController::class, 'addPublikasi'])->name('tjsl.add-publikasi');
 Route::post('tjsl/{id}/dokumen', [TjslController::class, 'addDokumen'])->name('tjsl.add-dokumen');

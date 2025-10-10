@@ -11,6 +11,14 @@ class FeedbackTjsl extends Model
     use HasFactory;
 
     protected $table = 'tb_feedback_tjsl';
+    
+    // Nonaktifkan timestamps karena tabel tidak memiliki created_at dan updated_at
+    public $timestamps = false;
+    
+    // Pastikan primary key dikonfigurasi dengan benar
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+    protected $keyType = 'int';
 
     protected $fillable = [
         'tjsl_id',
@@ -32,6 +40,5 @@ class FeedbackTjsl extends Model
     {
         return $this->belongsTo(Tjsl::class, 'tjsl_id');
     }
-
 
 }

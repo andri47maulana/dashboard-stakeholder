@@ -6,10 +6,14 @@ use App\Models\Tjsl;
 use App\Models\BiayaTjsl;
 use App\Models\PubTjsl;
 use App\Models\DocTjsl;
+use App\Models\Pilar;
+use App\Models\SubPilar;
 use App\Models\FeedbackTjsl;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class TjslController extends Controller
 {
@@ -53,6 +57,8 @@ class TjslController extends Controller
 
         // Data untuk dropdown filter
         $pilars = \App\Models\Pilar::orderBy('pilar')->get();
+        $subpilars = \App\Models\SubPilar::orderBy('sub_pilar')->get();
+
         $units = \App\Models\Unit::orderBy('unit')->get();
 
         // Ambil region unik dari tabel unit
@@ -69,7 +75,7 @@ class TjslController extends Controller
             ->orderBy('tahun', 'desc')
             ->pluck('tahun');
 
-        return view('tjsl.index', compact('tjsls', 'pilars', 'units', 'regions', 'tahunList'));
+        return view('tjsl.index', compact('tjsls', 'pilars', 'subpilars', 'units', 'regions', 'tahunList'));
     }
 
     public function show($id)
@@ -153,37 +159,151 @@ class TjslController extends Controller
 
     public function store(Request $request)
     {
+        // Debug logging
+        \Log::info('TJSL Store Method Called', [
+            'request_data' => $request->all(),
+            'user_id' => Auth::id()
+        ]);
+
         $request->validate([
             'nama_program' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'unit_id' => 'required|exists:units,id',
-            'lokasi_program' => 'required|string|max:255',
-            'pilar' => 'required|string|max:100',
-            'sub_pilar' => 'required|string|max:100',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_akhir' => 'required|string',
-            'penerima_dampak' => 'required|string|max:255',
-            'tpb' => 'required|string|max:255',
-            'status' => 'required|integer',
+            'unit_id' => 'required|exists:tb_unit,id',
+            'pilar_id' => 'required|exists:m_pilar,id',
+            'deskripsi' => 'nullable|string',
+            'lokasi_program' => 'nullable|string|max:255',
+            'sub_pilar' => 'nullable|array',
+            'sub_pilar.*' => 'exists:m_sub_pilar,id',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_akhir' => 'nullable|date',
+            'penerima_dampak' => 'nullable|string|max:255',
+            'tpb' => 'nullable|string|max:255',
+            'status' => 'nullable|integer',
+
+            // Validasi untuk data terkait
+            'biaya.*.anggaran' => 'nullable|numeric|min:0',
+            'biaya.*.realisasi' => 'nullable|numeric|min:0',
+            'publikasi.*.media' => 'nullable|string|max:255',
+            'publikasi.*.link' => 'nullable|url|max:500',
+            'dokumentasi.*.nama_dokumen' => 'nullable|string|max:255',
+            'dokumentasi.*.link' => 'nullable|url|max:500',
+            'feedback.*.sangat_puas' => 'nullable|numeric|min:0|max:100',
+            'feedback.*.puas' => 'nullable|numeric|min:0|max:100',
+            'feedback.*.kurang_puas' => 'nullable|numeric|min:0|max:100',
+            'feedback.*.saran' => 'nullable|string',
         ]);
 
-        $tjsl = Tjsl::create([
-            'nama_program' => $request->nama_program,
-            'deskripsi' => $request->deskripsi,
-            'unit_id' => $request->unit_id,
-            'lokasi_program' => $request->lokasi_program,
-            'pilar' => $request->pilar,
-            'sub_pilar' => $request->sub_pilar,
-            'tanggal_mulai' => $request->tanggal_mulai,
-            'tanggal_akhir' => $request->tanggal_akhir,
-            'penerima_dampak' => $request->penerima_dampak,
-            'tpb' => $request->tpb,
-            'status' => $request->status,
-            'created_by' => Auth::id(),
-        ]);
+        try {
+            \DB::beginTransaction();
 
-        return redirect()->route('tjsl.show', $tjsl->id)
-            ->with('success', 'Program TJSL berhasil dibuat.');
+            // Debug: Log before creating TJSL
+            \Log::info('Creating TJSL record', [
+                'nama_program' => $request->nama_program,
+                'unit_id' => $request->unit_id,
+                'pilar_id' => $request->pilar_id,
+                'sub_pilar' => $request->sub_pilar
+            ]);
+
+            // 1. Simpan data TJSL utama
+            $tjsl = Tjsl::create([
+                'nama_program' => $request->nama_program,
+                'deskripsi' => $request->deskripsi,
+                'unit_id' => $request->unit_id,
+                'lokasi_program' => $request->lokasi_program,
+                'pilar_id' => $request->pilar_id,
+                'sub_pilar' => is_array($request->sub_pilar) ? json_encode($request->sub_pilar) : $request->sub_pilar,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_akhir' => $request->tanggal_akhir,
+                'penerima_dampak' => $request->penerima_dampak,
+                'tpb' => $request->tpb,
+                'status' => $request->status ?? 1,
+                'created_by' => Auth::id(),
+            ]);
+
+            // Debug: Log after TJSL creation
+            \Log::info('TJSL record created successfully', [
+                'tjsl_id' => $tjsl->id,
+                'nama_program' => $tjsl->nama_program
+            ]);
+
+            // 2. Simpan data biaya TJSL
+            if ($request->has('biaya')) {
+                foreach ($request->biaya as $biaya) {
+                    if (!empty($biaya['anggaran']) || !empty($biaya['realisasi'])) {
+                        BiayaTjsl::create([
+                            'tjsl_id' => $tjsl->id,
+                            'anggaran' => $biaya['anggaran'] ?? 0,
+                            'realisasi' => $biaya['realisasi'] ?? 0,
+                        ]);
+                    }
+                }
+            }
+
+            // 3. Simpan data publikasi TJSL
+            if ($request->has('publikasi')) {
+                foreach ($request->publikasi as $publikasi) {
+                    if (!empty($publikasi['media']) || !empty($publikasi['link'])) {
+                        PubTjsl::create([
+                            'tjsl_id' => $tjsl->id,
+                            'media' => $publikasi['media'],
+                            'link' => $publikasi['link'],
+                        ]);
+                    }
+                }
+            }
+
+            // 4. Simpan data dokumentasi TJSL
+            if ($request->has('dokumentasi')) {
+                foreach ($request->dokumentasi as $dokumentasi) {
+                    if (!empty($dokumentasi['nama_dokumen']) || !empty($dokumentasi['link'])) {
+                        DocTjsl::create([
+                            'tjsl_id' => $tjsl->id,
+                            'nama_dokumen' => $dokumentasi['nama_dokumen'],
+                            'link' => $dokumentasi['link'],
+                        ]);
+                    }
+                }
+            }
+
+            // 5. Simpan data feedback TJSL
+            if ($request->has('feedback')) {
+                foreach ($request->feedback as $feedback) {
+                    if (!empty($feedback['sangat_puas']) || !empty($feedback['puas']) ||
+                        !empty($feedback['kurang_puas']) || !empty($feedback['saran'])) {
+                        FeedbackTjsl::create([
+                            'tjsl_id' => $tjsl->id,
+                            'sangat_puas' => $feedback['sangat_puas'] ?? 0,
+                            'puas' => $feedback['puas'] ?? 0,
+                            'kurang_puas' => $feedback['kurang_puas'] ?? 0,
+                            'saran' => $feedback['saran'],
+                        ]);
+                    }
+                }
+            }
+
+            \DB::commit();
+
+            // Debug: Log successful completion
+            \Log::info('TJSL store completed successfully', [
+                'tjsl_id' => $tjsl->id
+            ]);
+
+            return redirect()->route('tjsl.index')
+                ->with('success', 'Program TJSL lengkap berhasil disimpan!');
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+
+            // Debug: Log error details
+            \Log::error('TJSL store failed', [
+                'error_message' => $e->getMessage(),
+                'error_trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan data: ' . $e->getMessage());
+        }
     }
 
     public function edit($id)
@@ -232,11 +352,33 @@ class TjslController extends Controller
 
     public function destroy($id)
     {
-        $tjsl = Tjsl::findOrFail($id);
-        $tjsl->delete();
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('tjsl.index')
-            ->with('success', 'Program TJSL berhasil dihapus.');
+            $tjsl = Tjsl::findOrFail($id);
+
+            // Delete related data first
+            BiayaTjsl::where('tjsl_id', $id)->delete();
+            PubTjsl::where('tjsl_id', $id)->delete();
+            DocTjsl::where('tjsl_id', $id)->delete();
+            FeedbackTjsl::where('tjsl_id', $id)->delete();
+
+            // Delete the main TJSL record
+            $tjsl->delete();
+
+            DB::commit();
+
+            return redirect()->route('tjsl.index')
+                ->with('success', 'Program TJSL berhasil dihapus beserta semua data terkait.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+
+            Log::error('Error deleting TJSL ID ' . $id . ': ' . $e->getMessage());
+
+            return redirect()->route('tjsl.index')
+                ->with('error', 'Terjadi kesalahan saat menghapus program: ' . $e->getMessage());
+        }
     }
 
     // Method untuk menambah biaya
@@ -339,13 +481,48 @@ class TjslController extends Controller
             ->with('success', 'Feedback berhasil ditambahkan.');
     }
 
+    public function getEditData($id)
+    {
+        try {
+            Log::info('Getting edit data for TJSL ID: ' . $id);
+
+            $tjsl = Tjsl::with(['biayaTjsl', 'pubTjsl', 'docTjsl', 'feedbackTjsl'])
+                ->findOrFail($id);
+
+            // Format dates for form inputs
+            $tjsl->tanggal_mulai = $tjsl->tanggal_mulai ? $tjsl->tanggal_mulai->format('Y-m-d') : '';
+            $tjsl->tanggal_akhir = $tjsl->tanggal_akhir ? $tjsl->tanggal_akhir->format('Y-m-d') : '';
+
+            // Convert sub_pilar to array if it's a string
+            if (is_string($tjsl->sub_pilar)) {
+                $tjsl->sub_pilar = json_decode($tjsl->sub_pilar, true) ?: [];
+            }
+
+            // Rename relationships to match frontend expectations
+            $tjsl->biaya = $tjsl->biayaTjsl;
+            $tjsl->publikasi = $tjsl->pubTjsl;
+            $tjsl->dokumentasi = $tjsl->docTjsl;
+            $tjsl->feedback = $tjsl->feedbackTjsl;
+
+            // Remove the original relationship data to avoid confusion
+            unset($tjsl->biayaTjsl, $tjsl->pubTjsl, $tjsl->docTjsl, $tjsl->feedbackTjsl);
+
+            Log::info('Successfully retrieved edit data for TJSL ID: ' . $id);
+
+            return response()->json($tjsl);
+        } catch (\Exception $e) {
+            Log::error('Error getting edit data for TJSL ID ' . $id . ': ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to load data'], 500);
+        }
+    }
+
     public function getUnitsByRegion(Request $request)
     {
         $units = Unit::where('region', $request->region)
             ->orderBy('unit')
             ->get(['id', 'unit']);
 
-        dd($units);
+
 
         return response()->json($units);
     }
