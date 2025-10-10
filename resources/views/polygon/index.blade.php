@@ -89,7 +89,15 @@
                             <tbody>
                                 @isset($logs)
                                     @foreach($logs as $i => $log)
-                                        <tr>
+                                        <tr
+                                            data-lat="{{ $log->lat }}"
+                                            data-lng="{{ $log->lng }}"
+                                            data-radius="{{ $log->radius_km }}"
+                                            data-title="{{ $log->title }}"
+                                            data-stakeholder-id="{{ $log->stakeholder_id }}"
+                                            data-stakeholder-text="{{ $log->stakeholder_nama }}"
+                                            data-tjsl-id="{{ $log->tjsl_id }}"
+                                        >
                                             <td>{{ $i+1 }}</td>
                                             <td>{{ $log->created_at }}</td>
                                             <td>{{ $log->title ?? '-' }}</td>
@@ -100,8 +108,7 @@
                                             <td>{{ $log->stakeholder_nama ?? '-' }}</td>
                                             <td>{{ $log->tjsl_id ?? '-' }}</td>
                                             <td>
-                                                <a class="btn btn-sm btn-outline-primary" href="{{ route('polygons.log.view',$log->id) }}">View</a>
-                                                <button type="button" class="btn btn-sm btn-outline-danger ms-1 btn-log-delete" data-id="{{ $log->id }}">Delete</button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger btn-log-delete" data-id="{{ $log->id }}">Delete</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -563,6 +570,66 @@ $(function(){
                         // Remove row from table
                         $btn.closest('tr').remove();
                 }).catch(()=> alert('Gagal menghapus log'));
+        });
+
+        // Helper: replay from data without navigation
+        function replayFromData({lat,lng,radius,title,shId,shText,tjslId}){
+            if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                $('#coords').val(lat + ',' + lng);
+            }
+            if (radius !== null && radius !== undefined && radius !== '') {
+                $('#radius_km').val(radius);
+            } else {
+                $('#radius_km').val('');
+            }
+            $('#title').val(title || '');
+            if (tjslId !== null && tjslId !== undefined && tjslId !== '') {
+                $('#tjsl_id').val(tjslId);
+            } else {
+                $('#tjsl_id').val('');
+            }
+            if (shId) {
+                const option = new Option(shText || ('ID ' + shId), shId, true, true);
+                $('#stakeholder_select').empty().append(option).trigger('change');
+                $('#stakeholder_id').val(shId);
+            } else {
+                $('#stakeholder_select').val(null).trigger('change');
+                $('#stakeholder_id').val('');
+            }
+            window._replayActiveLog = true;
+            $('#checkPointForm').trigger('submit');
+        }
+
+        // View handler (no page reload): prefill and auto-submit
+        $(document).on('click', '.btn-log-view', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            const $btn = $(this);
+            replayFromData({
+                lat: parseFloat($btn.data('lat')),
+                lng: parseFloat($btn.data('lng')),
+                radius: $btn.data('radius'),
+                title: $btn.data('title') || '',
+                shId: $btn.data('stakeholder-id'),
+                shText: $btn.data('stakeholder-text'),
+                tjslId: $btn.data('tjsl-id')
+            });
+        });
+
+        // Safety net: intercept any legacy anchor clicks to prevent URL changes
+        $(document).on('click', '#logTable a[href*="/polygons/log/"]', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            const $tr = $(this).closest('tr');
+            replayFromData({
+                lat: parseFloat($tr.data('lat')),
+                lng: parseFloat($tr.data('lng')),
+                radius: $tr.data('radius'),
+                title: $tr.data('title') || '',
+                shId: $tr.data('stakeholder-id'),
+                shText: $tr.data('stakeholder-text'),
+                tjslId: $tr.data('tjsl-id')
+            });
         });
 });
 </script>
