@@ -62,6 +62,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
     Route::prefix('dash')->group(function(){
         Route::get('/stakeholder', [StakeholderController::class, 'dashstakeholder']);
+        Route::get('/stakeholder-search', [StakeholderController::class, 'search'])->name('stakeholder.search');
         Route::post('/storestakeholder', [StakeholderController::class, 'func_storestakeholder']);
         Route::post('/updatestakeholder', [StakeholderController::class, 'func_updatestakeholder']);
         Route::get('/form_stakeholder_add', [StakeholderController::class, 'view_form_stakeholder']);
@@ -154,6 +155,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/peta_region/{region}', [PetaController::class, 'peta_region']);
         Route::get('/peta_region/data/{region}/{tahun}', [PetaController::class,'dataByYear']);
         Route::get('/unit/detail/{unit}/{tahun}', [PetaController::class,'unitDetail']);
+        Route::get('/polygons/log/{id}', [PolygonController::class, 'viewLog'])->name('polygons.log.view');
+        Route::delete('/polygons/log/{id}', [PolygonController::class, 'deleteLog'])->name('polygons.log.delete');
     });
 
     Route::get('/derajat-hubungan', [DerajatHubunganController::class, 'index'])->name('derajat.index');

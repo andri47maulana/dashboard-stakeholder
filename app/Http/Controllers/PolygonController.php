@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Models\SearchLog;
 
 class PolygonController extends Controller
 {
@@ -17,7 +19,46 @@ class PolygonController extends Controller
                 $item->decoded = json_decode($item->json, true);
                 return $item;
             });
-        return view('polygon.index',compact('kebunJsons'));
+        $logs = SearchLog::query()
+            ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
+            ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
+            ->orderBy('search_logs.created_at','desc')
+            ->limit(50)
+            ->get();
+        return view('polygon.index',compact('kebunJsons','logs'));
+    }
+
+    public function viewLog($id)
+    {
+        $kebunJsons = DB::table('kebun_json as kj')
+            ->leftJoin('tb_unit as u', 'u.id', '=', 'kj.unit_id')
+            ->select('kj.*', 'u.unit as nm_unit', 'u.region as nm_region')
+            ->get()
+            ->map(function ($item) {
+                $item->decoded = json_decode($item->json, true);
+                return $item;
+            });
+        $logs = SearchLog::query()
+            ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
+            ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
+            ->orderBy('search_logs.created_at','desc')
+            ->limit(50)
+            ->get();
+        $activeLog = SearchLog::query()
+            ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
+            ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
+            ->where('search_logs.id',$id)
+            ->firstOrFail();
+        return view('polygon.index', compact('kebunJsons','logs','activeLog'));
+    }
+
+    public function deleteLog($id)
+    {
+        $deleted = SearchLog::where('id',$id)->delete();
+        if ($deleted) {
+            return response()->json(['ok'=>true]);
+        }
+        return response()->json(['ok'=>false], 404);
     }
 
 //     public function checkPoint(Request $request)
@@ -216,7 +257,7 @@ public function checkPoint(Request $request)
                 usort($withinRadius, fn($a,$b) => $a['distance_km'] <=> $b['distance_km']);
             }
 
-            return response()->json([
+            $response = [
                 'query_point' => ['lat'=>$lat,'lng'=>$lng],
                 'search_radius_km' => $radiusKm,
                 'inside' => $inside,
@@ -226,7 +267,33 @@ public function checkPoint(Request $request)
                     'center' => ['lng'=>$lng,'lat'=>$lat],
                     'radius_km' => $radiusKm
                 ] : null
-            ]);
+            ];
+
+            // Optional: log the search if client passes a title or associations
+            $logTitle = $request->input('title');
+            $stakeholderId = $request->input('stakeholder_id');
+            $tjslId = $request->input('tjsl_id');
+            $noLog = filter_var($request->input('no_log'), FILTER_VALIDATE_BOOLEAN);
+            $shouldLog = !$noLog && ($logTitle || $stakeholderId || $tjslId);
+            if ($shouldLog) {
+                SearchLog::create([
+                    'user_id' => Auth::id(),
+                    'title' => $logTitle,
+                    'lat' => $lat,
+                    'lng' => $lng,
+                    'radius_km' => $radiusKm,
+                    'is_inside' => $inside ? 1 : 0,
+                    'inside_unit' => $inside['unit'] ?? $inside['id'] ?? null,
+                    'inside_unit_id' => $inside['unit_id'] ?? null,
+                    'nearest_unit' => $nearest['unit'] ?? $nearest['id'] ?? null,
+                    'nearest_unit_id' => $nearest['unit_id'] ?? null,
+                    'nearest_distance_km' => $nearest['distance_km'] ?? null,
+                    'stakeholder_id' => $stakeholderId ?: null,
+                    'tjsl_id' => $tjslId ?: null,
+                ]);
+            }
+
+            return response()->json($response);
         } catch (\Illuminate\Validation\ValidationException $ve) {
             return response()->json([
                 'error' => 'VALIDATION_ERROR',

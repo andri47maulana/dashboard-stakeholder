@@ -92,6 +92,12 @@
                                     placeholder="Nama Desa...">
                             </div>
                             <div class="form-group row">
+                                <label for="latlong" class="col-sm-3 control-label">Lat, Long</label>
+                                <input type="text" class="col-sm-6 form-control form-control-user"
+                                    id="latlong" name="latlong" aria-describedby="latlong" value="{{isset($datauser->latlong)?$datauser->latlong:''}}"
+                                    placeholder="-6.200000,106.816666">
+                            </div>
+                            <div class="form-group row">
                                 <label for="nama_pic" class="col-sm-3 control-label">Nama PIC</label>
                                     <textarea class="col-sm-6 form-control form-control-user"
                                     id="nama_pic" name="nama_pic" aria-describedby="nama_pic">{{isset($datauser->nama_pic)?$datauser->nama_pic:''}}</textarea>

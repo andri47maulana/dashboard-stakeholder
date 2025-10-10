@@ -26,6 +26,18 @@
                                     <p><strong>Instansi/Lembaga:</strong> {{ $datauser->nama_instansi}}</p>
 
                                     <p><strong>Daerah:</strong> Prov. {{ $datauser->prov_nama}}, Kab./Kota {{ $datauser->kab_nama}}, Kec. {{ $datauser->kec_nama}}, Desa/Kel. {{ $datauser->desa_nama}}</p>
+                                    <p>
+                                        <strong>Koordinat (Lat, Long):</strong>
+                                        @if(!empty($datauser->latlong))
+                                            {{ $datauser->latlong }}
+                                            @php
+                                                $mapsUrl = 'https://www.google.com/maps/search/?api=1&query=' . urlencode($datauser->latlong);
+                                            @endphp
+                                            <a href="{{ $mapsUrl }}" target="_blank" class="ml-2"><u><i>Buka di Google Maps</i></u></a>
+                                        @else
+                                            -
+                                        @endif
+                                    </p>
                                     <p><strong>Dokumen Pendukung:</strong> <a href="{{ asset('pdf/'.$datauser->dokumenpendukung) }}" target="_blank"><u><i>Klik untuk melihat</i></u></a></p>
                                     {{-- <p><strong>Curent Condition:</strong> {{ $datauser->curent_condition ?? '-'}}</p> --}}
                                     <br>

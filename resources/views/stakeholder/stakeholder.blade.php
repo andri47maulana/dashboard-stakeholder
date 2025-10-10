@@ -293,6 +293,12 @@
                             </div>
                         </div>
                         <div class="form-group row">
+                            <label for="latlong" class="col-md-4 col-form-label">Lat, Long</label>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control" id="latlong" name="latlong" placeholder="-6.200000,106.816666">
+                            </div>
+                        </div>
+                        <div class="form-group row">
                             <label for="dokumenpendukung" class="col-md-4 col-form-label">Dokumen Pendukung</label>
                             <div class="col-md-8">
                             <input type="file" class="form-control" id="dokumenpendukung" name="dokumenpendukung" required>
@@ -585,6 +591,12 @@
                                         <label class="col-md-4 col-form-label">Desa</label>
                                         <div class="col-md-8">
                                             <select name="edit_desaw" id="edit_desaw" class="form-control" data-width="100%"></select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <label class="col-md-4 col-form-label">Lat, Long</label>
+                                        <div class="col-md-8">
+                                            <input type="text" class="form-control" name="latlong" id="edit_latlong" placeholder="-6.200000,106.816666">
                                         </div>
                                     </div>
 
@@ -882,6 +894,8 @@
                 $('#email').val(response.email);
                 $('#ekspektasi_ptpn').val(response.ekspektasi_ptpn);
                 $('#ekspektasi_stakeholder').val(response.ekspektasi_stakeholder);
+                // latlong (jika tersedia di response)
+                $('#edit_latlong').val(response.latlong || '');
                 $('#editdataModal').modal('show');
             // Repeat this for other fields you want to populate in the modal
             },

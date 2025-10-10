@@ -15,6 +15,29 @@ use DB;
 
 class StakeholderController extends Controller
 {
+    public function search(Request $request)
+    {
+        $q = trim((string)$request->input('q', ''));
+        $limit = (int)$request->input('limit', 20);
+        $query = DB::table('stakeholder')->select('id','nama_instansi','nama_pic','kebun','region');
+        if ($q !== '') {
+            $query->where(function($w) use ($q) {
+                $w->where('nama_instansi','like',"%{$q}%")
+                  ->orWhere('nama_pic','like',"%{$q}%");
+            });
+        }
+        if (auth()->user() && auth()->user()->region !== 'PTPN I HO') {
+            $query->where('region', auth()->user()->region);
+        }
+        $items = $query->orderBy('nama_instansi')->limit($limit)->get();
+        $results = $items->map(function($row){
+            return [
+                'id' => $row->id,
+                'text' => $row->nama_instansi . ' — ' . ($row->nama_pic ?? '-') . ' (' . ($row->kebun ?? '-') . ')',
+            ];
+        });
+        return response()->json($results);
+    }
     public function dashstakeholder()
     {
         $dataallusers = DB::connection('mysql')->table('stakeholder');
@@ -282,6 +305,7 @@ class StakeholderController extends Controller
             'desa_id'=>$request->desaw,
             'curent_condition'=>$request->curent_condition,
             'nama_instansi'=>$request->nama_instansi,
+            'latlong'=>$request->latlong,
             'prov_id'=>$request->provinsi,
             'kab_id'=>$request->kabupaten,
             'kec_id'=>$request->kecamatan,
@@ -330,6 +354,7 @@ class StakeholderController extends Controller
             // 'desa'=>$request->edit_desa,
             'curent_condition'=>$request->edit_curent_condition,
             'nama_instansi'=>$request->edit_nama_instansi,
+            'latlong'=>$request->latlong,
             // 'daerah_instansi'=>$request->edit_daerah_instansi,
             'nama_pic'=>$request->edit_nama_pic,
             'jabatan_pic'=>$request->edit_jabatan_pic,
