@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/get-detail-instansi/{id}', [HomeController::class, 'getDetailInstansi']);
     // routes/web.php
     Route::get('/get-wilayah', [WilayahController::class, 'getWilayah']);
+    Route::get('/get-wilayah-by-code', [WilayahController::class, 'getWilayahByCode']);
     Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']);
 
 
