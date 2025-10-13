@@ -14,6 +14,81 @@
     padding: 2px 6px;
 }
 
+/* Layout improvements for map card */
+.map-card {
+    height: 730px;
+    display: flex;
+    flex-direction: column;
+}
+.map-tools {
+    padding: 8px 12px;
+    border-bottom: 1px solid #e9ecef;
+}
+.map-filters {
+    padding: 6px 12px 8px 12px;
+    border-bottom: 1px solid #f1f3f5;
+}
+.map-container {
+    flex: 1 1 auto;
+    position: relative;
+}
+#appFullscreenOverlayFix { display:none; }
+#mapOverlay { position:absolute; top:12px; left:12px; z-index:1001; width: 340px; max-height: calc(100vh - 24px); overflow:auto; background:#ffffff; border:1px solid #e9ecef; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,0.2); padding:10px; }
+.map-overlay-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
+.map-overlay-header .title { font-weight:600; font-size:13px; color:#0b7285; }
+.map-overlay-header .close { border:none; background:#f1f3f5; border-radius:6px; padding:2px 6px; font-size:12px; }
+
+.map-card.fullscreen { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1050; border-radius: 0 !important; }
+.map-card.fullscreen .map-container { height: 100%; }
+body.overflow-hidden { overflow: hidden; }
+#map {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+}
+/* Show pointer cursor on interactive vector features */
+.leaflet-interactive { cursor: pointer; }
+
+/* Styled polygon profile popup - extra compact */
+.leaflet-popup-content-wrapper.poly-profile-popup { padding: 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.leaflet-popup-content.poly-profile { margin: 0; padding: 0; }
+.poly-profile .pp-header { padding: 6px 10px; background: #ffffff; border-bottom: 1px solid #edf2f7; border-radius: 8px 8px 0 0; }
+.poly-profile .pp-title { font-weight: 700; color: #1971c2; text-align: center; font-size: 13px; }
+.poly-profile .pp-sub { display:flex; align-items:center; justify-content:center; gap:4px; margin-top:4px; }
+.poly-profile .pp-sub .pp-btn { border:1px solid #cbd5e1; background:#f8fafc; border-radius:5px; padding:0 5px; font-size:10px; line-height:18px; height:18px; }
+.poly-profile .pp-body { padding: 8px 10px; background: #fff; }
+.poly-profile .pp-section-title { background:#20a4b9; color:#fff; font-weight:600; padding:4px 8px; border-radius:8px; text-align:center; margin-bottom:6px; font-size:11px; }
+.poly-profile .pp-badge { display:block; text-align:center; font-weight:800; font-size:14px; color:#fff; padding:3px 0; border-radius:6px; margin:4px 0 6px 0; }
+.poly-profile .pp-badge.red { background:#e55353; }
+.poly-profile .pp-badge.gray { background:#6c757d; }
+/* Legend-based badge colors */
+.poly-profile .pp-badge.p1 { background:#d32f2f; color:#fff; }
+.poly-profile .pp-badge.p2 { background:#1e88e5; color:#fff; }
+.poly-profile .pp-badge.p3 { background:#ffff00; color:#000; }
+.poly-profile .pp-badge.p4 { background:#28a745; color:#fff; }
+.poly-profile .pp-desc { background:#fff; border:1px solid #e9ecef; border-radius:8px; padding:6px 8px; color:#343a40; line-height:1.3; font-size:11px; }
+.poly-profile .pp-grid { display:flex; gap:8px; margin-top:8px; }
+.poly-profile .pp-col { flex:1 1 0; background:#fff; border:1px solid #e9ecef; border-radius:8px; padding:0; overflow:hidden; }
+.poly-profile .pp-col .pp-col-head { background:#20a4b9; color:#fff; padding:6px 8px; font-weight:600; font-size:11px; }
+.poly-profile .pp-col .pp-col-body { padding:6px 8px; }
+.poly-profile .pp-list { list-style:none; margin:0; padding:0; }
+.poly-profile .pp-list li { display:flex; justify-content:space-between; padding:2px 0; border-bottom:1px dashed #eef2f7; font-size:11px; }
+.poly-profile .pp-list li:last-child { border-bottom:none; }
+.poly-profile .pp-col-foot { padding:5px 8px; background:#f1f3f5; color:#495057; text-align:center; font-weight:700; font-size:11px; }
+.poly-profile .pp-col-foot.badge { background:#e55353; color:#fff; font-size:12px; }
+/* Legend-based foot colors (left/right sections) */
+.poly-profile .pp-col-foot.p1, .poly-profile .pp-col-foot.badge.p1 { background:#d32f2f; color:#fff; }
+.poly-profile .pp-col-foot.p2, .poly-profile .pp-col-foot.badge.p2 { background:#1e88e5; color:#fff; }
+.poly-profile .pp-col-foot.p3, .poly-profile .pp-col-foot.badge.p3 { background:#ffff00; color:#000; }
+.poly-profile .pp-col-foot.p4, .poly-profile .pp-col-foot.badge.p4 { background:#28a745; color:#fff; }
+
+@media (max-width: 480px) {
+    .poly-profile .pp-grid { flex-direction: column; }
+        .leaflet-popup-content-wrapper.poly-profile-popup { max-width: 90vw; }
+}
+
 </style>
 
 <div class="container-fluid">
@@ -21,7 +96,7 @@
 
     <div class="row">
         <!-- Input -->
-        <div class="col-md-4 mb-3">
+        <div class="col-md-3 mb-2">
             <div class="card shadow-sm">
                 <div class="card-header bg-info text-white">Form Koordinat</div>
                 <div class="card-body">
@@ -57,9 +132,46 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-8" >
-            <div class="card shadow-sm" style="height:530px;">
+        <div class="col-md-9" >
+            <div class="card shadow-sm map-card">
+                <div class="map-tools d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2">
+                    <button type="button" id="toggleRegionFilters" class="btn btn-sm btn-outline-secondary">
+                        Regional (<span id="regionSelectedCount">0</span>)
+                        <span id="regionChevron" aria-hidden="true">▼</span>
+                    </button>
+                    <button type="button" id="toggleFullscreen" class="btn btn-sm btn-outline-primary">Full Screen</button>
+                    </div>
+                    <small class="text-muted">Tampilkan/sembunyikan filter regional</small>
+                </div>
+                <div id="regionFiltersContainer" class="map-filters d-none">
+                    @php($regionItems = isset($regions) ? $regions : collect([]))
+                    <select id="regionSelect" class="form-control" multiple style="width:100%; min-width:240px; max-width:520px;" data-placeholder="Pilih regional…">
+                        @foreach($regionItems as $r)
+                            @php($isDefault = (strval($r) === '1' || strtolower(strval($r)) === 'regional 1'))
+                            <option value="{{ $r }}" {{ $isDefault ? 'selected' : '' }}>Reg {{ $r }}</option>
+                        @endforeach
+                    </select>
+                    @if($regionItems->isEmpty())
+                        <div class="text-muted small mt-2">Tidak ada data regional.</div>
+                    @endif
+                    <div class="mt-2">
+                        <label for="unitSelect" class="form-label mb-1">Unit/Kebun</label>
+                        <select id="unitSelect" class="form-control" style="width:100%; min-width:240px; max-width:520px;" data-placeholder="Pilih unit/kebun…">
+                            <option></option>
+                        </select>
+                    </div>
+                </div>
+                <div class="map-container">
                     <div id="map"></div>
+                    <div id="mapOverlay" class="d-none">
+                        <div class="map-overlay-header">
+                            <div class="title">Form Koordinat</div>
+                            <button type="button" id="closeOverlay" class="close">Tutup</button>
+                        </div>
+                        <!-- The form panel will be moved here in fullscreen mode -->
+                    </div>
+                </div>
             </div>
         </div>
        
@@ -149,6 +261,9 @@ document.addEventListener("DOMContentLoaded", function () {
     map.fitBounds([[-11,95],[6,141]]);
 
     let kebunJsons = @json($kebunJsons);
+    // Ensure derajatMap always exists even if server didn't pass it for some route variants
+    window.__derajatMap = @json($derajatMap ?? []);
+    const derajatMap = (typeof window.__derajatMap !== 'undefined' && window.__derajatMap) ? window.__derajatMap : {};
     let polygonLayers = {};
 
     kebunJsons.forEach(jsonData=>{
@@ -314,22 +429,447 @@ document.addEventListener("DOMContentLoaded", function () {
     map.fitBounds([[-11,95],[6,141]]);
 
     let kebunJsons = @json($kebunJsons);
-    let polygonLayers = {};
+    // Safe fallback: ensure derajatMap exists and is keyed by id_unit (not by array index)
+    window.__derajatMap = @json($derajatMap ?? []);
+    function buildDerajatMap(src){
+        const m = {};
+        if (Array.isArray(src)) {
+            src.forEach(v => { if (v && (v.id_unit !== undefined && v.id_unit !== null)) m[String(v.id_unit)] = v; });
+        } else if (src && typeof src === 'object') {
+            Object.keys(src).forEach(k => { const v = src[k]; if (v && (v.id_unit !== undefined && v.id_unit !== null)) m[String(v.id_unit)] = v; });
+        }
+        return m;
+    }
+    const derajatMap = buildDerajatMap(window.__derajatMap);
+    let polygonLayers = {}; // key: kebun decoded id -> layer instance
+    let regionToIds = {};   // key: region value -> array of kebun decoded ids
+    let idToRegion = {};    // key: kebun decoded id -> region value
+    // Maps to resolve unit_id for color lookup later
+    let didToUnitId = {};   // key: decoded tile id -> unit_id
+    let unitNameToUnitId = {}; // key: UPPER(nm_unit) -> unit_id
+    // Maps to support Unit/Kebun filter and zoom
+    let regionToUnits = {}; // key: region -> array of {unit_id, nm_unit}
+    let unitIdToJson = {};  // key: unit_id -> jsonData
+    // Shared popup interaction state
+    let profileOpen = false;
+    let hoverPopup = null;
 
-    kebunJsons.forEach(jsonData=>{
-        if (jsonData.decoded && jsonData.decoded.tileurl) {
-            // --- AWAL PERUBAHAN 2: Menambahkan opsi 'pane' ---
-            let layer = L.vectorGrid.protobuf(jsonData.decoded.tileurl, {
-                pane: 'polygonPane', // <--- TAMBAHKAN INI
-                vectorTileLayerStyles: {
-                    [jsonData.decoded.id]: {
-                        weight: 2, color: "#28a745", fill: true, fillOpacity: 0.3
+    // Build index of regions to decoded tile layer ids
+    kebunJsons.forEach(jsonData => {
+        const region = jsonData.nm_region ?? jsonData.region ?? null;
+        const did = jsonData?.decoded?.id;
+        if (!did || region === null || region === undefined || region === '') return;
+        if (!regionToIds[region]) regionToIds[region] = [];
+        regionToIds[region].push(did);
+        idToRegion[did] = region;
+        // Build helper maps for later color resolution
+        if (jsonData.unit_id != null) {
+            didToUnitId[did] = jsonData.unit_id;
+            if (jsonData.nm_unit) {
+                unitNameToUnitId[String(jsonData.nm_unit).trim().toUpperCase()] = jsonData.unit_id;
+            }
+            // Unit filter datasets
+            if (!regionToUnits[region]) regionToUnits[region] = [];
+            regionToUnits[region].push({ unit_id: jsonData.unit_id, nm_unit: jsonData.nm_unit || 'Unit ' + jsonData.unit_id });
+            if (!unitIdToJson[jsonData.unit_id]) unitIdToJson[jsonData.unit_id] = jsonData;
+        }
+    });
+    // Deduplicate units per region by unit_id
+    Object.keys(regionToUnits).forEach(r => {
+        const seen = new Set();
+        regionToUnits[r] = regionToUnits[r].filter(u => {
+            if (seen.has(u.unit_id)) return false;
+            seen.add(u.unit_id); return true;
+        }).sort((a,b)=> String(a.nm_unit).localeCompare(String(b.nm_unit)));
+    });
+
+    function colorForDerajat(derajat){
+        // Map Derajat Hubungan badges (e.g., P1, PP1, P2, PP2, ...) to colors
+        // Legend per image: Null=gray, P1=red, P2=blue, P3=yellow, P4=green
+        if (!derajat) return '#6c757d';
+        const key = String(derajat).trim().toUpperCase();
+        if (key === 'NULL' || key === 'NONE' || key === '-') return '#6c757d';
+        // Extract numeric level if present (handles P1, PP1, etc.)
+        const numMatch = key.match(/(\d+)/);
+        const lvl = numMatch ? parseInt(numMatch[1], 10) : null;
+        switch (lvl) {
+            case 1: return '#d32f2f'; // red (P1)
+            case 2: return '#1e88e5'; // blue (P2)
+            case 3: return '#ffff00'; // yellow (P3)
+            case 4: return '#28a745'; // green (P4)
+            default:
+                // fallback for text-based categories if any
+                return '#6c757d';
+        }
+    }
+
+    // Helper to create a layer for a kebun record
+    function createPolygonLayer(jsonData) {
+    const derajat = derajatMap[String(jsonData.unit_id)]?.derajat_hubungan ?? null;
+        const fillColor = colorForDerajat(derajat);
+        const layer = L.vectorGrid.protobuf(jsonData.decoded.tileurl, {
+            pane: 'polygonPane',
+            interactive: true,
+            vectorTileLayerStyles: {
+                [jsonData.decoded.id]: (properties, zoom) => ({
+                    weight: 1.2,
+                    color: '#ffffff',
+                    opacity: 0.9,
+                    fill: true,
+                    fillColor: fillColor,
+                    fillOpacity: 0.45,
+                    interactive: true
+                })
+            }
+        });
+        // Hover/Click handlers
+        layer.on('mouseover', (e) => {
+            const uid = jsonData.unit_id;
+            const d = derajatMap[String(uid)] || {};
+            const html = `<div><b>${jsonData.nm_unit || 'Unit'}</b><br/>
+                Derajat: <b>${d.derajat_hubungan ?? '-'}</b><br/>
+                Indeks Kepuasan: ${d.indeks_kepuasan ?? '-'}<br/>
+                Prioritas (SocMap): ${d.prioritas_socmap ?? '-'}<br/>
+                Tahun: ${d.tahun ?? '-'}
+            </div>`;
+            const latlng = e.latlng || map.getCenter();
+            if (!profileOpen) {
+                if (!hoverPopup) {
+                    hoverPopup = L.popup({autoPan:false, closeButton:false, offset:[0,-8]});
+                }
+                hoverPopup.setLatLng(latlng).setContent(html).openOn(map);
+            }
+        });
+        layer.on('mouseout', () => {
+            if (!profileOpen && hoverPopup) {
+                map.closePopup(hoverPopup);
+            }
+        });
+        layer.on('click', (e) => {
+            const uid = jsonData.unit_id;
+            const d = derajatMap[String(uid)] || {};
+            const unitName = (jsonData.nm_unit || 'Unit').toUpperCase();
+            const regionName = jsonData.nm_region ? `Regional ${jsonData.nm_region}` : '';
+            const tahun = d.tahun ?? '';
+            const derajat = d.derajat_hubungan ?? '-';
+            const kep = d.kepuasan ?? '-';
+            const kontri = d.kontribusi ?? '-';
+            const komu = d.komunikasi ?? '-';
+            const perc = d.kepercayaan ?? '-';
+            const keter = d.keterlibatan ?? '-';
+            const indeks = (d.indeks_kepuasan ?? '-');
+            const prioritas = (d.prioritas_socmap ?? '-');
+            // Social Mapping breakdown and score (when available)
+            const smLing = (d.lingkungan ?? '-');
+            const smEko  = (d.ekonomi ?? '-');
+            const smPend = (d.pendidikan ?? '-');
+            const smSos  = (d.sosial_kesesjahteraan ?? d.sosial ?? '-');
+            const smOku  = (d.okupasi ?? '-');
+            const smSkor = (d.skor_socmap ?? '-');
+            // Helpers: normalize badge text (avoid double 'P') and format numbers
+            const badgeText = (val) => {
+                if (val === null || val === undefined || val === '') return '-';
+                const s = String(val).trim();
+                if (!s) return '-';
+                return /^p/i.test(s) ? s.toUpperCase() : ('P' + s);
+            };
+            const fmt = (v, digits = 2) => {
+                if (v === null || v === undefined || v === '' || v === '-') return '-';
+                const n = Number(v);
+                return Number.isFinite(n) ? n.toFixed(digits) : String(v);
+            };
+            const derajatBadge = badgeText(derajat);
+            const prioritasBadge = badgeText(prioritas);
+            // Legend-based class (p1..p4) for consistent popup colors
+            const badgeClassFrom = (val) => {
+                if (!val) return '';
+                const s = String(val).trim().toUpperCase();
+                const m = s.match(/(\d+)/);
+                if (!m) return '';
+                const n = parseInt(m[1],10);
+                return (n>=1 && n<=4) ? ('p'+n) : '';
+            };
+            const derajatCls = badgeClassFrom(derajat);
+            const prioritasCls = badgeClassFrom(prioritas);
+            const desc = d.deskripsi ?? '';
+
+            const profileHtml = `
+                <div class="poly-profile">
+                    <div class="pp-header">
+                        <div class="pp-title">${unitName}${regionName ? ' - ' + regionName : ''}</div>
+                        <div class="pp-sub">
+                            <button class="pp-btn" disabled>&larr;</button>
+                            <select class="form-select form-select-sm" style="width:auto; min-width:100px; display:inline-block;">
+                                ${tahun ? `<option selected>${tahun}</option>` : `<option selected>-</option>`}
+                            </select>
+                            <button class="pp-btn" disabled>&rarr;</button>
+                        </div>
+                    </div>
+                    <div class="pp-body">
+                        <div class="pp-section-title">Data Analisis Hubungan Stakeholder</div>
+                        <div class="text-center fw-semibold mb-1">Derajat Hubungan</div>
+                        <span class="pp-badge ${derajatCls || (derajat !== '-' ? 'red' : 'gray')}">${derajatBadge}</span>
+                        <div class="pp-desc mb-2">
+                            Unit ${unitName} ${regionName ? '(' + regionName + ')' : ''}
+                            mendapat skor Indeks Kepuasan Stakeholder di <b>${fmt(indeks)}</b>
+                            dan skor Social Mapping di <b>${prioritas}</b>
+                            yang menempatkan <b>${unitName}</b> pada kategori <b>${derajatBadge}</b>.
+                            ${desc ? `<br/><span class="text-muted">${desc}</span>` : ''}
+                        </div>
+                        <div class="pp-grid">
+                            <div class="pp-col">
+                                <div class="pp-col-head">Indeks Kepuasan Stakeholder</div>
+                                <div class="pp-col-body">
+                                    <ul class="pp-list">
+                                        <li><span>Kepuasan</span><span>: ${fmt(kep,2)}</span></li>
+                                        <li><span>Kontribusi</span><span>: ${fmt(kontri,2)}</span></li>
+                                        <li><span>Komunikasi</span><span>: ${fmt(komu,2)}</span></li>
+                                        <li><span>Kepercayaan</span><span>: ${fmt(perc,2)}</span></li>
+                                        <li><span>Keterlibatan</span><span>: ${fmt(keter,2)}</span></li>
+                                        <li><span>Total</span><span>: ${fmt(indeks,2)}</span></li>
+                                    </ul>
+                                </div>
+                                <div class="pp-col-foot ${derajatCls}">${derajatBadge}</div>
+                            </div>
+                            <div class="pp-col">
+                                <div class="pp-col-head">Social <br>Mapping</div>
+                                <div class="pp-col-body">
+                                    <ul class="pp-list">
+                                        <li><span>Lingkungan</span><span>: ${fmt(smLing,2)}</span></li>
+                                        <li><span>Ekonomi</span><span>: ${fmt(smEko,2)}</span></li>
+                                        <li><span>Pendidikan</span><span>: ${fmt(smPend,2)}</span></li>
+                                        <li><span>Sosial</span><span>: ${fmt(smSos,2)}</span></li>
+                                        <li><span>Okupasi</span><span>: ${fmt(smOku,2)}</span></li>
+                                        <li><span>Total</span><span>: ${fmt(smSkor,2)}</span></li>
+                                    </ul>
+                                </div>
+                                <div class="pp-col-foot ${prioritasCls}">${prioritasBadge}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            profileOpen = true;
+            // Close hover popup if open
+            if (hoverPopup) map.closePopup(hoverPopup);
+            const prof = L.popup({autoPan:true, maxWidth: 360, className: 'poly-profile-popup'})
+                .setLatLng(e.latlng)
+                .setContent(profileHtml)
+                .openOn(map);
+            // Reset state when profile popup closes
+            map.once('popupclose', function() { profileOpen = false; });
+        });
+        return layer;
+    }
+
+    // Add only layers for selected regions
+    function addLayersForRegions(selectedRegions) {
+        kebunJsons.forEach(jsonData => {
+            if (!jsonData.decoded || !jsonData.decoded.tileurl) return;
+            const region = jsonData.nm_region ?? jsonData.region ?? null;
+            const id = jsonData.decoded.id;
+            if (!selectedRegions.has(String(region))) return;
+            if (polygonLayers[id]) return; // already added
+            const layer = createPolygonLayer(jsonData).addTo(map);
+            polygonLayers[id] = layer;
+        });
+    }
+    // Fallback: add all layers when no region filters are available
+    function addAllLayers() {
+        kebunJsons.forEach(jsonData => {
+            if (!jsonData.decoded || !jsonData.decoded.tileurl) return;
+            const id = jsonData.decoded.id;
+            if (polygonLayers[id]) return;
+            const layer = createPolygonLayer(jsonData).addTo(map);
+            polygonLayers[id] = layer;
+        });
+    }
+    function removeLayersForRegions(unselectedRegions) {
+        Object.entries(polygonLayers).forEach(([id, layer]) => {
+            const region = idToRegion[id];
+            if (unselectedRegions.has(String(region))) {
+                map.removeLayer(layer);
+                delete polygonLayers[id];
+            }
+        });
+    }
+
+    // Initialize selection from dropdown (Select2 multi): default Regional 1 selected
+    const selectedRegions = new Set();
+    const regionSelect = document.getElementById('regionSelect');
+    if (!regionSelect || regionSelect.options.length === 0) {
+        // No region filters provided: load all layers
+        addAllLayers();
+    } else {
+        // Collect initially selected options
+        Array.from(regionSelect.selectedOptions).forEach(opt => selectedRegions.add(String(opt.value)));
+        if (selectedRegions.size === 0 && regionSelect.options.length > 0) {
+            // Ensure at least one default selection (first option)
+            regionSelect.options[0].selected = true;
+            selectedRegions.add(String(regionSelect.options[0].value));
+        }
+        addLayersForRegions(selectedRegions);
+    }
+
+    // Update count and collapsible behavior (collapsed by default)
+    const countEl = document.getElementById('regionSelectedCount');
+    if (countEl) countEl.textContent = (!regionSelect || regionSelect.options.length === 0) ? '-' : String(selectedRegions.size);
+    const filtersEl = document.getElementById('regionFiltersContainer');
+    const chevronEl = document.getElementById('regionChevron');
+    const toggleBtn = document.getElementById('toggleRegionFilters');
+    if (toggleBtn && filtersEl) {
+        toggleBtn.addEventListener('click', () => {
+            const hidden = filtersEl.classList.toggle('d-none');
+            if (chevronEl) chevronEl.textContent = hidden ? '▼' : '▲';
+        });
+    }
+
+    // Wire Select2 for region dropdown (reuse Select2 already loaded for stakeholder)
+    try {
+        if (window.jQuery && typeof jQuery.fn.select2 === 'function' && regionSelect) {
+            jQuery(regionSelect).select2({
+                placeholder: jQuery(regionSelect).data('placeholder') || 'Pilih regional…',
+                width: '100%',
+                dropdownParent: jQuery('#regionFiltersContainer'),
+                closeOnSelect: false,
+                allowClear: true
+            }).on('change', function(){
+                // Determine new selection set
+                const newSelected = new Set(Array.from(this.selectedOptions).map(o => String(o.value)));
+                // Compute additions and removals
+                const toAdd = new Set([...newSelected].filter(x => !selectedRegions.has(x)));
+                const toRemove = new Set([...selectedRegions].filter(x => !newSelected.has(x)));
+                if (toAdd.size) addLayersForRegions(toAdd);
+                if (toRemove.size) removeLayersForRegions(toRemove);
+                // Update current selection set
+                selectedRegions.clear();
+                newSelected.forEach(v => selectedRegions.add(v));
+                // Update count badge
+                if (countEl) countEl.textContent = (!regionSelect || regionSelect.options.length === 0) ? '-' : String(selectedRegions.size);
+                // Refresh unit options based on regions
+                refreshUnitOptions();
+            });
+        }
+    } catch(_) {}
+
+    // Unit/Kebun select handling
+    const unitSelect = document.getElementById('unitSelect');
+    function refreshUnitOptions(){
+        if (!unitSelect) return;
+        const $unit = window.jQuery ? jQuery(unitSelect) : null;
+        const units = [];
+        selectedRegions.forEach(r => {
+            const arr = regionToUnits[r] || [];
+            arr.forEach(u => units.push(u));
+        });
+        // Dedup again across regions
+        const byId = new Map();
+        units.forEach(u => { if (!byId.has(u.unit_id)) byId.set(u.unit_id, u); });
+        const finalUnits = Array.from(byId.values()).sort((a,b)=> String(a.nm_unit).localeCompare(String(b.nm_unit)));
+        // Rebuild options
+        unitSelect.innerHTML = '<option></option>' + finalUnits.map(u => `<option value="${u.unit_id}">${u.nm_unit}</option>`).join('');
+        if ($unit && typeof $unit.select2 === 'function') {
+            $unit.val(null).trigger('change.select2');
+        }
+    }
+    // Initialize unit select2
+    try {
+        if (window.jQuery && typeof jQuery.fn.select2 === 'function' && unitSelect) {
+            jQuery(unitSelect).select2({
+                placeholder: jQuery(unitSelect).data('placeholder') || 'Pilih unit/kebun…',
+                width: '100%',
+                dropdownParent: jQuery('#regionFiltersContainer'),
+                allowClear: true
+            }).on('change', function(){
+                const val = this.value ? String(this.value) : '';
+                if (!val) return;
+                // Ensure the layer for this unit's region is loaded
+                const jd = unitIdToJson[val];
+                if (!jd) return;
+                const reg = jd.nm_region ?? jd.region;
+                if (reg != null && !selectedRegions.has(String(reg))) {
+                    // Add region selection visually and in set
+                    if (regionSelect) {
+                        Array.from(regionSelect.options).forEach(opt => {
+                            if (String(opt.value) === String(reg)) opt.selected = true;
+                        });
+                        jQuery(regionSelect).trigger('change');
+                    } else {
+                        selectedRegions.add(String(reg));
+                        addLayersForRegions(new Set([String(reg)]));
                     }
                 }
-            }).addTo(map);
-            // --- AKHIR PERUBAHAN 2 ---
-            polygonLayers[jsonData.decoded.id] = layer;
+                // Zoom to bounds/center
+                const bounds = jd?.decoded?.bounds;
+                const center = jd?.decoded?.center;
+                if (bounds && bounds.length === 4) {
+                    const latLngBounds = L.latLngBounds([
+                        [bounds[1], bounds[0]],
+                        [bounds[3], bounds[2]]
+                    ]);
+                    map.fitBounds(latLngBounds, { padding: [40, 40] });
+                } else if (center && center.length === 2) {
+                    map.setView([center[1], center[0]], 14);
+                }
+            });
         }
+    } catch(_) {}
+
+    // Populate unit options for initial selected regions
+    refreshUnitOptions();
+
+    // Fullscreen toggle handling: move form into overlay when fullscreen
+    const fullscreenBtn = document.getElementById('toggleFullscreen');
+    const mapCard = document.querySelector('.map-card');
+    const mapOverlay = document.getElementById('mapOverlay');
+    const closeOverlayBtn = document.getElementById('closeOverlay');
+    const formColumn = document.querySelector('.row > .col-md-3');
+    const formCard = formColumn ? formColumn.querySelector('.card') : null;
+    let formPlaceholder = null;
+
+    function enterFullscreen(){
+        if (!mapCard) return;
+        mapCard.classList.add('fullscreen');
+        document.body.classList.add('overflow-hidden');
+        if (mapOverlay) mapOverlay.classList.remove('d-none');
+        // Move form card into overlay
+        if (formCard && mapOverlay) {
+            if (!formPlaceholder) {
+                formPlaceholder = document.createElement('div');
+                formPlaceholder.id = 'appFullscreenOverlayFix';
+                formPlaceholder.style.display = 'none';
+                formCard.parentNode.insertBefore(formPlaceholder, formCard);
+            }
+            mapOverlay.appendChild(formCard);
+        }
+        setTimeout(()=> map.invalidateSize(), 50);
+    }
+
+    function exitFullscreen(){
+        if (!mapCard) return;
+        mapCard.classList.remove('fullscreen');
+        document.body.classList.remove('overflow-hidden');
+        if (mapOverlay) mapOverlay.classList.add('d-none');
+        // Move form card back to its column
+        if (formCard && formPlaceholder && formPlaceholder.parentNode) {
+            formPlaceholder.parentNode.insertBefore(formCard, formPlaceholder.nextSibling);
+        }
+        setTimeout(()=> map.invalidateSize(), 50);
+    }
+
+    if (fullscreenBtn) fullscreenBtn.addEventListener('click', function(){
+        if (mapCard && mapCard.classList.contains('fullscreen')) {
+            exitFullscreen();
+            this.textContent = 'Full Screen';
+        } else {
+            enterFullscreen();
+            this.textContent = 'Exit Full Screen';
+        }
+    });
+    if (closeOverlayBtn) closeOverlayBtn.addEventListener('click', function(){
+        exitFullscreen();
+        if (fullscreenBtn) fullscreenBtn.textContent = 'Full Screen';
     });
 
     // Inisialisasi (opsional)
@@ -441,18 +981,39 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Tampilkan daftar within_radius jika ada
             if (data.within_radius && data.within_radius.length) {
+                // Helper to resolve unit_id for a row, using decoded id or unit name
+                const getUnitIdForRow = (row) => {
+                    if (!row) return null;
+                    if (row.id != null && didToUnitId[row.id] != null) return didToUnitId[row.id];
+                    if (row.unit) {
+                        const key = String(row.unit).trim().toUpperCase();
+                        if (unitNameToUnitId[key] != null) return unitNameToUnitId[key];
+                    }
+                    return null;
+                };
+                const getPolygonColorForRow = (row) => {
+                    const uid = getUnitIdForRow(row);
+                    const der = uid != null ? (derajatMap[String(uid)]?.derajat_hubungan ?? null) : null;
+                    return colorForDerajat(der);
+                };
                 let listHtml = '<div class="mt-2"><h6>Kebun dalam radius:</h6><ol class="small ps-3">';
                 data.within_radius.forEach(row => {
                     const dist = (typeof row.distance_km === 'number') ? row.distance_km.toFixed(3) : row.distance_km;
                     const dtype = (row.distance_type || 'center');
-                        const badgeClass = dtype === 'edge' ? 'bg-success' : (dtype === 'bbox' ? 'bg-info text-dark' : 'bg-secondary');
-                        // Badge tanpa teks: gunakan titik kecil berwarna, tetap beri title untuk aksesibilitas
-                        const badge = `<span class="badge ${badgeClass}" title="${dtype}" style="width:10px;height:10px;display:inline-block;border-radius:8px;padding:0;vertical-align:middle;"></span>`;
+                        // Badge: untuk 'bbox' sesuaikan warna dengan warna polygon (Derajat)
+                        let badge;
+                        if (dtype === 'bbox') {
+                            const polyColor = getPolygonColorForRow(row);
+                            badge = `<span class="badge" title="bbox" style="background:${polyColor};width:10px;height:10px;display:inline-block;border-radius:8px;padding:0;vertical-align:middle;"></span>`;
+                        } else {
+                            const badgeClass = dtype === 'edge' ? 'bg-success' : 'bg-secondary';
+                            badge = `<span class="badge ${badgeClass}" title="${dtype}" style="width:10px;height:10px;display:inline-block;border-radius:8px;padding:0;vertical-align:middle;"></span>`;
+                        }
                     const title = row.center_distance_km ? ` title="jarak ke center: ${row.center_distance_km} km"` : '';
                     listHtml += `<li${title}>${badge} ${row.unit || row.id} (${dist} km)</li>`;
                     if (row.center) {
                         // Ubah warna marker sesuai tipe jarak
-                        const color = dtype === 'edge' ? 'green' : (dtype === 'bbox' ? 'orange' : 'purple');
+                        const color = dtype === 'bbox' ? getPolygonColorForRow(row) : (dtype === 'edge' ? 'green' : 'purple');
                         let m = L.circleMarker([row.center[1], row.center[0]], {
                             radius: 4, color: color, fillColor: color, fillOpacity: 0.7
                         }).addTo(map).bindTooltip(`${row.unit || row.id} - ${dist} km (${dtype})`);

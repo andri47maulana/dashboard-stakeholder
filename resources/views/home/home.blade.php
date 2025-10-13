@@ -50,6 +50,20 @@
     overflow: auto;     /* scroll horizontal DataTable */
 }
 
+/* Make SVG map more prominent but elegant */
+.map-overlay {
+    opacity: 0.98; /* slightly less than 1 to avoid full washout */
+    /* Stronger color separation + layered shadows for 3D effect */
+    filter: hue-rotate(45deg) saturate(1.6) contrast(1.25) brightness(1.05)
+            drop-shadow(0 1px 0 rgba(255,255,255,0.55))
+            drop-shadow(0 2px 6px rgba(0,0,0,0.55))
+            drop-shadow(0 12px 20px rgba(0,0,0,0.2));
+    /* Use normal blend to prevent the map from disappearing on bright areas */
+    mix-blend-mode: normal;
+    will-change: filter, transform;
+    transform: translateZ(0);
+}
+
 
 </style>
 <!-- Page Heading -->
@@ -119,16 +133,17 @@
 </div> --}}
 <div class="card shadow mb-4 relative overflow-hidden">
     <!-- background image -->
-    <img src="{{ url('/') }}{{ $public }}/kebunteh.jpg"
-         alt="Kebun Teh"
-         class="w-full h-auto brightness-50">
+    <img src="{{ url('/') }}{{ $public }}/kebunteh.jpg" style="opacity: 0.7"
+        alt="Kebun Teh"
+        class="w-full h-auto brightness-50">
 
     <!-- overlay peta -->
     <div class="absolute inset-0">
-        <img src="{{ url('/') }}{{ $public }}/id.svg"
-         alt="Peta Indonesia"
-         style="position:absolute; top:0; left:0; width:100%; height:100%; 
-                object-fit:contain; z-index:2; opacity:0.9;">
+    <img src="{{ url('/') }}{{ $public }}/id.svg"
+     alt="Peta Indonesia"
+     class="map-overlay"
+     style="position:absolute; top:0; left:0; width:100%; height:100%; 
+        object-fit:contain; z-index:2;">
         
         <!-- marker contoh -->
         <div class="marker" style="top:30%; left:11%;" data-region="PTPN I Regional 1" title="Regional 1 - Sumatera Utara"></div>

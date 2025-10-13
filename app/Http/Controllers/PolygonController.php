@@ -19,13 +19,38 @@ class PolygonController extends Controller
                 $item->decoded = json_decode($item->json, true);
                 return $item;
             });
+        // Daftar regional unik untuk kontrol checkbox
+        $regions = $kebunJsons->pluck('nm_region')
+            ->filter(function($r){ return !is_null($r) && $r !== ''; })
+            ->unique()
+            ->sort()
+            ->values();
+        // Ambil derajat hubungan terbaru per unit (berdasarkan id terbesar)
+        $latestDerajat = DB::table('tb_derajat_hubungan as d')
+            ->join(DB::raw('(select id_unit, max(id) as max_id from tb_derajat_hubungan group by id_unit) m'), function($join){
+                $join->on('m.id_unit','=','d.id_unit')->on('m.max_id','=','d.id');
+            })
+            ->select(
+                'd.id_unit','d.derajat_hubungan','d.indeks_kepuasan','d.prioritas_socmap',
+                'd.kepuasan','d.kontribusi','d.komunikasi','d.kepercayaan','d.keterlibatan',
+                // Social Mapping breakdown and score
+                'd.lingkungan','d.ekonomi','d.pendidikan','d.sosial_kesesjahteraan','d.okupasi','d.skor_socmap',
+                // Optionally include derajat_kepuasan if needed by other modules
+                'd.derajat_kepuasan',
+                'd.tahun','d.deskripsi'
+            )
+            ->get();
+        $derajatMap = [];
+        foreach ($latestDerajat as $row) {
+            $derajatMap[$row->id_unit] = $row;
+        }
         $logs = SearchLog::query()
             ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
             ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
             ->orderBy('search_logs.created_at','desc')
             ->limit(50)
             ->get();
-        return view('polygon.index',compact('kebunJsons','logs'));
+        return view('polygon.index',compact('kebunJsons','logs','derajatMap','regions'));
     }
 
     public function viewLog($id)
@@ -38,6 +63,29 @@ class PolygonController extends Controller
                 $item->decoded = json_decode($item->json, true);
                 return $item;
             });
+        // Daftar regional unik untuk kontrol checkbox
+        $regions = $kebunJsons->pluck('nm_region')
+            ->filter(function($r){ return !is_null($r) && $r !== ''; })
+            ->unique()
+            ->sort()
+            ->values();
+        // Ambil derajat hubungan terbaru per unit juga untuk halaman ini
+        $latestDerajat = DB::table('tb_derajat_hubungan as d')
+            ->join(DB::raw('(select id_unit, max(id) as max_id from tb_derajat_hubungan group by id_unit) m'), function($join){
+                $join->on('m.id_unit','=','d.id_unit')->on('m.max_id','=','d.id');
+            })
+            ->select(
+                'd.id_unit','d.derajat_hubungan','d.indeks_kepuasan','d.prioritas_socmap',
+                'd.kepuasan','d.kontribusi','d.komunikasi','d.kepercayaan','d.keterlibatan',
+                'd.lingkungan','d.ekonomi','d.pendidikan','d.sosial_kesesjahteraan','d.okupasi','d.skor_socmap',
+                'd.derajat_kepuasan',
+                'd.tahun','d.deskripsi'
+            )
+            ->get();
+        $derajatMap = [];
+        foreach ($latestDerajat as $row) {
+            $derajatMap[$row->id_unit] = $row;
+        }
         $logs = SearchLog::query()
             ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
             ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
@@ -49,7 +97,7 @@ class PolygonController extends Controller
             ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
             ->where('search_logs.id',$id)
             ->firstOrFail();
-        return view('polygon.index', compact('kebunJsons','logs','activeLog'));
+        return view('polygon.index', compact('kebunJsons','logs','activeLog','derajatMap','regions'));
     }
 
     public function deleteLog($id)
