@@ -492,10 +492,12 @@ class MasterDataController extends Controller
         $user = Auth::user()->region;
         if ($user === "PTPN I HO") {
             $units = DB::table('tb_unit')->get(); // query langsung ke tabel units
+            $regions = DB::table('tb_unit')->select('region')->whereNotNull('region')->groupBy('region')->orderBy('region')->get();
         } else {
             $units = DB::table('tb_unit')->where('region', $user)->get();
+            $regions = DB::table('tb_unit')->select('region')->where('region',$user)->groupBy('region')->orderBy('region')->get();
         }
-        return view('masterdata/data_kebun', compact('units'));
+        return view('masterdata/data_kebun', compact('units','regions'));
     }
 
     public function detail_unit($id)
@@ -512,6 +514,25 @@ class MasterDataController extends Controller
         }
 
         return view('masterdata/detail_unit', compact('unit', 'kebunJsons'));
+    }
+
+    // Update Unit (tb_unit) name/region
+    public function update_unit(Request $request, $id)
+    {
+        $request->validate([
+            'unit' => 'required|string|max:255',
+            'region' => 'required|string|max:255',
+        ]);
+
+        try {
+            DB::table('tb_unit')->where('id', $id)->update([
+                'unit' => $request->input('unit'),
+                'region' => $request->input('region'),
+            ]);
+            return redirect()->route('units.list')->with('success', 'Unit berhasil diperbarui');
+        } catch (\Throwable $e) {
+            return back()->withErrors(['message' => 'Gagal memperbarui unit: '.$e->getMessage()])->withInput();
+        }
     }
 
     public function store(Request $request)

@@ -119,6 +119,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/kebun', [MasterDataController::class, 'dashkebun']);
         Route::get('/data_kebun', [MasterDataController::class, 'data_kebun'])->name('units.list');
         Route::get('/data_kebun/{id}/detail', [MasterDataController::class, 'detail_unit'])->name('units.detail');
+    Route::post('/data_kebun/{id}/update', [MasterDataController::class, 'update_unit'])->name('units.update');
         Route::post('/kebun_json/store', [MasterDataController::class, 'store'])->name('kebun_json.store');
         Route::put('/kebun_json/{id}', [MasterDataController::class, 'update'])->name('kebun_json.update');
         Route::delete('/kebun_json/{id}', [MasterDataController::class, 'destroy'])->name('kebun_json.destroy');
