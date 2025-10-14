@@ -17,8 +17,8 @@ class SubPilar extends Model
         'sub_pilar'
     ];
 
-    public function tjsl(): HasMany
-    {
-        return $this->hasMany(Tjsl::class, 'pilar_id');
-    }
+    // public function tjsl(): HasMany
+    // {
+    //     return $this->hasMany(Tjsl::class, 'pilar_id');
+    // }
 }

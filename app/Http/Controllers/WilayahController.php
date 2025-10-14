@@ -50,21 +50,22 @@ class WilayahController extends Controller
 
     public function getWilayahByCode(Request $request)
     {
-        $kode = $request->get('kode');
-        
+        $kode = trim($request->get('kode'));
+
         if (!$kode) {
             return response()->json(['error' => 'Kode wilayah tidak ditemukan'], 400);
         }
 
-        // Database menyimpan kode dalam format dengan titik (32.73.09.1003)
-        // Jadi kita gunakan kode asli tanpa konversi
+        // Preserve dotted format; normalize only if input has no dots
+        $normalizedKode = $this->convertKodeFormat($kode);
+
         $wilayah = DB::table('wilayah')
-            ->where('kode', $kode)
+            ->where('kode', $normalizedKode)
             ->first();
 
         if ($wilayah) {
             return response()->json([
-                'kode' => $kode,
+                'kode' => $normalizedKode,
                 'nama' => $wilayah->nama
             ]);
         }
@@ -74,23 +75,29 @@ class WilayahController extends Controller
 
     private function convertKodeFormat($kode)
     {
-        // Convert dari format 11.01.01.2002 ke format database
-        $parts = explode('.', $kode);
-        
-        if (count($parts) == 1) {
-            // Provinsi: 11 -> 11
+        $kode = trim($kode);
+
+        // If already dotted (e.g., 32.73 or 32.73.09.1003), use as-is
+        if (strpos($kode, '.') !== false) {
             return $kode;
-        } elseif (count($parts) == 2) {
-            // Kabupaten: 11.01 -> 1101
-            return $parts[0] . $parts[1];
-        } elseif (count($parts) == 3) {
-            // Kecamatan: 11.01.01 -> 11010100 (tambah 00 di akhir)
-            return $parts[0] . $parts[1] . $parts[2] . '00';
-        } elseif (count($parts) == 4) {
-            // Desa: 11.01.01.2002 -> 1101012002
-            return $parts[0] . $parts[1] . $parts[2] . $parts[3];
         }
-        
+
+        // Normalize dense codes to dotted format expected by DB
+        $len = strlen($kode);
+        if ($len === 2) { // provinsi: 11
+            return $kode;
+        }
+        if ($len === 4) { // kabupaten: 11.01
+            return substr($kode, 0, 2) . '.' . substr($kode, 2, 2);
+        }
+        if ($len === 6) { // kecamatan: 11.01.01
+            return substr($kode, 0, 2) . '.' . substr($kode, 2, 2) . '.' . substr($kode, 4, 2);
+        }
+        if ($len === 10) { // desa: 11.01.01.2002
+            return substr($kode, 0, 2) . '.' . substr($kode, 2, 2) . '.' . substr($kode, 4, 2) . '.' . substr($kode, 6, 4);
+        }
+
+        // Fallback: return as-is
         return $kode;
     }
 }

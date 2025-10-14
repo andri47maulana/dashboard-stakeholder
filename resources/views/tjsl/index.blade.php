@@ -117,6 +117,19 @@
                                         {{ $tjsl->pilar->pilar }}
                                     </div>
                                 </div>
+                                <div class="col mr-2">
+                                    @if ($tjsl->hasProgramUnggulanImage())
+                                        <img src="{{ $tjsl->program_unggulan_image }}"
+                                            alt="{{ $tjsl->programUnggulan->program_unggulan ?? 'Program Unggulan' }}"
+                                            style="width:50px; height:50px; object-fit:contain;">
+                                    @else
+                                        <div class="badge badge-secondary d-inline-flex align-items-center"
+                                            style="border-radius:999px; font-weight:600; padding:.35rem .6rem;">
+                                            <i class="fas fa-award mr-1"></i>
+                                            {{ $tjsl->programUnggulan->program_unggulan ?? 'Program Unggulan' }}
+                                        </div>
+                                    @endif
+                                </div>
                                 <div class="col-auto">
                                     @if ($tjsl->status == 1)
                                         <span class="badge badge-primary">Proposed</span>
@@ -261,7 +274,7 @@
                             <!-- Tab Data Program -->
                             <div class="tab-pane fade show active" id="program" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="nama_program" class="form-label">Nama Program <span
                                                     class="text-danger">*</span></label>
@@ -272,6 +285,8 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="unit_id" class="form-label">Unit/Kebun <span
@@ -287,8 +302,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="pilar_id" class="form-label">Pilar <span
@@ -302,6 +315,27 @@
                                             <div class="invalid-feedback">
                                                 Pilar wajib dipilih.
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="program_unggulan_id" class="form-label">Program Unggulan</label>
+                                            <select class="form-control" id="program_unggulan_id"
+                                                name="program_unggulan_id">
+                                                <option value="">Pilih Program Unggulan</option>
+                                                @php
+                                                    // Jika controller belum mengirimkan $programUnggulans, ambil di sini
+                                                    $programUnggulans = \App\Models\ProgramUnggulan::all();
+                                                @endphp
+                                                @foreach ($programUnggulans as $pu)
+                                                    <option value="{{ $pu->id }}"
+                                                        data-subpilars='@json($pu->sub_pilar)'>
+                                                        {{ $pu->program_unggulan }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -653,7 +687,7 @@
                             <!-- Tab Data Program -->
                             <div class="tab-pane fade show active" id="edit-program" role="tabpanel">
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="edit_nama_program" class="form-label">Nama Program <span
                                                     class="text-danger">*</span></label>
@@ -664,6 +698,8 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="edit_unit_id" class="form-label">Unit/Kebun <span
@@ -679,8 +715,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="edit_pilar_id" class="form-label">Pilar <span
@@ -694,6 +728,28 @@
                                             <div class="invalid-feedback">
                                                 Pilar wajib dipilih.
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="edit_program_unggulan_id" class="form-label">Program
+                                                Unggulan</label>
+                                            <select class="form-control" id="edit_program_unggulan_id"
+                                                name="program_unggulan_id">
+                                                <option value="">Pilih Program Unggulan</option>
+                                                @php
+                                                    $programUnggulans =
+                                                        $programUnggulans ?? \App\Models\ProgramUnggulan::all();
+                                                @endphp
+                                                @foreach ($programUnggulans as $pu)
+                                                    <option value="{{ $pu->id }}"
+                                                        data-subpilars='@json($pu->sub_pilar)'>
+                                                        {{ $pu->program_unggulan }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -1217,6 +1273,7 @@
                         $('#edit_nama_program').val(response.nama_program);
                         $('#edit_unit_id').val(response.unit_id);
                         $('#edit_pilar_id').val(response.pilar_id);
+                        $('#edit_program_unggulan_id').val(response.program_unggulan_id);
                         $('#edit_deskripsi').val(response.deskripsi);
                         $('#edit_penerima_dampak').val(response.penerima_dampak);
                         $('#edit_tanggal_mulai').val(tanggalMulai);
@@ -1233,9 +1290,22 @@
                             $('#edit_lokasi_program').val(response.lokasi_program);
                         }
 
-                        // Handle sub_pilar (multiple select)
-                        if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
-                            $('#edit_sub_pilar').val(response.sub_pilar).trigger('change');
+                        // Handle sub_pilar (multiple select) - set setelah program unggulan
+                        if (response.program_unggulan_id) {
+                            // Trigger filter sub pilar berdasarkan program unggulan
+                            setTimeout(function() {
+                                $('#edit_program_unggulan_id').trigger('change');
+                                // Set sub pilar setelah filter diterapkan
+                                if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
+                                    $('#edit_sub_pilar').val(response.sub_pilar).trigger(
+                                        'change');
+                                }
+                            }, 100);
+                        } else {
+                            // Jika tidak ada program unggulan, set sub pilar langsung
+                            if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
+                                $('#edit_sub_pilar').val(response.sub_pilar).trigger('change');
+                            }
                         }
 
                         // Load related data
@@ -2313,6 +2383,99 @@
             allowClear: true,
             width: '100%',
             dropdownParent: $('#editTjslModal')
+        });
+
+        // Kumpulkan mapping Program Unggulan -> daftar sub_pilar (array id)
+        const programUnggulanMap = {};
+        $('#program_unggulan_id option').each(function() {
+            const id = $(this).val();
+            if (!id) return;
+            let sp = $(this).data('subpilars'); // bisa array atau string JSON
+            if (typeof sp === 'string') {
+                try {
+                    sp = JSON.parse(sp);
+                } catch (e) {
+                    sp = [];
+                }
+            }
+            programUnggulanMap[id] = Array.isArray(sp) ? sp.map(String) : [];
+        });
+
+        // Simpan semua sub pilar untuk rebuild opsi saat filter
+        const allSubpilars = @json(
+            $subpilars->map(function ($s) {
+                return ['id' => (string) $s->id, 'text' => $s->sub_pilar];
+            }));
+
+        function renderSubPilarOptions(allowedIds) {
+            const $select = $('#sub_pilar');
+            // Rebuild opsi sesuai allowedIds; jika kosong, tampilkan semua
+            const data = (allowedIds && allowedIds.length) ?
+                allSubpilars.filter(s => allowedIds.includes(s.id)) :
+                allSubpilars;
+
+            // Reset pilihan lalu isi ulang opsi
+            $select.empty();
+            data.forEach(s => $select.append(new Option(s.text, s.id)));
+            // Kosongkan nilai terpilih dan trigger update ke Select2
+            $select.val(null).trigger('change');
+        }
+
+        // Filter saat program unggulan berubah
+        $('#program_unggulan_id').on('change', function() {
+            const id = $(this).val();
+            renderSubPilarOptions(programUnggulanMap[id] || []);
+        });
+
+        // Optional: render awal (tanpa filter)
+        renderSubPilarOptions([]);
+
+        // Kumpulkan mapping Program Unggulan -> daftar sub_pilar untuk edit modal
+        const editProgramUnggulanMap = {};
+        $('#edit_program_unggulan_id option').each(function() {
+            const id = $(this).val();
+            if (!id) return;
+            let sp = $(this).data('subpilars');
+            if (typeof sp === 'string') {
+                try {
+                    sp = JSON.parse(sp);
+                } catch (e) {
+                    sp = [];
+                }
+            }
+            editProgramUnggulanMap[id] = Array.isArray(sp) ? sp.map(String) : [];
+        });
+
+        // Semua sub pilar (id dan text) untuk rebuild opsi edit
+        const allSubpilarsEdit = @json($subpilars->map(fn($s) => ['id' => (string) $s->id, 'text' => $s->sub_pilar]));
+
+        function renderEditSubPilarOptions(allowedIds) {
+            const $select = $('#edit_sub_pilar');
+            // Simpan pilihan saat ini agar tidak hilang
+            const currentVals = ($select.val() || []).map(String);
+
+            const data = (allowedIds && allowedIds.length) ?
+                allSubpilarsEdit.filter(s => allowedIds.includes(s.id)) :
+                allSubpilarsEdit;
+
+            $select.empty();
+            data.forEach(s => $select.append(new Option(s.text, s.id)));
+
+            // Pertahankan nilai yang masih valid
+            const keep = currentVals.filter(v => data.some(d => d.id === v));
+            $select.val(keep).trigger('change');
+        }
+
+        // Filter saat Program Unggulan berubah di modal edit
+        $('#edit_program_unggulan_id').on('change', function() {
+            const id = $(this).val();
+            renderEditSubPilarOptions(editProgramUnggulanMap[id] || []);
+        });
+
+        // Saat modal edit dibuka, apply filter sesuai nilai awal (jika ada)
+        $('#editTjslModal').on('shown.bs.modal', function() {
+            const id = $('#edit_program_unggulan_id').val();
+            renderEditSubPilarOptions(editProgramUnggulanMap[id] || []);
         });
 
         $('#edit-program-tab').on('shown.bs.tab', function() {
