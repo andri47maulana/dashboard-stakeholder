@@ -78,12 +78,12 @@
         </a>
     </li>
     <hr class="sidebar-divider">
-    <li class="nav-item <?php echo Request::is('peta/peta') ? 'active' : ''; ?>">
+    {{-- <li class="nav-item <?php echo Request::is('peta/peta') ? 'active' : ''; ?>">
         <a class="nav-link" href="{{url('/')}}/peta/peta">
             <i class="fas fa-fw fa-book"></i>
             <span>Peta</span>
         </a>
-    </li>
+    </li> --}}
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('masterdata/data_kebun') ? 'active' : ''; ?>">
         <a class="nav-link" href="{{url('/')}}/masterdata/data_kebun">
@@ -147,7 +147,15 @@
     <li class="nav-item <?php echo Request::is('polygons') ? 'active' : ''; ?>">
         <a class="nav-link" href="{{url('/')}}/polygons">
             <i class="fas fa-fw fa-book"></i>
-            <span>Cek Titik Koordinat</span>
+            <span>Peta</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+
+    <li class="nav-item <?php echo Request::is('tjsl') ? 'active' : ''; ?>">
+        <a class="nav-link" href="{{url('/')}}/tjsl">
+            <i class="fas fa-fw fa-handshake"></i>
+            <span>TJSL</span>
         </a>
     </li>
 {{-- <hr class="sidebar-divider">
