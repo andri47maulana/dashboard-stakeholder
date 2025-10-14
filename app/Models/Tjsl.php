@@ -18,6 +18,8 @@ class Tjsl extends Model
         'deskripsi',
         'unit_id',
         'lokasi_program',
+        'latitude',
+        'longitude',
         'pilar_id',
         'sub_pilar',
         'tanggal_mulai',
@@ -32,6 +34,8 @@ class Tjsl extends Model
     protected $casts = [
         'unit_id' => 'integer',
         'status' => 'integer',
+        'latitude' => 'float',
+        'longitude' => 'float',
         'created_by' => 'integer',
         'updated_by' => 'integer',
         'tanggal_mulai' => 'date',

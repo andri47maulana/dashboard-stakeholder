@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/get-detail-instansi/{id}', [HomeController::class, 'getDetailInstansi']);
     // routes/web.php
     Route::get('/get-wilayah', [WilayahController::class, 'getWilayah']);
+    Route::get('/get-wilayah-by-code', [WilayahController::class, 'getWilayahByCode']);
     Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']);
 
 
@@ -181,6 +182,7 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 Route::resource('tjsl', TjslController::class);
+Route::get('tjsl/{id}/edit-data', [TjslController::class, 'getEditData'])->name('tjsl.edit-data');
 Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.add-biaya');
 Route::post('tjsl/{id}/publikasi', [TjslController::class, 'addPublikasi'])->name('tjsl.add-publikasi');
 Route::post('tjsl/{id}/dokumen', [TjslController::class, 'addDokumen'])->name('tjsl.add-dokumen');

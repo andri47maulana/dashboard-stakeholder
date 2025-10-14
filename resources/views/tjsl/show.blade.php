@@ -7,14 +7,14 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Detail Program TJSL</h4>
-                        <div>
+                        {{-- <div>
                             <a href="{{ route('tjsl.edit', $tjsl->id) }}" class="btn btn-warning btn-sm">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
                             <a href="{{ route('tjsl.index') }}" class="btn btn-secondary btn-sm">
                                 <i class="fas fa-arrow-left"></i> Kembali
                             </a>
-                        </div>
+                        </div> --}}
                     </div>
                     <div class="card-body">
                         <div class="row">
