@@ -21,6 +21,7 @@ class Tjsl extends Model
         'latitude',
         'longitude',
         'pilar_id',
+        'program_unggulan_id',
         'sub_pilar',
         'tanggal_mulai',
         'tanggal_akhir',
@@ -64,6 +65,10 @@ class Tjsl extends Model
         return $this->belongsTo(Pilar::class, 'pilar_id');
     }
 
+    public function programUnggulan(): BelongsTo
+    {
+        return $this->belongsTo(ProgramUnggulan::class, 'program_unggulan_id');
+    }
     // Relasi dg tb_biaya_tjsl (one-to-many)
     public function biayaTjsl(): HasMany
     {
@@ -144,6 +149,11 @@ class Tjsl extends Model
             }
         }
 
+        // Sort images by number in ascending order
+        usort($images, function($a, $b) {
+            return (int)$a['number'] <=> (int)$b['number'];
+        });
+
         return $images;
     }
 
@@ -155,7 +165,21 @@ class Tjsl extends Model
         return count($this->sub_pilar_images) > 0;
     }
 
+    public function getProgramUnggulanImageAttribute()
+    {
+        $id = $this->program_unggulan_id;
+        if (!$id) {
+            return null;
+        }
 
+        $imagePath = 'img/program_unggulan/' . $id . '.png';
+        $fullImagePath = public_path($imagePath);
 
+        return file_exists($fullImagePath) ? asset($imagePath) : null;
+    }
 
+    public function hasProgramUnggulanImage()
+    {
+        return !is_null($this->program_unggulan_image);
+    }
 }

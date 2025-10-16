@@ -12,6 +12,7 @@ use App\Http\Controllers\PetaController;
 use App\Http\Controllers\PolygonController;
 use App\Http\Controllers\DerajatHubunganController;
 use App\Http\Controllers\TjslController;
+use App\Http\Controllers\DashboardTjslController;
 
 /*
 |--------------------------------------------------------------------------
@@ -178,14 +179,23 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/polygons', [PolygonController::class, 'index']);
     Route::post('/polygons/check-point', [PolygonController::class, 'checkPoint'])->name('polygons.check');
 
+    // Dashboard TJSL - HARUS SEBELUM route resource
+    Route::get('/tjsl/dashboard', [DashboardTjslController::class, 'index'])->name('tjsl.dashboard');
+
+    // Route resource setelah route spesifik
+    Route::resource('tjsl', TjslController::class);
+
+    Route::get('tjsl/{id}/edit-data', [TjslController::class, 'getEditData'])->name('tjsl.edit-data');
+    Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.add-biaya');
+    Route::post('tjsl/{id}/publikasi', [TjslController::class, 'addPublikasi'])->name('tjsl.add-publikasi');
+    Route::post('tjsl/{id}/dokumen', [TjslController::class, 'addDokumen'])->name('tjsl.add-dokumen');
+    Route::post('tjsl/{id}/feedback', [TjslController::class, 'addFeedback'])->name('tjsl.add-feedback');
+    Route::get('/get-units-by-region', [TjslController::class, 'getUnitsByRegion'])->name('get.units.by.region');
+
+    // AJAX route untuk pagination provinsi
+    Route::get('/tjsl/dashboard/provinces', [DashboardTjslController::class, 'getProvinceData'])->name('tjsl.dashboard.provinces');
 
 });
 
-Route::resource('tjsl', TjslController::class);
-Route::get('tjsl/{id}/edit-data', [TjslController::class, 'getEditData'])->name('tjsl.edit-data');
-Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.add-biaya');
-Route::post('tjsl/{id}/publikasi', [TjslController::class, 'addPublikasi'])->name('tjsl.add-publikasi');
-Route::post('tjsl/{id}/dokumen', [TjslController::class, 'addDokumen'])->name('tjsl.add-dokumen');
-Route::post('tjsl/{id}/feedback', [TjslController::class, 'addFeedback'])->name('tjsl.add-feedback');
-Route::get('/get-units-by-region', [TjslController::class, 'getUnitsByRegion'])->name('get.units.by.region');
+
 
