@@ -325,17 +325,20 @@ class TjslController extends Controller
 
         $request->validate([
             'nama_program' => 'required|string|max:255',
-            'deskripsi' => 'required|string',
-            'unit_id' => 'required|exists:units,id',
-            'lokasi_program' => 'required|string|max:255',
+            'deskripsi' => 'nullable|string',
+            'unit_id' => 'required|exists:tb_unit,id',
+            'lokasi_program' => 'nullable|string|max:255',
             'pilar_id' => 'required|exists:m_pilar,id',
             'program_unggulan_id' => 'nullable|exists:m_program_unggulan,id',
-            'sub_pilar' => 'required|string|max:100',
-            'tanggal_mulai' => 'required|date',
-            'tanggal_akhir' => 'required|string',
-            'penerima_dampak' => 'required|string|max:255',
-            'tpb' => 'required|string|max:255',
-            'status' => 'required|integer',
+            'sub_pilar' => 'nullable|array',
+            'sub_pilar.*' => 'exists:m_sub_pilar,id',
+            'tanggal_mulai' => 'nullable|date',
+            'tanggal_akhir' => 'nullable|date',
+            'penerima_dampak' => 'nullable|string|max:255',
+            'tpb' => 'nullable|string|max:255',
+            'status' => 'nullable|integer',
+            'latitude' => 'nullable|numeric|min:-90|max:90',
+            'longitude' => 'nullable|numeric|min:-180|max:180',
         ]);
 
         $tjsl->update([
@@ -345,12 +348,14 @@ class TjslController extends Controller
             'lokasi_program' => $request->lokasi_program,
             'pilar_id' => $request->pilar_id,
             'program_unggulan_id' => $request->program_unggulan_id,
-            'sub_pilar' => $request->sub_pilar,
+            'sub_pilar' => $request->sub_pilar ? json_encode($request->sub_pilar) : null,
             'tanggal_mulai' => $request->tanggal_mulai,
             'tanggal_akhir' => $request->tanggal_akhir,
             'penerima_dampak' => $request->penerima_dampak,
             'tpb' => $request->tpb,
             'status' => $request->status,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
             'updated_by' => Auth::id(),
         ]);
 

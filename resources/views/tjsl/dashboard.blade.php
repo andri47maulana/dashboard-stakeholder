@@ -68,7 +68,7 @@
                     <div class="card-header">Jumlah Program (Regional)</div>
                     <div class="card-body">
                         <div style="height: 300px;">
-                            <canvas id="pieRegional"></canvas>
+                            <canvas id="donutRegional"></canvas>
                         </div>
                     </div>
                 </div>
@@ -278,8 +278,8 @@
 
         // Pie Regional
         const regionalData = @json($byRegion);
-        new Chart(document.getElementById('pieRegional'), {
-            type: 'pie',
+        new Chart(document.getElementById('donutRegional'), {
+            type: 'doughnut',
             data: {
                 labels: regionalData.map(r => r.region),
                 datasets: [{

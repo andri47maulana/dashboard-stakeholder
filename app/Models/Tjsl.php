@@ -149,6 +149,11 @@ class Tjsl extends Model
             }
         }
 
+        // Sort images by number in ascending order
+        usort($images, function($a, $b) {
+            return (int)$a['number'] <=> (int)$b['number'];
+        });
+
         return $images;
     }
 

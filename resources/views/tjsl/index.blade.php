@@ -23,7 +23,7 @@
                         <label for="filterRegion" class="form-label small text-muted">Region</label>
                         <select class="form-control form-control-sm" id="filterRegion">
                             <option value="">Semua Regional</option>
-                            @foreach ($regions as $region)
+                            @foreach ($regions->sort() as $region)
                                 <option value="{{ $region }}" {{ request('region') == $region ? 'selected' : '' }}>
                                     {{ $region }}</option>
                             @endforeach
@@ -33,7 +33,7 @@
                         <label for="filterPilar" class="form-label small text-muted">Pilar</label>
                         <select class="form-control form-control-sm" id="filterPilar">
                             <option value="">Semua Pilar</option>
-                            @foreach ($pilars as $pilar)
+                            @foreach ($pilars->sortBy('pilar') as $pilar)
                                 <option value="{{ $pilar->id }}"
                                     {{ request('pilar_id') == $pilar->id ? 'selected' : '' }}>{{ $pilar->pilar }}</option>
                             @endforeach
@@ -43,7 +43,7 @@
                         <label for="filterKebun" class="form-label small text-muted">Kebun</label>
                         <select class="form-control form-control-sm" id="filterKebun">
                             <option value="">Semua Unit</option>
-                            @foreach ($units as $unit)
+                            @foreach ($units->sortBy('unit') as $unit)
                                 <option value="{{ $unit->id }}" {{ request('unit_id') == $unit->id ? 'selected' : '' }}>
                                     {{ $unit->unit }}</option>
                             @endforeach
@@ -53,7 +53,7 @@
                         <label for="filterTahun" class="form-label small text-muted">Tahun</label>
                         <select class="form-control form-control-sm" id="filterTahun">
                             <option value="">Tahun</option>
-                            @foreach ($tahunList as $tahun)
+                            @foreach ($tahunList->sort() as $tahun)
                                 <option value="{{ $tahun }}" {{ request('tahun') == $tahun ? 'selected' : '' }}>
                                     {{ $tahun }}</option>
                             @endforeach
@@ -61,9 +61,9 @@
                     </div>
                     <div class="col-md-1">
                         <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-success btn-sm" id="applyFilter">
+                            {{-- <button type="button" class="btn btn-success btn-sm" id="applyFilter">
                                 <i class="fas fa-filter"></i> Filter
-                            </button>
+                            </button> --}}
                             <button type="button" class="btn btn-warning btn-sm" id="resetFilter">
                                 <i class="fas fa-undo"></i> Reset
                             </button>
@@ -347,8 +347,7 @@
                                                     </option>
                                                 @endforeach
                                             </select>
-                                            <small class="form-text text-muted">Pilih satu atau lebih sub pilar (gunakan
-                                                Ctrl+Click untuk memilih multiple)</small>
+                                            <small class="form-text text-muted">Pilih satu atau lebih sub pilar</small>
                                         </div>
                                     </div>
                                 </div>
@@ -496,9 +495,9 @@
                                                     step="0.01" placeholder="0.00">
                                             </div>
                                             <div class="col-md-5">
-                                                <label class="form-label">Keterangan</label>
-                                                <input type="text" class="form-control" name="biaya[0][keterangan]"
-                                                    placeholder="Keterangan biaya">
+                                                <label class="form-label">Realisasi (Rp)</label>
+                                                <input type="number" class="form-control" name="biaya[0][realisasi]"
+                                                    step="0.01" placeholder="0.00">
                                             </div>
                                             <div class="col-md-2 d-flex align-items-end">
                                                 <button type="button" class="btn btn-danger btn-sm removeBiaya">
@@ -826,13 +825,13 @@
                                                         <div class="col-md-6">
                                                             <label for="edit_latitude" class="form-label">Latitude</label>
                                                             <input type="text" class="form-control" id="edit_latitude"
-                                                                name="latitude" readonly>
+                                                                name="latitude">
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label for="edit_longitude"
                                                                 class="form-label">Longitude</label>
                                                             <input type="text" class="form-control"
-                                                                id="edit_longitude" name="longitude" readonly>
+                                                                id="edit_longitude" name="longitude">
                                                         </div>
                                                     </div>
                                                     <div class="mt-2">
@@ -893,7 +892,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="edit_tpb" class="form-label">TPB/SDGs</label>
+                                            <label for="edit_tpb" class="form-label">TPB</label>
                                             <input type="text" class="form-control" id="edit_tpb" name="tpb">
                                         </div>
                                     </div>
@@ -1006,7 +1005,7 @@
                         q: params.term || ''
                     }),
                     processResults: data => ({
-                        results: data.map(item => ({
+                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
                             id: item.kode,
                             text: item.nama
                         }))
@@ -1035,7 +1034,7 @@
                         q: params.term || ''
                     }),
                     processResults: data => ({
-                        results: data.map(item => ({
+                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
                             id: item.kode,
                             text: item.nama
                         }))
@@ -1063,7 +1062,7 @@
                         q: params.term || ''
                     }),
                     processResults: data => ({
-                        results: data.map(item => ({
+                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
                             id: item.kode,
                             text: item.nama
                         }))
@@ -1090,7 +1089,7 @@
                         q: params.term || ''
                     }),
                     processResults: data => ({
-                        results: data.map(item => ({
+                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
                             id: item.kode,
                             text: item.nama
                         }))
@@ -1271,7 +1270,17 @@
 
                         // Populate form fields
                         $('#edit_nama_program').val(response.nama_program);
-                        $('#edit_unit_id').val(response.unit_id);
+
+                        // Set unit_id dengan dropdown custom
+                        if (response.unit_id) {
+                            // Cari nama unit berdasarkan unit_id
+                            var unitText = $('#edit_unit_id option[value="' + response.unit_id + '"]')
+                                .text();
+                            editUnitDropdown.setValue(response.unit_id, unitText);
+                        } else {
+                            editUnitDropdown.setValue('', '');
+                        }
+
                         $('#edit_pilar_id').val(response.pilar_id);
                         $('#edit_program_unggulan_id').val(response.program_unggulan_id);
                         $('#edit_deskripsi').val(response.deskripsi);
@@ -1660,16 +1669,8 @@
             });
 
             // Auto filter on change (KECUALI region - karena region punya handler khusus)
-            $('#filterPilar, #filterKebun, #filterTahun, #filterStatus').change(function() {
+            $('#filterPilar, #filterKebun, #filterTahun').change(function() {
                 applyFilters();
-            });
-
-            // Search on input
-            $('#searchProgram').on('input', function() {
-                clearTimeout(window.searchTimeout);
-                window.searchTimeout = setTimeout(function() {
-                    applyFilters();
-                }, 500);
             });
 
             function applyFilters() {
@@ -1677,14 +1678,12 @@
                     region: $('#filterRegion').val(),
                     pilar_id: $('#filterPilar').val(),
                     unit_id: $('#filterKebun').val(),
-                    tahun: $('#filterTahun').val(),
-                    status: $('#filterStatus').val(),
-                    search: $('#searchProgram').val()
+                    tahun: $('#filterTahun').val()
                 };
 
                 // Build query string
                 const queryString = Object.keys(filters)
-                    .filter(key => filters[key] !== '')
+                    .filter(key => filters[key] !== '' && filters[key] !== null)
                     .map(key => key + '=' + encodeURIComponent(filters[key]))
                     .join('&');
 
@@ -1731,12 +1730,22 @@
                         }
                     });
                 } else {
-                    // Reset ke semua kebun
+                    // Reset ke semua kebun dengan sorting
                     kebunSelect.html('<option value="">Semua Kebun</option>');
-                    @foreach ($units as $unit)
+                    const units = [
+                        @foreach ($units->sortBy('unit') as $unit)
+                            {
+                                id: '{{ $unit->id }}',
+                                unit: '{{ $unit->unit }}'
+                            },
+                        @endforeach
+                    ];
+
+                    units.forEach(function(unit) {
                         kebunSelect.append(
-                            '<option value="{{ $unit->id }}">{{ $unit->unit }}</option>');
-                    @endforeach
+                            `<option value="${unit.id}">${unit.unit}</option>`
+                        );
+                    });
                 }
             });
 
@@ -1746,8 +1755,6 @@
                 $('#filterPilar').val('');
                 $('#filterKebun').val('');
                 $('#filterTahun').val('');
-                $('#filterStatus').val('');
-                $('#searchProgram').val('');
 
                 // Trigger region change to reset kebun dropdown
                 $('#filterRegion').trigger('change');
@@ -1997,8 +2004,13 @@
                         };
                     },
                     processResults: function(data) {
+                        // Sort data berdasarkan nama secara ascending
+                        const sortedData = data.sort(function(a, b) {
+                            return a.nama.localeCompare(b.nama);
+                        });
+
                         return {
-                            results: data.map(function(item) {
+                            results: sortedData.map(function(item) {
                                 return {
                                     id: item.kode,
                                     text: item.nama
@@ -2031,8 +2043,13 @@
                                 };
                             },
                             processResults: function(data) {
+                                // Sort data berdasarkan nama secara ascending
+                                const sortedData = data.sort(function(a, b) {
+                                    return a.nama.localeCompare(b.nama);
+                                });
+
                                 return {
-                                    results: data.map(function(item) {
+                                    results: sortedData.map(function(item) {
                                         return {
                                             id: item.kode,
                                             text: item.nama
@@ -2072,8 +2089,13 @@
                                 };
                             },
                             processResults: function(data) {
+                                // Sort data berdasarkan nama secara ascending
+                                const sortedData = data.sort(function(a, b) {
+                                    return a.nama.localeCompare(b.nama);
+                                });
+
                                 return {
-                                    results: data.map(function(item) {
+                                    results: sortedData.map(function(item) {
                                         return {
                                             id: item.kode,
                                             text: item.nama
@@ -2112,8 +2134,13 @@
                                 };
                             },
                             processResults: function(data) {
+                                // Sort data berdasarkan nama secara ascending
+                                const sortedData = data.sort(function(a, b) {
+                                    return a.nama.localeCompare(b.nama);
+                                });
+
                                 return {
-                                    results: data.map(function(item) {
+                                    results: sortedData.map(function(item) {
                                         return {
                                             id: item.kode,
                                             text: item.nama
@@ -2142,14 +2169,24 @@
 
         // Fungsi untuk menyusun lokasi program edit
         function composeEditLokasiProgram() {
-            const prov = $('#edit_lokasi_provinsi option:selected').text();
-            const kab = $('#edit_lokasi_kabupaten option:selected').text();
-            const kec = $('#edit_lokasi_kecamatan option:selected').text();
-            const desa = $('#edit_lokasi_desa option:selected').text();
+            // Ambil kode wilayah (value) bukan nama (text)
+            const provKode = $('#edit_lokasi_provinsi').val() || '';
+            const kabKode = $('#edit_lokasi_kabupaten').val() || '';
+            const kecKode = $('#edit_lokasi_kecamatan').val() || '';
+            const desaKode = $('#edit_lokasi_desa').val() || '';
 
-            const parts = [desa, kec, kab, prov].filter(part => part && part !== 'Pilih Provinsi' && part !==
-                'Pilih Kabupaten/Kota' && part !== 'Pilih Kecamatan' && part !== 'Pilih Desa/Kelurahan');
-            $('#edit_lokasi_program').val(parts.join(', '));
+            // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
+            if (desaKode) {
+                $('#edit_lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+            } else if (kecKode) {
+                $('#edit_lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
+            } else if (kabKode) {
+                $('#edit_lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
+            } else if (provKode) {
+                $('#edit_lokasi_program').val(provKode); // Kode provinsi (format: NN)
+            } else {
+                $('#edit_lokasi_program').val('');
+            }
         }
 
         // Fungsi untuk inisialisasi peta edit
@@ -2377,6 +2414,388 @@
             width: '100%'
         });
 
+        // Hapus Select2 dan buat dropdown searchable manual
+        if ($('#unit_id').hasClass('select2-hidden-accessible')) {
+            $('#unit_id').select2('destroy');
+        }
+        if ($('#edit_unit_id').hasClass('select2-hidden-accessible')) {
+            $('#edit_unit_id').select2('destroy');
+        }
+
+        // Fungsi untuk membuat dropdown searchable
+        function createSearchableDropdown(selectId, placeholder) {
+            var $select = $(selectId);
+            var $parent = $select.parent();
+
+            // Buat wrapper
+            var $wrapper = $('<div class="searchable-dropdown-wrapper" style="position: relative;"></div>');
+
+            // Buat input search
+            var $input = $('<input type="text" class="form-control searchable-input" placeholder="' + placeholder +
+                '" autocomplete="off">');
+
+            // Buat dropdown list
+            var $dropdown = $(
+                '<div class="searchable-dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ced4da; border-top: none; z-index: 1050; border-radius: 0 0 0.25rem 0.25rem;"></div>'
+            );
+
+            // Simpan opsi asli
+            var options = [];
+            $select.find('option').each(function() {
+                if ($(this).val()) {
+                    options.push({
+                        value: $(this).val(),
+                        text: $(this).text()
+                    });
+                }
+            });
+
+            // Sembunyikan select asli dan tambahkan wrapper
+            $select.hide();
+            $parent.append($wrapper);
+            $wrapper.append($input).append($dropdown);
+
+            // Set nilai awal jika ada
+            var initialValue = $select.val();
+            if (initialValue) {
+                var selectedOption = options.find(opt => opt.value == initialValue);
+                if (selectedOption) {
+                    $input.val(selectedOption.text);
+                }
+            }
+
+            // Event untuk menampilkan dropdown
+            $input.on('focus click', function() {
+                showOptions('');
+                $dropdown.show();
+                $input.css('border-radius', '0.25rem 0.25rem 0 0');
+            });
+
+            // Event untuk mencari
+            $input.on('input', function() {
+                var searchTerm = $(this).val().toLowerCase();
+                showOptions(searchTerm);
+                $dropdown.show();
+
+                // Jika input kosong, reset select value
+                if (!searchTerm) {
+                    $select.val('').trigger('change');
+                }
+            });
+
+            // Event untuk menyembunyikan dropdown
+            $(document).on('click', function(e) {
+                if (!$wrapper.is(e.target) && $wrapper.has(e.target).length === 0) {
+                    $dropdown.hide();
+                    $input.css('border-radius', '0.25rem');
+
+                    // Validasi input saat dropdown ditutup
+                    validateInput();
+                }
+            });
+
+            // Fungsi validasi input
+            function validateInput() {
+                var inputText = $input.val().trim();
+                var currentValue = $select.val();
+
+                if (inputText) {
+                    // Cari opsi yang cocok dengan text yang diinput
+                    var matchedOption = options.find(function(option) {
+                        return option.text.toLowerCase() === inputText.toLowerCase();
+                    });
+
+                    if (matchedOption) {
+                        // Jika ada yang cocok, set value
+                        if (currentValue !== matchedOption.value) {
+                            $select.val(matchedOption.value).trigger('change');
+                        }
+                    } else {
+                        // Jika tidak ada yang cocok, reset
+                        $input.val('');
+                        $select.val('').trigger('change');
+                    }
+                } else {
+                    // Jika input kosong, reset select
+                    $select.val('').trigger('change');
+                }
+            }
+
+            // Fungsi untuk menampilkan opsi
+            function showOptions(searchTerm) {
+                $dropdown.empty();
+
+                // Tambah opsi kosong jika tidak ada search term
+                if (!searchTerm) {
+                    var $emptyOption = $(
+                        '<div class="dropdown-option" data-value="" style="padding: 8px 12px; cursor: pointer; color: #6c757d;">Pilih ' +
+                        placeholder + '</div>');
+                    $emptyOption.on('click', function() {
+                        $input.val('');
+                        $select.val('').trigger('change');
+                        $dropdown.hide();
+                        $input.css('border-radius', '0.25rem');
+                    });
+                    $dropdown.append($emptyOption);
+                }
+
+                // Filter dan tampilkan opsi
+                var filteredOptions = options.filter(function(option) {
+                    return option.text.toLowerCase().includes(searchTerm);
+                });
+
+                filteredOptions.forEach(function(option) {
+                    var $option = $('<div class="dropdown-option" data-value="' + option.value +
+                        '" style="padding: 8px 12px; cursor: pointer;">' + option.text + '</div>');
+
+                    $option.on('click', function() {
+                        $input.val(option.text);
+                        $select.val(option.value).trigger('change');
+                        $dropdown.hide();
+                        $input.css('border-radius', '0.25rem');
+
+                        // Trigger validation untuk Bootstrap
+                        $select[0].setCustomValidity('');
+                        $select.removeClass('is-invalid').addClass('is-valid');
+                    });
+
+                    // Hover effect
+                    $option.on('mouseenter', function() {
+                        $(this).css('background-color', '#f8f9fa');
+                    }).on('mouseleave', function() {
+                        $(this).css('background-color', 'white');
+                    });
+
+                    $dropdown.append($option);
+                });
+
+                // Jika tidak ada hasil
+                if (filteredOptions.length === 0 && searchTerm) {
+                    $dropdown.append(
+                        '<div style="padding: 8px 12px; color: #6c757d; font-style: italic;">Tidak ada hasil ditemukan</div>'
+                    );
+                }
+            }
+
+            // Keyboard navigation
+            $input.on('keydown', function(e) {
+                var $options = $dropdown.find('.dropdown-option[data-value]');
+                var $active = $options.filter('.active');
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if ($active.length === 0) {
+                        $options.first().addClass('active').css('background-color', '#007bff').css('color',
+                            'white');
+                    } else {
+                        $active.removeClass('active').css('background-color', 'white').css('color', 'black');
+                        var next = $active.next('.dropdown-option[data-value]');
+                        if (next.length === 0) next = $options.first();
+                        next.addClass('active').css('background-color', '#007bff').css('color', 'white');
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if ($active.length === 0) {
+                        $options.last().addClass('active').css('background-color', '#007bff').css('color', 'white');
+                    } else {
+                        $active.removeClass('active').css('background-color', 'white').css('color', 'black');
+                        var prev = $active.prev('.dropdown-option[data-value]');
+                        if (prev.length === 0) prev = $options.last();
+                        prev.addClass('active').css('background-color', '#007bff').css('color', 'white');
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if ($active.length > 0) {
+                        $active.click();
+                    }
+                } else if (e.key === 'Escape') {
+                    $dropdown.hide();
+                    $input.css('border-radius', '0.25rem');
+                    validateInput();
+                }
+            });
+
+            // Event blur untuk validasi
+            $input.on('blur', function() {
+                setTimeout(function() {
+                    if (!$dropdown.is(':visible')) {
+                        validateInput();
+                    }
+                }, 150);
+            });
+
+            // Return object dengan method untuk set value
+            return {
+                setValue: function(value, text) {
+                    if (text) {
+                        $input.val(text);
+                    } else if (value) {
+                        // Cari text berdasarkan value
+                        var option = options.find(opt => opt.value == value);
+                        if (option) {
+                            $input.val(option.text);
+                        }
+                    } else {
+                        $input.val('');
+                    }
+                    $select.val(value).trigger('change');
+                },
+                getValue: function() {
+                    return $select.val();
+                },
+                getText: function() {
+                    return $input.val();
+                },
+                validate: function() {
+                    validateInput();
+                    return $select.val() !== '';
+                }
+            };
+        }
+
+        // Terapkan ke unit_id
+        var unitDropdown = createSearchableDropdown('#unit_id', 'Ketik untuk mencari Unit/Kebun');
+
+        // Terapkan ke edit_unit_id juga
+        var editUnitDropdown = createSearchableDropdown('#edit_unit_id', 'Ketik untuk mencari Unit/Kebun');
+
+        // Tambahkan event handler untuk edit form submit validation
+        $('#editTjslForm').on('submit', function(e) {
+            // Validasi field edit modal
+            var isValid = true;
+            var invalidFields = [];
+
+            // Validasi edit_nama_program
+            var editNamaProgram = $('#edit_nama_program').val().trim();
+            if (!editNamaProgram) {
+                $('#edit_nama_program').addClass('is-invalid');
+                invalidFields.push('Nama Program');
+                isValid = false;
+            } else {
+                $('#edit_nama_program').removeClass('is-invalid').addClass('is-valid');
+            }
+
+            // Validasi edit_unit_id (dropdown custom)
+            if (typeof editUnitDropdown !== 'undefined') {
+                if (!editUnitDropdown.validate()) {
+                    $('#edit_unit_id').addClass('is-invalid');
+                    invalidFields.push('Unit/Kebun');
+                    isValid = false;
+                } else {
+                    $('#edit_unit_id').removeClass('is-invalid').addClass('is-valid');
+                }
+            } else {
+                // Fallback untuk validasi edit_unit_id biasa
+                var editUnitId = $('#edit_unit_id').val();
+                if (!editUnitId) {
+                    $('#edit_unit_id').addClass('is-invalid');
+                    invalidFields.push('Unit/Kebun');
+                    isValid = false;
+                } else {
+                    $('#edit_unit_id').removeClass('is-invalid').addClass('is-valid');
+                }
+            }
+
+            // Validasi edit_pilar_id
+            var editPilarId = $('#edit_pilar_id').val();
+            if (!editPilarId) {
+                $('#edit_pilar_id').addClass('is-invalid');
+                invalidFields.push('Pilar');
+                isValid = false;
+            } else {
+                $('#edit_pilar_id').removeClass('is-invalid').addClass('is-valid');
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                var errorMessage = 'Field berikut wajib diisi:\n• ' + invalidFields.join('\n• ');
+                alert(errorMessage);
+
+                // Scroll ke field pertama yang invalid dalam modal
+                var firstInvalidField = $('#editTjslModal .is-invalid').first();
+                if (firstInvalidField.length) {
+                    firstInvalidField.focus();
+                }
+
+                return false;
+            }
+        });
+
+        // Tambahkan event handler untuk form submit validation (input form saja)
+        $('#tjslForm').on('submit', function(e) {
+            console.log('Input form submit triggered');
+
+            // Validasi hanya field input form (bukan edit modal)
+            var isValid = true;
+            var invalidFields = [];
+
+            // Validasi nama_program
+            var namaProgram = $('#nama_program').val().trim();
+            console.log('Nama Program:', namaProgram);
+            if (!namaProgram) {
+                $('#nama_program').addClass('is-invalid');
+                invalidFields.push('Nama Program');
+                isValid = false;
+            } else {
+                $('#nama_program').removeClass('is-invalid').addClass('is-valid');
+            }
+
+            // Validasi unit_id (dropdown custom)
+            if (typeof unitDropdown !== 'undefined') {
+                console.log('Using custom unit dropdown');
+                if (!unitDropdown.validate()) {
+                    $('#unit_id').addClass('is-invalid');
+                    invalidFields.push('Unit/Kebun');
+                    isValid = false;
+                } else {
+                    $('#unit_id').removeClass('is-invalid').addClass('is-valid');
+                }
+            } else {
+                // Fallback untuk validasi unit_id biasa
+                var unitId = $('#unit_id').val();
+                console.log('Unit ID (fallback):', unitId);
+                if (!unitId) {
+                    $('#unit_id').addClass('is-invalid');
+                    invalidFields.push('Unit/Kebun');
+                    isValid = false;
+                } else {
+                    $('#unit_id').removeClass('is-invalid').addClass('is-valid');
+                }
+            }
+
+            // Validasi pilar_id
+            var pilarId = $('#pilar_id').val();
+            console.log('Pilar ID:', pilarId);
+            if (!pilarId) {
+                $('#pilar_id').addClass('is-invalid');
+                invalidFields.push('Pilar');
+                isValid = false;
+            } else {
+                $('#pilar_id').removeClass('is-invalid').addClass('is-valid');
+            }
+
+            console.log('Validation result:', isValid, 'Invalid fields:', invalidFields);
+
+            if (!isValid) {
+                e.preventDefault();
+                var errorMessage = 'Field berikut wajib diisi:\n• ' + invalidFields.join('\n• ');
+                alert(errorMessage);
+
+                // Scroll ke field pertama yang invalid
+                var firstInvalidField = $('.is-invalid').first();
+                if (firstInvalidField.length) {
+                    firstInvalidField.focus();
+                    $('html, body').animate({
+                        scrollTop: firstInvalidField.offset().top - 100
+                    }, 500);
+                }
+
+                return false;
+            }
+
+            console.log('Input form validation passed, submitting...');
+        });
+
         // Initialize Select2 for edit modal sub_pilar
         $('#edit_sub_pilar').select2({
             placeholder: "Pilih Sub Pilar",
@@ -2588,8 +3007,13 @@
                             };
                         },
                         processResults: function(data) {
+                            // Sort data berdasarkan nama secara ascending
+                            const sortedData = data.sort(function(a, b) {
+                                return a.nama.localeCompare(b.nama);
+                            });
+
                             return {
-                                results: data.map(function(item) {
+                                results: sortedData.map(function(item) {
                                     return {
                                         id: item.kode,
                                         text: item.nama
@@ -2628,8 +3052,13 @@
                             };
                         },
                         processResults: function(data) {
+                            // Sort data berdasarkan nama secara ascending
+                            const sortedData = data.sort(function(a, b) {
+                                return a.nama.localeCompare(b.nama);
+                            });
+
                             return {
-                                results: data.map(function(item) {
+                                results: sortedData.map(function(item) {
                                     return {
                                         id: item.kode,
                                         text: item.nama
@@ -2667,8 +3096,13 @@
                             };
                         },
                         processResults: function(data) {
+                            // Sort data berdasarkan nama secara ascending
+                            const sortedData = data.sort(function(a, b) {
+                                return a.nama.localeCompare(b.nama);
+                            });
+
                             return {
-                                results: data.map(function(item) {
+                                results: sortedData.map(function(item) {
                                     return {
                                         id: item.kode,
                                         text: item.nama
@@ -2688,14 +3122,24 @@
             }
 
             function composeLokasiProgram() {
-                const prov = $('#lokasi_provinsi').select2('data')[0]?.text || '';
-                const kab = $('#lokasi_kabupaten').select2('data')[0]?.text || '';
-                const kec = $('#lokasi_kecamatan').select2('data')[0]?.text || '';
-                const desa = $('#lokasi_desa').select2('data')[0]?.text || '';
+                // Ambil kode wilayah (id) bukan nama (text)
+                const provKode = $('#lokasi_provinsi').val() || '';
+                const kabKode = $('#lokasi_kabupaten').val() || '';
+                const kecKode = $('#lokasi_kecamatan').val() || '';
+                const desaKode = $('#lokasi_desa').val() || '';
 
-                // Susun teks lokasi: Desa, Kecamatan, Kabupaten/Kota, Provinsi
-                const parts = [desa, kec, kab, prov].filter(Boolean);
-                $('#lokasi_program').val(parts.join(', '));
+                // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
+                if (desaKode) {
+                    $('#lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+                } else if (kecKode) {
+                    $('#lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
+                } else if (kabKode) {
+                    $('#lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
+                } else if (provKode) {
+                    $('#lokasi_program').val(provKode); // Kode provinsi (format: NN)
+                } else {
+                    $('#lokasi_program').val('');
+                }
             }
 
             // Reset Select2 when modal is closed
