@@ -11,6 +11,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\PetaController;
 use App\Http\Controllers\PolygonController;
 use App\Http\Controllers\DerajatHubunganController;
+use App\Http\Controllers\ProgramTjslController;
+use App\Http\Controllers\DashboardTJSLController;
+use App\Http\Controllers\LaporanKunjunganController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -44,7 +47,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/get-detail-instansi/{id}', [HomeController::class, 'getDetailInstansi']);
     // routes/web.php
     Route::get('/get-wilayah', [WilayahController::class, 'getWilayah']);
-    Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']);
+    Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']) ->name('get.units');
 
     
 
@@ -170,6 +173,48 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('polygons/data', [PolygonController::class, 'getPolygons']);
     Route::get('/polygons', [PolygonController::class, 'index']);
     Route::post('/polygons/check-point', [PolygonController::class, 'checkPoint'])->name('polygons.check');
+
+    
+    Route::get('/program-tjsl', [ProgramTjslController::class, 'index'])->name('program-tjsl.index');
+    Route::get('/program-tjsl/get-gambar', [ProgramTjslController::class, 'getGambarProgram']);
+    // Route::get('/program-tjsl/get-gambar', [ProgramTjslController::class, 'getGambarProgram'])->name('program-tjsl.get-gambar');
+
+    // Route::resource('program-tjsl', ProgramTjslController::class);
+
+    // Route untuk menampilkan form tambah program
+    Route::get('/program-tjsl/create', [ProgramTjslController::class, 'create'])->name('program-tjsl.create');
+
+    // Route untuk menyimpan program baru dari form
+    Route::post('/program-tjsl', [ProgramTjslController::class, 'store'])->name('program-tjsl.store');
+
+    // Route untuk menampilkan detail satu program
+    Route::get('/program-tjsl/{id}', [ProgramTjslController::class, 'show'])->name('program-tjsl.show');
+    
+
+    // Route untuk menampilkan form edit program
+    Route::get('/program-tjsl/{id}/edit', [ProgramTjslController::class, 'edit'])->name('program-tjsl.edit');
+
+    // Route untuk mengupdate data program
+    Route::put('/program-tjsl/{id}', [ProgramTjslController::class, 'update'])->name('program-tjsl.update');
+
+    // Route untuk menghapus program
+    Route::delete('/delete-program-tjsl/{id}', [ProgramTjslController::class, 'destroy'])->name('program-tjsl.destroy');
+
+    //  Route::get('/get-kebun-by-region', [StakeholderController::class, 'getKebunByRegion']) ->name('get.units');
+    Route::get('/events', [ProgramTjslController::class, 'index_event'])->name('events.index');
+    Route::get('/events/fetch', [ProgramTjslController::class, 'fetch_event'])->name('events.fetch');
+    Route::post('/events/store', [ProgramTjslController::class, 'store_event'])->name('events.store');
+    Route::delete('/events/delete/{id}', [ProgramTjslController::class, 'destroy_event'])->name('events.destroy');
+    Route::get('/event/{id}', [ProgramTjslController::class, 'show_event'])->name('event.show');
+
+    Route::get('/dashboard-tjsl', [DashboardTJSLController::class, 'index'])->name('dashboard.tjsl');
+
+    Route::prefix('laporan-kunjungan')->group(function () {
+        Route::get('/', [LaporanKunjunganController::class, 'index'])->name('laporan.kunjungan.index');
+        Route::get('/create', [LaporanKunjunganController::class, 'create'])->name('laporan.kunjungan.create');
+        Route::post('/store', [LaporanKunjunganController::class, 'store'])->name('laporan.kunjungan.store');
+        Route::get('/reminder/{laporan}', [LaporanKunjunganController::class, 'sendReminder'])->name('laporan.kunjungan.reminder');
+    });
 
 
 });

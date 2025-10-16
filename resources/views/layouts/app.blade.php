@@ -13,10 +13,18 @@
     <title>Dashboard Stakeholder</title>
     <link rel="icon" type="image/x-icon" href="https://ptpn1.co.id/wp-content/themes/logistic_new/images/favicon.ico">
     <!-- Custom fonts for this template-->
+        {{-- <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-T2Nh1pN5E+3M9fT8mYtCKz1x9I7lP6UmAIfchcwH7rYrY8KQfR7S8rAIxE6Bn3OeZjq70ZBzYFz+OKQk+eR5yA=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+    /> --}}
+     {{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css"> --}}
     <link href="{{url('/')}}{{$public}}/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
+    {{-- <link
         href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+        rel="stylesheet"> --}}
 
     <!-- Custom styles for this template-->
     <link href="{{url('/')}}{{$public}}/css/sb-admin-2.min.css" rel="stylesheet">
@@ -27,7 +35,8 @@
     <!-- Bootstrap core JavaScript-->
     <script src="{{url('/')}}{{$public}}/vendor/jquery/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css" rel="stylesheet" />
     <style>
@@ -135,7 +144,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script> 
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script> 
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script> 
-    
+    {{-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script> --}}
     <script>
         var widthmenu = $('#accordionSidebar').width();
         

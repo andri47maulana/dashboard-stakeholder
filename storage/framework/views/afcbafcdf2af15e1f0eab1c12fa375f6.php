@@ -13,10 +13,10 @@
     <title>Dashboard Stakeholder</title>
     <link rel="icon" type="image/x-icon" href="https://ptpn1.co.id/wp-content/themes/logistic_new/images/favicon.ico">
     <!-- Custom fonts for this template-->
+        
+     
     <link href="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-        rel="stylesheet">
+    
 
     <!-- Custom styles for this template-->
     <link href="<?php echo e(url('/')); ?><?php echo e($public); ?>/css/sb-admin-2.min.css" rel="stylesheet">
@@ -27,7 +27,8 @@
     <!-- Bootstrap core JavaScript-->
     <script src="<?php echo e(url('/')); ?><?php echo e($public); ?>/vendor/jquery/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js" integrity="sha512-2ImtlRlf2VVmiGZsjm9bEyhjGW4dU7B6TNwh/hx/iSByxNENtj3WVE6o/9Lj4TJeVXPi4bnOIMXFIJJAeufa0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.js"></script>
     <link href="https://unpkg.com/maplibre-gl@2.1.9/dist/maplibre-gl.css" rel="stylesheet" />
     <style>

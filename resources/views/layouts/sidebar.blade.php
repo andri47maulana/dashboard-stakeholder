@@ -150,6 +150,36 @@
             <span>Cek Titik Koordinat</span>
         </a>
     </li>
+
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('program-tjsl') ? 'active' : ''; ?>">
+        <a class="nav-link" href="{{url('/')}}/program-tjsl">
+            <i class="fas fa-fw fa-book"></i>
+            <span>TJSL</span>
+        </a>
+    </li>
+
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('events') ? 'active' : ''; ?>">
+        <a class="nav-link" href="{{url('/')}}/events">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Events</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('dashboard-tjsl') ? 'active' : ''; ?>">
+        <a class="nav-link" href="{{url('/')}}/dashboard-tjsl">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Dashboard TJSL</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+    <li class="nav-item <?php echo Request::is('laporan-kunjungan') ? 'active' : ''; ?>">
+        <a class="nav-link" href="{{url('/')}}/laporan-kunjungan">
+            <i class="fas fa-fw fa-book"></i>
+            <span>Laporan Kunjungan</span>
+        </a>
+    </li>
 {{-- <hr class="sidebar-divider">
 
 <li class="nav-item">
