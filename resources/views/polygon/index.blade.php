@@ -89,6 +89,13 @@ body.overflow-hidden { overflow: hidden; }
         .leaflet-popup-content-wrapper.poly-profile-popup { max-width: 90vw; }
 }
 
+/* Pick-from-map UX: change cursor to a placemark and show a ghost pin following the mouse */
+#map.is-picking,
+#map.is-picking * {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23e53935"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>') 12 24, crosshair !important;
+}
+.pick-ghost-icon { pointer-events: none; }
+
 </style>
 
 <div class="container-fluid">
@@ -103,7 +110,17 @@ body.overflow-hidden { overflow: hidden; }
                     <form id="checkPointForm">
                         <div class="mb-3">
                             <label for="coords" class="form-label">Koordinat (format: lat,lng)</label>
-                            <input type="text" id="coords" name="coords" class="form-control" placeholder="contoh: -6.9,107.6" required>
+                            <div class="input-group">
+                                <input type="text" id="coords" name="coords" class="form-control" placeholder="contoh: -6.9,107.6" required>
+                                <button type="button" id="pickFromMap" class="btn btn-outline-secondary" title="Klik untuk memilih koordinat dari peta">Ambil dari Peta</button>
+                            </div>
+                            <div class="form-check mt-1 d-none" id="autoSubmitWrap">
+                                <input class="form-check-input" type="checkbox" value="1" id="autoSubmitPick">
+                                <label class="form-check-label" for="autoSubmitPick">
+                                    Submit otomatis setelah memilih
+                                </label>
+                            </div>
+                            <small id="pickHelp" class="text-muted d-none">Mode ambil aktif: klik pada peta untuk mengisi koordinat. Tekan Esc untuk batal.</small>
                         </div>
                         <div class="mb-3">
                             <label for="radius_km" class="form-label">Radius (km) <small class="text-muted">opsional</small></label>
@@ -238,6 +255,7 @@ body.overflow-hidden { overflow: hidden; }
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
+
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 {{-- 
@@ -505,6 +523,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Helper to create a layer for a kebun record
     function createPolygonLayer(jsonData) {
+    // If pick mode enabled, suppress interactivity
+        const isPicking = () => !!window.__pickFromMapActive;
     const derajat = derajatMap[String(jsonData.unit_id)]?.derajat_hubungan ?? null;
         const fillColor = colorForDerajat(derajat);
         const layer = L.vectorGrid.protobuf(jsonData.decoded.tileurl, {
@@ -524,6 +544,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         // Hover/Click handlers
         layer.on('mouseover', (e) => {
+            if (isPicking()) return; // ignore while picking
             const uid = jsonData.unit_id;
             const d = derajatMap[String(uid)] || {};
             const html = `<div><b>${jsonData.nm_unit || 'Unit'}</b><br/>
@@ -541,11 +562,13 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
         layer.on('mouseout', () => {
+            if (isPicking()) return; // ignore while picking
             if (!profileOpen && hoverPopup) {
                 map.closePopup(hoverPopup);
             }
         });
         layer.on('click', (e) => {
+            if (isPicking()) return; // ignore while picking
             const uid = jsonData.unit_id;
             const d = derajatMap[String(uid)] || {};
             const unitName = (jsonData.nm_unit || 'Unit').toUpperCase();
@@ -1058,6 +1081,93 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Mark handler ready
     window._checkPointHandlerReady = true;
+
+    // --- Pick from map feature ---
+    const pickBtn = document.getElementById('pickFromMap');
+    const coordsInput = document.getElementById('coords');
+    const pickHelp = document.getElementById('pickHelp');
+    const autoSubmitWrap = document.getElementById('autoSubmitWrap');
+    const autoSubmitPick = document.getElementById('autoSubmitPick');
+    let escHandlerAttached = false;
+    let pickGhostMarker = null;
+
+    function setPickUI(active){
+        window.__pickFromMapActive = !!active;
+        if (pickBtn) pickBtn.classList.toggle('btn-success', !!active);
+        if (pickBtn) pickBtn.classList.toggle('btn-outline-secondary', !active);
+        if (pickBtn) pickBtn.textContent = active ? 'Ambil: klik peta…' : 'Ambil dari Peta';
+        if (pickHelp) pickHelp.classList.toggle('d-none', !active);
+        if (autoSubmitWrap) autoSubmitWrap.classList.toggle('d-none', !active);
+        // Toggle map cursor style
+        const mapEl = document.getElementById('map');
+        if (mapEl) mapEl.classList.toggle('is-picking', !!active);
+        // Create/remove a ghost marker that follows the mouse
+        if (active) {
+            if (!pickGhostMarker) {
+                const ghostIcon = L.divIcon({
+                    className: 'pick-ghost-icon',
+                    html: '<svg width="26" height="26" viewBox="0 0 24 24" fill="#e53935" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>',
+                    iconSize: [26, 26],
+                    iconAnchor: [13, 24]
+                });
+                pickGhostMarker = L.marker(map.getCenter(), { icon: ghostIcon, interactive: false, keyboard: false, zIndexOffset: 1000 });
+            }
+            if (!map.hasLayer(pickGhostMarker)) pickGhostMarker.addTo(map);
+            map.on('mousemove', ghostFollow);
+        } else {
+            if (pickGhostMarker && map.hasLayer(pickGhostMarker)) map.removeLayer(pickGhostMarker);
+            map.off('mousemove', ghostFollow);
+        }
+        if (active && !escHandlerAttached) {
+            escHandlerAttached = true;
+            document.addEventListener('keydown', escCancelHandler);
+        }
+        if (!active && escHandlerAttached) {
+            escHandlerAttached = false;
+            document.removeEventListener('keydown', escCancelHandler);
+        }
+    }
+
+    function escCancelHandler(e){
+        if (e.key === 'Escape') {
+            setPickUI(false);
+        }
+    }
+
+    function ghostFollow(e){
+        if (!pickGhostMarker) return;
+        pickGhostMarker.setLatLng(e.latlng);
+    }
+
+    if (pickBtn) {
+        pickBtn.addEventListener('click', function(){
+            const nowActive = !window.__pickFromMapActive;
+            setPickUI(nowActive);
+        });
+        // Fill on map click
+        map.on('click', function(e){
+            if (!window.__pickFromMapActive) return;
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+            if (coordsInput) {
+                coordsInput.value = `${lat},${lng}`;
+                coordsInput.dispatchEvent(new Event('change'));
+            }
+            // Place or move a persistent marker so the placemark "sticks" on the map
+            const latlng = [parseFloat(lat), parseFloat(lng)];
+            try {
+                if (marker && map.hasLayer(marker)) {
+                    marker.setLatLng(latlng).unbindPopup().bindPopup('Titik dipilih').openPopup();
+                } else {
+                    marker = L.marker(latlng).addTo(map).bindPopup('Titik dipilih').openPopup();
+                }
+            } catch(_) { /* no-op */ }
+            setPickUI(false);
+            if (autoSubmitPick && autoSubmitPick.checked) {
+                document.getElementById('checkPointForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    }
 });
 </script>
 <script>
