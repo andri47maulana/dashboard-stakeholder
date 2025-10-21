@@ -198,10 +198,10 @@
                         <div class="card-body text-center py-5">
                             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">Belum ada program TJSL</h5>
-                            <p class="text-muted">Mulai dengan menambahkan program TJSL pertama Anda.</p>
+                            {{-- <p class="text-muted">Mulai dengan menambahkan program TJSL pertama Anda.</p>
                             <a href="{{ route('tjsl.create') }}" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Tambah Program Pertama
-                            </a>
+                            </a> --}}
                         </div>
                     </div>
                 </div>
@@ -1724,6 +1724,9 @@
 
                                 kebunSelect.append('<option value="">Tidak ada kebun</option>');
                             }
+
+                            // Auto filter setelah region dipilih
+                            applyFilters();
                         },
                         error: function(xhr, status, error) {
                             kebunSelect.html('<option value="">Error loading data</option>');
