@@ -139,7 +139,8 @@ body.overflow-hidden { overflow: hidden; }
                                     <input type="hidden" id="stakeholder_id" name="stakeholder_id">
                                 </div>
                                 <div class="col-12">
-                                    <input type="number" id="tjsl_id" name="tjsl_id" class="form-control" placeholder="TJSL ID (opsional)">
+                                    <select id="tjsl_select" class="form-control" style="width:100%"></select>
+                                    <input type="hidden" id="tjsl_id" name="tjsl_id">
                                 </div>
                             </div>
                         </div>
@@ -235,7 +236,7 @@ body.overflow-hidden { overflow: hidden; }
                                             <td>{{ $log->inside_unit ?? '-' }}</td>
                                             <td>{{ $log->nearest_unit ? $log->nearest_unit . ($log->nearest_distance_km ? ' ('.$log->nearest_distance_km.' km)' : '') : '-' }}</td>
                                             <td>{{ $log->stakeholder_nama ?? '-' }}</td>
-                                            <td>{{ $log->tjsl_id ?? '-' }}</td>
+                                            <td>{{ $log->tjsl_nama ? $log->tjsl_nama.' (ID: '.$log->tjsl_id.')' : ($log->tjsl_id ?? '-') }}</td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-outline-danger btn-log-delete" data-id="{{ $log->id }}">Delete</button>
                                             </td>
@@ -1051,12 +1052,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const title = document.getElementById('title').value.trim();
                         const stakeholderId = document.getElementById('stakeholder_id').value.trim();
             const tjslId = document.getElementById('tjsl_id').value.trim();
+            const tjslTextSel = (window.jQuery && $('#tjsl_select').length) ? ($('#tjsl_select').find(':selected').text() || '') : '';
             if (!no_log && (title || stakeholderId || tjslId)) {
                 const tbody = document.querySelector('#logTable tbody');
                 const row = document.createElement('tr');
                 const idx = tbody.children.length + 1;
                 const insideText = data.inside ? (data.inside.unit || data.inside.id) : '-';
                 const nearestText = data.nearest ? `${data.nearest.unit || data.nearest.id} (${(data.nearest.distance_km ?? 0).toFixed(3)} km)` : '-';
+                const tjslText = tjslTextSel || (tjslId || '-');
                 row.innerHTML = `
                     <td>${idx}</td>
                     <td>${new Date().toLocaleString()}</td>
@@ -1066,7 +1069,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     <td>${insideText}</td>
                     <td>${nearestText}</td>
                     <td>${$('#stakeholder_select').find(':selected').text() || '-'}</td>
-                                        <td>${tjslId || '-'}</td>
+                    <td>${tjslText}</td>
                     <td><span class="text-muted">(tersimpan)</span></td>
                 `;
                 tbody.prepend(row);
@@ -1193,6 +1196,27 @@ $(function(){
         $('#stakeholder_id').val('');
     });
 
+    // TJSL program Select2 async search by name/id
+    $('#tjsl_select').select2({
+        placeholder: 'Cari program TJSL…',
+        allowClear: true,
+        ajax: {
+            url: '{{ route('tjsl.search') }}',
+            dataType: 'json',
+            delay: 250,
+            data: function (params) {
+                return { q: params.term };
+            },
+            processResults: function (data) {
+                return { results: data };
+            }
+        }
+    }).on('select2:select', function(e){
+        $('#tjsl_id').val(e.params.data.id);
+    }).on('select2:clear', function(){
+        $('#tjsl_id').val('');
+    });
+
     // If this page loaded with an activeLog, pre-fill the form and auto-run search
     @isset($activeLog)
         const active = @json($activeLog);
@@ -1213,7 +1237,18 @@ $(function(){
                         }
                 });
         }
-        if (active.tjsl_id) $('#tjsl_id').val(active.tjsl_id);
+        if (active.tjsl_id) {
+            $.get('{{ route('tjsl.search') }}', { q: active.tjsl_id }, function(items){
+                if (Array.isArray(items) && items.length) {
+                    const item = items[0];
+                    const option = new Option(item.text, item.id, true, true);
+                    $('#tjsl_select').append(option).trigger('change');
+                    $('#tjsl_id').val(item.id);
+                } else {
+                    $('#tjsl_id').val(active.tjsl_id);
+                }
+            });
+        }
         // Auto submit to re-draw map and details without creating a new log
         window._replayActiveLog = true;
         (function kick(){
@@ -1244,7 +1279,7 @@ $(function(){
         });
 
         // Helper: replay from data without navigation
-        function replayFromData({lat,lng,radius,title,shId,shText,tjslId}){
+    function replayFromData({lat,lng,radius,title,shId,shText,tjslId}){
             if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
                 $('#coords').val(lat + ',' + lng);
             }
@@ -1255,8 +1290,19 @@ $(function(){
             }
             $('#title').val(title || '');
             if (tjslId !== null && tjslId !== undefined && tjslId !== '') {
-                $('#tjsl_id').val(tjslId);
+                $.get('{{ route('tjsl.search') }}', { q: tjslId }, function(items){
+                    if (Array.isArray(items) && items.length) {
+                        const item = items[0];
+                        const opt = new Option(item.text, item.id, true, true);
+                        $('#tjsl_select').empty().append(opt).trigger('change');
+                        $('#tjsl_id').val(item.id);
+                    } else {
+                        $('#tjsl_select').val(null).trigger('change');
+                        $('#tjsl_id').val(tjslId);
+                    }
+                });
             } else {
+                $('#tjsl_select').val(null).trigger('change');
                 $('#tjsl_id').val('');
             }
             if (shId) {

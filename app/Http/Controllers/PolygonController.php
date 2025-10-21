@@ -46,7 +46,8 @@ class PolygonController extends Controller
         }
         $logs = SearchLog::query()
             ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
-            ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
+            ->leftJoin('tb_tjsl as t','t.id','=','search_logs.tjsl_id')
+            ->select('search_logs.*','s.nama_instansi as stakeholder_nama','t.nama_program as tjsl_nama')
             ->orderBy('search_logs.created_at','desc')
             ->limit(50)
             ->get();
@@ -88,13 +89,15 @@ class PolygonController extends Controller
         }
         $logs = SearchLog::query()
             ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
-            ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
+            ->leftJoin('tb_tjsl as t','t.id','=','search_logs.tjsl_id')
+            ->select('search_logs.*','s.nama_instansi as stakeholder_nama','t.nama_program as tjsl_nama')
             ->orderBy('search_logs.created_at','desc')
             ->limit(50)
             ->get();
         $activeLog = SearchLog::query()
             ->leftJoin('stakeholder as s','s.id','=','search_logs.stakeholder_id')
-            ->select('search_logs.*','s.nama_instansi as stakeholder_nama')
+            ->leftJoin('tb_tjsl as t','t.id','=','search_logs.tjsl_id')
+            ->select('search_logs.*','s.nama_instansi as stakeholder_nama','t.nama_program as tjsl_nama')
             ->where('search_logs.id',$id)
             ->firstOrFail();
         return view('polygon.index', compact('kebunJsons','logs','activeLog','derajatMap','regions'));

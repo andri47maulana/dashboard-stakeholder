@@ -184,6 +184,8 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Route resource setelah route spesifik
     Route::resource('tjsl', TjslController::class);
+    // Select2 search for TJSL by name or ID
+    Route::get('/tjsl-search', [TjslController::class, 'search'])->name('tjsl.search');
 
     Route::get('tjsl/{id}/edit-data', [TjslController::class, 'getEditData'])->name('tjsl.edit-data');
     Route::post('tjsl/{id}/biaya', [TjslController::class, 'addBiaya'])->name('tjsl.add-biaya');

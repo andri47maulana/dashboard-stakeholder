@@ -539,4 +539,28 @@ class TjslController extends Controller
 
         return response()->json($units);
     }
+
+    // AJAX search for TJSL programs (Select2 format)
+    public function search(Request $request)
+    {
+        $q = trim($request->get('q', ''));
+        $query = Tjsl::query();
+        if ($q !== '') {
+            // support search by id (numeric) or partial nama_program
+            if (ctype_digit($q)) {
+                $query->where('id', intval($q));
+            } else {
+                $query->where('nama_program', 'like', "%$q%");
+            }
+        }
+        // Limit and order for Select2
+        $items = $query->orderBy('created_at', 'desc')->limit(20)->get(['id', 'nama_program']);
+        $results = $items->map(function($i){
+            return [
+                'id' => $i->id,
+                'text' => $i->nama_program ? ($i->nama_program ) : ('ID ' . $i->id)
+            ];
+        });
+        return response()->json($results);
+    }
 }
