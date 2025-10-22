@@ -94,25 +94,25 @@ class TjslController extends Controller
         $pilars = $tjsl->pilarRelation; // Mendapatkan data pilar lengkap
 
         // Hitung total anggaran
-        $totalAnggaran = $tjsl->biayaTjsl->sum('anggaran');
+        // $totalAnggaran = $tjsl->biayaTjsl->sum('anggaran');
         $totalRealisasi = $tjsl->biayaTjsl->sum('realisasi');
 
         // Hitung persentase realisasi (contoh, sesuaikan dengan logika bisnis)
-        $persentaseRealisasi = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : 0;
+        // $persentaseRealisasi = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : 0;
+        $persentaseRealisasi = 0;
 
         // Hitung persentase RKA (contoh)
-        $persentaseRka = $tjsl->biayaTjsl->where('jenis_biaya', 'rka')->sum('nominal');
-        $persentaseRka = $totalAnggaran > 0 ? ($persentaseRka / $totalAnggaran) * 100 : 0;
+        $persentaseRka = 0;
+        $persentaseRka = 0;
 
-        // Feedback statistics dengan kategori yang lebih detail
+        // Feedback data untuk gauge display (boolean-based)
+        $latestFeedback = $tjsl->feedbackTjsl->last(); // Ambil feedback terbaru
         $feedbackStats = [
-            'total' => $tjsl->feedbackTjsl->count(),
-            'rating_avg' => 0, // Default value karena tidak ada kolom rating
-            'sangat_puas' => $tjsl->feedbackTjsl->sum('sangat_puas'), // Jumlah nilai sangat_puas
-            'puas' => $tjsl->feedbackTjsl->sum('puas'), // Jumlah nilai puas
-            'kurang_puas' => $tjsl->feedbackTjsl->sum('kurang_puas'), // Jumlah nilai kurang_puas
-            'saran' => $tjsl->feedbackTjsl->pluck('saran')->filter()->last(), // Saran terbaru yang tidak kosong
-            'latest_feedback' => $tjsl->feedbackTjsl->sortByDesc('id')->first(), // Feedback terbaru berdasarkan ID
+            'sangat_puas' => $latestFeedback ? $latestFeedback->sangat_puas : false,
+            'puas' => $latestFeedback ? $latestFeedback->puas : false,
+            'kurang_puas' => $latestFeedback ? $latestFeedback->kurang_puas : false,
+            'saran' => $latestFeedback ? $latestFeedback->saran : null,
+            'has_feedback' => $latestFeedback ? true : false,
         ];
 
         $publications = [
@@ -141,7 +141,7 @@ class TjslController extends Controller
 
         return view('tjsl.show', compact(
             'tjsl',
-            'totalAnggaran',
+            'totalRealisasi',
             'persentaseRealisasi',
             'persentaseRka',
             'feedbackStats',
@@ -503,7 +503,7 @@ class TjslController extends Controller
                 }
                 $docData['proposal'] = $this->handleFileUpload($request->file('proposal'), 'proposal', $tjsl->id);
             }
-            
+
             if ($request->hasFile('izin_prinsip')) {
                 // Hapus file lama jika ada
                 if ($docTjsl && $docTjsl->izin_prinsip) {
@@ -511,7 +511,7 @@ class TjslController extends Controller
                 }
                 $docData['izin_prinsip'] = $this->handleFileUpload($request->file('izin_prinsip'), 'izin_prinsip', $tjsl->id);
             }
-            
+
             if ($request->hasFile('survei_feedback')) {
                 // Hapus file lama jika ada
                 if ($docTjsl && $docTjsl->survei_feedback) {
@@ -519,7 +519,7 @@ class TjslController extends Controller
                 }
                 $docData['survei_feedback'] = $this->handleFileUpload($request->file('survei_feedback'), 'survei_feedback', $tjsl->id);
             }
-            
+
             if ($request->hasFile('foto')) {
                 // Hapus file lama jika ada
                 if ($docTjsl && $docTjsl->foto) {
@@ -541,7 +541,7 @@ class TjslController extends Controller
             FeedbackTjsl::where('tjsl_id', $tjsl->id)->delete();
             if ($request->has('feedback') && is_array($request->feedback)) {
                 foreach ($request->feedback as $feedbackData) {
-                    if (!empty($feedbackData['sangat_puas']) || !empty($feedbackData['puas']) || 
+                    if (!empty($feedbackData['sangat_puas']) || !empty($feedbackData['puas']) ||
                         !empty($feedbackData['kurang_puas']) || !empty($feedbackData['saran'])) {
                         FeedbackTjsl::create([
                             'tjsl_id' => $tjsl->id,
@@ -702,15 +702,15 @@ class TjslController extends Controller
         $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
         $extension = $file->getClientOriginalExtension();
         $filename = 'TJSL_' . $tjslId . '_' . $originalName . '_' . time() . '.' . $extension;
-        
+
         $path = $file->storeAs('dokumen/' . $folder, $filename, 'public');
-        
+
         \Log::info('File uploaded successfully', [
             'folder' => $folder,
             'filename' => $filename,
             'tjsl_id' => $tjslId
         ]);
-        
+
         return $filename;
     }
 }
