@@ -26,7 +26,6 @@ class Tjsl extends Model
         'tanggal_mulai',
         'tanggal_akhir',
         'penerima_dampak',
-        'tpb',
         'status',
         'created_by',
         'updated_by',

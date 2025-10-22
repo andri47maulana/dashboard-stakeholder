@@ -22,19 +22,24 @@ class BiayaTjsl extends Model
 
     protected $fillable = [
         'tjsl_id',
-        'anggaran',
+        'sub_pilar_id',
         'realisasi'
     ];
 
     protected $casts = [
         'tjsl_id' => 'integer',
-        'anggaran' => 'decimal:2',
+        'sub_pilar_id' => 'integer',
         'realisasi' => 'decimal:2'
     ];
 
     public function tjsl(): BelongsTo
     {
         return $this->belongsTo(Tjsl::class, 'tjsl_id');
+    }
+
+    public function subPilar(): BelongsTo
+    {
+        return $this->belongsTo(SubPilar::class, 'sub_pilar_id');
     }
 
 }

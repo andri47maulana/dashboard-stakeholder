@@ -340,10 +340,11 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="sub_pilar" class="form-label">Sub Pilar</label>
+                                            <label for="sub_pilar" class="form-label">TPB</label>
                                             <select class="form-control" id="sub_pilar" name="sub_pilar[]" multiple>
                                                 @foreach ($subpilars as $subPilar)
-                                                    <option value="{{ $subPilar->id }}">{{ $subPilar->sub_pilar }}
+                                                    <option value="{{ $subPilar->id }}">
+                                                        {{ $subPilar->id }}.{{ $subPilar->sub_pilar }}
                                                     </option>
                                                 @endforeach
                                             </select>
@@ -401,20 +402,19 @@
 
                                             <!-- Input Koordinat -->
                                             <div class="row mt-2">
-                                                <div class="col-md-6">
+                                                <div class="col-md-12">
                                                     <div class="mb-2">
-                                                        <label class="form-label small" for="latitude">Latitude</label>
-                                                        <input type="text" class="form-control" id="latitude"
-                                                            name="latitude" placeholder="-6.2">
+                                                        <label class="form-label small" for="koordinat">Koordinat
+                                                            (Latitude, Longitude)</label>
+                                                        <input type="text" class="form-control" id="koordinat"
+                                                            name="koordinat" placeholder="-6.2, 106.8">
+                                                        <small class="text-muted">Format: latitude, longitude (contoh:
+                                                            -6.2, 106.8)</small>
                                                     </div>
                                                 </div>
-                                                <div class="col-md-6">
-                                                    <div class="mb-2">
-                                                        <label class="form-label small" for="longitude">Longitude</label>
-                                                        <input type="text" class="form-control" id="longitude"
-                                                            name="longitude" placeholder="106.8">
-                                                    </div>
-                                                </div>
+                                                <!-- Hidden fields untuk latitude dan longitude terpisah -->
+                                                <input type="hidden" id="latitude" name="latitude">
+                                                <input type="hidden" id="longitude" name="longitude">
                                             </div>
 
                                             <!-- Peta Klik untuk Koordinat -->
@@ -468,13 +468,13 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    {{-- <div class="col-md-6">
                                         <div class="mb-3">
                                             <label for="tpb" class="form-label">TPB</label>
                                             <input type="text" class="form-control" id="tpb" name="tpb"
                                                 placeholder="Contoh: 1,2,3">
                                         </div>
-                                    </div>
+                                    </div> --}}
                                 </div>
                             </div>
 
@@ -482,27 +482,30 @@
                             <div class="tab-pane fade" id="biaya" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6><i class="fas fa-money-bill text-success"></i> Data Biaya TJSL</h6>
-                                    {{-- <button type="button" class="btn btn-sm btn-success" id="addBiaya">
-                                        <i class="fas fa-plus"></i> Tambah Biaya
-                                    </button> --}}
                                 </div>
                                 <div id="biayaContainer">
                                     <div class="biaya-item border p-3 mb-3 rounded bg-light">
                                         <div class="row">
-                                            <div class="col-md-5">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Sub Pilar/TPB</label>
+                                                <select class="form-control biaya-sub-pilar"
+                                                    name="biaya[0][sub_pilar_id]">
+                                                    <option value="">Pilih Sub Pilar</option>
+                                                    @foreach ($subpilars as $subPilar)
+                                                        <option value="{{ $subPilar->id }}">
+                                                            {{ $subPilar->id }}.{{ $subPilar->sub_pilar }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
                                                 <label class="form-label">Anggaran (Rp)</label>
                                                 <input type="number" class="form-control" name="biaya[0][anggaran]"
                                                     step="0.01" placeholder="0.00">
                                             </div>
-                                            <div class="col-md-5">
+                                            <div class="col-md-3">
                                                 <label class="form-label">Realisasi (Rp)</label>
                                                 <input type="number" class="form-control" name="biaya[0][realisasi]"
                                                     step="0.01" placeholder="0.00">
-                                            </div>
-                                            <div class="col-md-2 d-flex align-items-end">
-                                                <button type="button" class="btn btn-danger btn-sm removeBiaya">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -545,28 +548,53 @@
                             <div class="tab-pane fade" id="dokumentasi" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6><i class="fas fa-file-alt text-warning"></i> Data Dokumentasi TJSL</h6>
-                                    <button type="button" class="btn btn-sm btn-warning" id="addDokumentasi">
-                                        <i class="fas fa-plus"></i> Tambah Dokumentasi
-                                    </button>
+
                                 </div>
                                 <div id="dokumentasiContainer">
+                                    <!-- Proposal (PDF) -->
                                     <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
                                         <div class="row">
-                                            <div class="col-md-4">
-                                                <label class="form-label">Nama Dokumen</label>
-                                                <input type="text" class="form-control"
-                                                    name="dokumentasi[0][nama_dokumen]" placeholder="Nama Dokumen">
+                                            <div class="col-md-12">
+                                                <label class="form-label">Proposal (PDF)</label>
+                                                <input type="file" class="form-control" name="proposal"
+                                                    accept=".pdf">
+                                                <small class="form-text text-muted">Format: PDF</small>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label class="form-label">Link Dokumen</label>
-                                                <input type="url" class="form-control" name="dokumentasi[0][link]"
-                                                    placeholder="https://...">
+                                        </div>
+                                    </div>
+
+                                    <!-- Izin Prinsip (PDF) -->
+                                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label class="form-label">Izin Prinsip (PDF)</label>
+                                                <input type="file" class="form-control" name="izin_prinsip"
+                                                    accept=".pdf">
+                                                <small class="form-text text-muted">Format: PDF</small>
                                             </div>
-                                            <div class="col-md-2 d-flex align-items-end">
-                                                <button type="button" class="btn btn-danger btn-sm remove-dokumentasi"
-                                                    disabled>
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Survei Feedback (PDF) -->
+                                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label class="form-label">Survei Feedback (PDF)</label>
+                                                <input type="file" class="form-control" name="survei_feedback"
+                                                    accept=".pdf">
+                                                <small class="form-text text-muted">Format: PDF</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Foto (JPG, PNG) -->
+                                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label class="form-label">Foto (JPG, PNG)</label>
+                                                <input type="file" class="form-control" name="foto"
+                                                    accept=".jpg,.jpeg,.png">
+                                                <small class="form-text text-muted">Format: JPG, PNG</small>
                                             </div>
                                         </div>
                                     </div>
@@ -577,34 +605,39 @@
                             <div class="tab-pane fade" id="feedback" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6><i class="fas fa-comments text-primary"></i> Data Feedback TJSL</h6>
-                                    {{-- <button type="button" class="btn btn-sm btn-primary" id="addFeedback">
-                                        <i class="fas fa-plus"></i> Tambah Feedback
-                                    </button> --}}
                                 </div>
                                 <div id="feedbackContainer">
                                     <div class="feedback-item border p-3 mb-3 rounded bg-light">
                                         <div class="row">
                                             <div class="col-md-3">
-                                                <label class="form-label">Sangat Puas</label>
-                                                <input type="number" class="form-control"
-                                                    name="feedback[0][sangat_puas]" placeholder="0">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="feedback[0][sangat_puas]" id="sangat_puas_0"
+                                                        value="1">
+                                                    <label class="form-check-label" for="sangat_puas_0">
+                                                        Sangat Puas
+                                                    </label>
+                                                </div>
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="form-label">Puas</label>
-                                                <input type="number" class="form-control" name="feedback[0][puas]"
-                                                    placeholder="0">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="feedback[0][puas]" id="puas_0" value="1">
+                                                    <label class="form-check-label" for="puas_0">
+                                                        Puas
+                                                    </label>
+                                                </div>
                                             </div>
                                             <div class="col-md-3">
-                                                <label class="form-label">Kurang Puas</label>
-                                                <input type="number" class="form-control"
-                                                    name="feedback[0][kurang_puas]" placeholder="0">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        name="feedback[0][kurang_puas]" id="kurang_puas_0"
+                                                        value="1">
+                                                    <label class="form-check-label" for="kurang_puas_0">
+                                                        Kurang Puas
+                                                    </label>
+                                                </div>
                                             </div>
-                                            {{-- <div class="col-md-2 d-flex align-items-end">
-                                                <button type="button" class="btn btn-danger btn-sm remove-feedback"
-                                                    disabled>
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div> --}}
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-md-12">
@@ -643,7 +676,7 @@
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
-                <form id="editTjslForm" method="POST">
+                <form id="editTjslForm" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
                     <div class="modal-body">
@@ -753,7 +786,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="mb-3">
-                                            <label for="edit_sub_pilar" class="form-label">Sub Pilar</label>
+                                            <label for="edit_sub_pilar" class="form-label">TPB</label>
                                             <select class="form-control" id="edit_sub_pilar" name="sub_pilar[]" multiple>
                                                 @foreach ($subpilars as $subPilar)
                                                     <option value="{{ $subPilar->id }}">{{ $subPilar->sub_pilar }}
@@ -822,17 +855,17 @@
                                                 <div class="mb-3">
 
                                                     <div class="row">
-                                                        <div class="col-md-6">
-                                                            <label for="edit_latitude" class="form-label">Latitude</label>
-                                                            <input type="text" class="form-control" id="edit_latitude"
-                                                                name="latitude">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label for="edit_longitude"
-                                                                class="form-label">Longitude</label>
+                                                        <div class="col-md-12">
+                                                            <label for="edit_koordinat_display"
+                                                                class="form-label">Koordinat (Latitude, Longitude)</label>
                                                             <input type="text" class="form-control"
-                                                                id="edit_longitude" name="longitude">
+                                                                id="edit_koordinat_display" placeholder="-6.2, 106.8">
+                                                            <small class="text-muted">Format: latitude, longitude (contoh:
+                                                                -6.2, 106.8)</small>
                                                         </div>
+                                                        <!-- Hidden fields untuk latitude dan longitude terpisah -->
+                                                        <input type="hidden" id="edit_latitude" name="latitude">
+                                                        <input type="hidden" id="edit_longitude" name="longitude">
                                                     </div>
                                                     <div class="mt-2">
                                                         <div id="editMapContainer"
@@ -929,9 +962,9 @@
                             <div class="tab-pane fade" id="edit-dokumentasi" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0">Dokumentasi Program</h6>
-                                    <button type="button" class="btn btn-sm btn-success" id="editAddDokumentasi">
+                                    {{-- <button type="button" class="btn btn-sm btn-success" id="editAddDokumentasi">
                                         <i class="fas fa-plus"></i> Tambah Dokumentasi
-                                    </button>
+                                    </button> --}}
                                 </div>
                                 <div id="editDokumentasiContainer">
                                     <!-- Dokumentasi items will be loaded here -->
@@ -942,9 +975,6 @@
                             <div class="tab-pane fade" id="edit-feedback" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0">Feedback Program</h6>
-                                    <button type="button" class="btn btn-sm btn-success" id="editAddFeedback">
-                                        <i class="fas fa-plus"></i> Tambah Feedback
-                                    </button>
                                 </div>
                                 <div id="editFeedbackContainer">
                                     <!-- Feedback items will be loaded here -->
@@ -1332,6 +1362,10 @@
                                 const lat = parseFloat(response.latitude);
                                 const lng = parseFloat(response.longitude);
                                 editMapControl.setMarker(lat, lng, true);
+
+                                // Isi field koordinat gabungan juga
+                                $('#edit_koordinat_display').val(lat.toFixed(6) + ', ' + lng
+                                    .toFixed(6));
                             }
                         }, 500);
 
@@ -1367,9 +1401,13 @@
                         <input type="hidden" name="biaya[${index}][id]" value="${biaya.id || ''}">
                         <div class="row">
                             <div class="col-md-5">
-                                <label class="form-label">Anggaran (Rp)</label>
-                                <input type="number" class="form-control" name="biaya[${index}][anggaran]"
-                                       value="${biaya.anggaran || ''}" step="0.01" placeholder="0.00">
+                                <label class="form-label">Sub Pilar/TPB</label>
+                                <select class="form-control edit-biaya-sub-pilar" name="biaya[${index}][sub_pilar_id]">
+                                    <option value="">Pilih Sub Pilar</option>
+                                    @foreach ($subpilars as $subPilar)
+                                        <option value="{{ $subPilar->id }}" ${biaya.sub_pilar_id == '{{ $subPilar->id }}' ? 'selected' : ''}>{{ $subPilar->id }}.{{ $subPilar->sub_pilar }}</option>
+                                    @endforeach
+                                </select>
                             </div>
                             <div class="col-md-5">
                                 <label class="form-label">Realisasi (Rp)</label>
@@ -1420,34 +1458,102 @@
             }
 
             function loadEditDokumentasiData(dokumentasiData) {
+                // Tab dokumentasi di modal edit menggunakan struktur yang sama dengan modal input
+                // Karena dokumentasi adalah file upload, kita hanya perlu menampilkan nama file yang sudah ada
                 const container = $('#editDokumentasiContainer');
                 container.empty();
 
-                dokumentasiData.forEach(function(dokumentasi, index) {
-                    const dokumentasiHtml = `
+                // Struktur dokumentasi tetap (sesuai dengan modal input)
+                const dokumentasiHtml = `
+                    <!-- Proposal (PDF) -->
                     <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
-                        <input type="hidden" name="dokumentasi[${index}][id]" value="${dokumentasi.id || ''}">
                         <div class="row">
-                            <div class="col-md-4">
-                                <label class="form-label">Nama Dokumen</label>
-                                <input type="text" class="form-control" name="dokumentasi[${index}][nama_dokumen]"
-                                       value="${dokumentasi.nama_dokumen || ''}" placeholder="Nama Dokumen">
+                            <div class="col-md-6">
+                                <label class="form-label">Proposal (PDF)</label>
+                                <input type="file" class="form-control" name="proposal" accept=".pdf,.doc,.docx">
+                                <small class="form-text text-muted">Format: PDF, DOC, DOCX (Max: 10MB)</small>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Link Dokumen</label>
-                                <input type="url" class="form-control" name="dokumentasi[${index}][link]"
-                                       value="${dokumentasi.link || ''}" placeholder="https://...">
+                                <label class="form-label">File Saat Ini</label>
+                                <div class="current-file">
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].proposal ? 
+                                        `<a href="/storage/dokumen/proposal/${dokumentasiData[0].proposal}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].proposal}
+                                        </a>` : 
+                                        '<span class="text-muted">Tidak ada file</span>'
+                                    }
+                                </div>
                             </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-danger btn-sm remove-edit-dokumentasi">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                        </div>
+                    </div>
+
+                    <!-- Izin Prinsip (PDF) -->
+                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Izin Prinsip (PDF)</label>
+                                <input type="file" class="form-control" name="izin_prinsip" accept=".pdf,.doc,.docx">
+                                <small class="form-text text-muted">Format: PDF, DOC, DOCX (Max: 10MB)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">File Saat Ini</label>
+                                <div class="current-file">
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].izin_prinsip ? 
+                                        `<a href="/storage/dokumen/izin_prinsip/${dokumentasiData[0].izin_prinsip}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].izin_prinsip}
+                                        </a>` : 
+                                        '<span class="text-muted">Tidak ada file</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Survei Feedback (PDF) -->
+                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Survei Feedback (PDF)</label>
+                                <input type="file" class="form-control" name="survei_feedback" accept=".pdf,.doc,.docx">
+                                <small class="form-text text-muted">Format: PDF, DOC, DOCX (Max: 10MB)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">File Saat Ini</label>
+                                <div class="current-file">
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].survei_feedback ? 
+                                        `<a href="/storage/dokumen/survei_feedback/${dokumentasiData[0].survei_feedback}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].survei_feedback}
+                                        </a>` : 
+                                        '<span class="text-muted">Tidak ada file</span>'
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Foto (JPG, PNG) -->
+                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Foto (JPG, PNG)</label>
+                                <input type="file" class="form-control" name="foto" accept=".jpg,.jpeg,.png,.gif">
+                                <small class="form-text text-muted">Format: JPG, PNG, GIF (Max: 5MB)</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">File Saat Ini</label>
+                                <div class="current-file">
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].foto ? 
+                                        `<a href="/storage/dokumen/foto/${dokumentasiData[0].foto}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].foto}
+                                        </a>` : 
+                                        '<span class="text-muted">Tidak ada file</span>'
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
                 `;
-                    container.append(dokumentasiHtml);
-                });
+                container.append(dokumentasiHtml);
             }
 
             function loadEditFeedbackData(feedbackData) {
@@ -1460,24 +1566,34 @@
                         <input type="hidden" name="feedback[${index}][id]" value="${feedback.id || ''}">
                         <div class="row">
                             <div class="col-md-3">
-                                <label class="form-label">Sangat Puas</label>
-                                <input type="number" class="form-control" name="feedback[${index}][sangat_puas]"
-                                       value="${feedback.sangat_puas || ''}" min="0" placeholder="0">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="feedback[${index}][sangat_puas]" id="edit_sangat_puas_${index}"
+                                        value="1" ${feedback.sangat_puas == 1 ? 'checked' : ''}>
+                                    <label class="form-check-label" for="edit_sangat_puas_${index}">
+                                        Sangat Puas
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Puas</label>
-                                <input type="number" class="form-control" name="feedback[${index}][puas]"
-                                       value="${feedback.puas || ''}" min="0" placeholder="0">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="feedback[${index}][puas]" id="edit_puas_${index}" 
+                                        value="1" ${feedback.puas == 1 ? 'checked' : ''}>
+                                    <label class="form-check-label" for="edit_puas_${index}">
+                                        Puas
+                                    </label>
+                                </div>
                             </div>
                             <div class="col-md-3">
-                                <label class="form-label">Kurang Puas</label>
-                                <input type="number" class="form-control" name="feedback[${index}][kurang_puas]"
-                                       value="${feedback.kurang_puas || ''}" min="0" placeholder="0">
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-danger btn-sm remove-edit-feedback">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                        name="feedback[${index}][kurang_puas]" id="edit_kurang_puas_${index}"
+                                        value="1" ${feedback.kurang_puas == 1 ? 'checked' : ''}>
+                                    <label class="form-check-label" for="edit_kurang_puas_${index}">
+                                        Kurang Puas
+                                    </label>
+                                </div>
                             </div>
                         </div>
                         <div class="row mt-2">
@@ -1578,63 +1694,32 @@
                 editPublikasiIndex++;
             });
 
+            // Handler untuk tombol editAddDokumentasi sudah dihapus karena tidak diperlukan lagi
+            /*
             $('#editAddDokumentasi').click(function() {
                 const dokumentasiHtml = `
-                <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <label class="form-label">Nama Dokumen</label>
-                            <input type="text" class="form-control" name="dokumentasi[${editDokumentasiIndex}][nama_dokumen]" placeholder="Nama Dokumen">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Link Dokumen</label>
-                            <input type="url" class="form-control" name="dokumentasi[${editDokumentasiIndex}][link]" placeholder="https://...">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm remove-edit-dokumentasi">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+            <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Nama Dokumen</label>
+                        <input type="text" class="form-control" name="dokumentasi[${editDokumentasiIndex}][nama_dokumen]" placeholder="Nama Dokumen">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Link Dokumen</label>
+                        <input type="url" class="form-control" name="dokumentasi[${editDokumentasiIndex}][link]" placeholder="https://...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-edit-dokumentasi">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
                 $('#editDokumentasiContainer').append(dokumentasiHtml);
                 editDokumentasiIndex++;
             });
-
-            $('#editAddFeedback').click(function() {
-                const feedbackHtml = `
-                <div class="feedback-item border p-3 mb-3 rounded bg-light">
-                    <div class="row">
-                        <div class="col-md-3">
-                            <label class="form-label">Sangat Puas</label>
-                            <input type="number" class="form-control" name="feedback[${editFeedbackIndex}][sangat_puas]" min="0" placeholder="0">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Puas</label>
-                            <input type="number" class="form-control" name="feedback[${editFeedbackIndex}][puas]" min="0" placeholder="0">
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Kurang Puas</label>
-                            <input type="number" class="form-control" name="feedback[${editFeedbackIndex}][kurang_puas]" min="0" placeholder="0">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm remove-edit-feedback">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col-12">
-                            <label class="form-label">Saran</label>
-                            <textarea class="form-control" name="feedback[${editFeedbackIndex}][saran]" rows="2" placeholder="Masukkan saran..."></textarea>
-                        </div>
-                    </div>
-                </div>
-            `;
-                $('#editFeedbackContainer').append(feedbackHtml);
-                editFeedbackIndex++;
-            });
+            */
 
             // Remove items in edit modal
             $(document).on('click', '.remove-edit-biaya', function() {
@@ -1645,12 +1730,8 @@
                 $(this).closest('.publikasi-item').remove();
             });
 
-            $(document).on('click', '.remove-edit-dokumentasi', function() {
-                $(this).closest('.dokumentasi-item').remove();
-            });
-
-            $(document).on('click', '.remove-edit-feedback', function() {
-                $(this).closest('.feedback-item').remove();
+            $(document).on('click', '.remove-edit-publikasi', function() {
+                $(this).closest('.publikasi-item').remove();
             });
 
             // Reset edit modal when closed
@@ -1834,6 +1915,13 @@
                 $('#' + lngInputId).val(lng.toFixed(6));
                 if (hiddenKoordId) {
                     $('#' + hiddenKoordId).val(lat.toFixed(6) + ',' + lng.toFixed(6));
+                }
+
+                // Update field koordinat gabungan juga
+                if (latInputId === 'latitude') {
+                    $('#koordinat').val(lat.toFixed(6) + ', ' + lng.toFixed(6));
+                } else if (latInputId === 'edit_latitude') {
+                    $('#edit_koordinat_display').val(lat.toFixed(6) + ', ' + lng.toFixed(6));
                 }
 
                 // Fokuskan peta ke titik yang dipilih
@@ -2285,13 +2373,19 @@
             const biayaHtml = `
         <div class="biaya-item border p-3 mb-3 rounded bg-light">
             <div class="row">
-                <div class="col-md-5">
+                <div class="col-md-4">
+                    <label class="form-label">Sub Pilar/TPB</label>
+                    <select class="form-control biaya-sub-pilar" name="biaya[${biayaIndex}][sub_pilar_id]">
+                        <option value="">Pilih Sub Pilar</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">Anggaran (Rp)</label>
                     <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
                 </div>
-                <div class="col-md-5">
-                    <label class="form-label">Keterangan</label>
-                    <input type="text" class="form-control" name="biaya[${biayaIndex}][keterangan]" placeholder="Keterangan biaya">
+                <div class="col-md-3">
+                    <label class="form-label">Realisasi (Rp)</label>
+                    <input type="number" class="form-control" name="biaya[${biayaIndex}][realisasi]" step="0.01" placeholder="0.00">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button type="button" class="btn btn-danger btn-sm removeBiaya">
@@ -2301,7 +2395,26 @@
             </div>
         </div>
     `;
-            $('#biayaContainer').append(biayaHtml);
+            const $newBiaya = $(biayaHtml);
+            $('#biayaContainer').append($newBiaya);
+
+            // Populate sub pilar options for the new dropdown
+            const $newSelect = $newBiaya.find('.biaya-sub-pilar');
+
+            // Urutkan berdasarkan ID sebelum menambahkan opsi
+            const sortedSubpilars = [...allSubpilars].sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+            sortedSubpilars.forEach(function(subpilar) {
+                $newSelect.append(
+                    `<option value="${subpilar.id}">${subpilar.id}.${subpilar.text}</option>`);
+            });
+
+            // Update sub pilar options based on current program unggulan
+            const programUnggulanId = $('#program_unggulan_id').val();
+            if (programUnggulanId && programUnggulanMap[programUnggulanId]) {
+                updateBiayaSubPilarOptions(programUnggulanMap[programUnggulanId]);
+            }
+
             biayaIndex++;
         });
 
@@ -2337,9 +2450,10 @@
             updateRemoveButtons();
         });
 
-        // Add Dokumentasi
-        $('#addDokumentasi').click(function() {
-            const dokumentasiHtml = `
+        // Handler untuk tombol addDokumentasi sudah dihapus karena tidak diperlukan lagi
+        /*
+            $('#addDokumentasi').click(function() {
+                const dokumentasiHtml = `
         <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
             <div class="row">
                 <div class="col-md-4">
@@ -2358,31 +2472,11 @@
             </div>
         </div>
     `;
-            $('#dokumentasiContainer').append(dokumentasiHtml);
-            dokumentasiIndex++;
-            updateRemoveButtons();
-        });
-
-        // Add Feedback
-        $('#addFeedback').click(function() {
-            const feedbackHtml = `
-        <div class="feedback-item border p-3 mb-3 rounded bg-light">
-            <div class="row">
-                <div class="col-md-10">
-                    <label class="form-label">Feedback</label>
-                    <textarea class="form-control" name="feedback[${feedbackIndex}][feedback]" rows="3" placeholder="Masukkan feedback..."></textarea>
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger btn-sm remove-feedback">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-            $('#feedbackContainer').append(feedbackHtml);
-            feedbackIndex++;
-        });
+                $('#dokumentasiContainer').append(dokumentasiHtml);
+                dokumentasiIndex++;
+                updateRemoveButtons();
+            });
+            */
 
         // Remove handlers
         $(document).on('click', '.removeBiaya', function() {
@@ -2397,10 +2491,6 @@
         $(document).on('click', '.remove-dokumentasi', function() {
             $(this).closest('.dokumentasi-item').remove();
             updateRemoveButtons();
-        });
-
-        $(document).on('click', '.remove-feedback', function() {
-            $(this).closest('.feedback-item').remove();
         });
 
         // Update remove button states
@@ -2836,9 +2926,12 @@
                 allSubpilars.filter(s => allowedIds.includes(s.id)) :
                 allSubpilars;
 
+            // Urutkan berdasarkan ID
+            data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
             // Reset pilihan lalu isi ulang opsi
             $select.empty();
-            data.forEach(s => $select.append(new Option(s.text, s.id)));
+            data.forEach(s => $select.append(new Option(`${s.id}.${s.text}`, s.id)));
             // Kosongkan nilai terpilih dan trigger update ke Select2
             $select.val(null).trigger('change');
         }
@@ -2847,7 +2940,36 @@
         $('#program_unggulan_id').on('change', function() {
             const id = $(this).val();
             renderSubPilarOptions(programUnggulanMap[id] || []);
+            // Update biaya sub pilar dropdowns
+            updateBiayaSubPilarOptions(programUnggulanMap[id] || []);
         });
+
+        // Function to update biaya sub pilar dropdowns
+        function updateBiayaSubPilarOptions(allowedIds) {
+            $('.biaya-sub-pilar').each(function() {
+                const $select = $(this);
+                const currentVal = $select.val();
+
+                $select.empty();
+                $select.append('<option value="">Pilih Sub Pilar</option>');
+
+                const data = (allowedIds && allowedIds.length) ?
+                    allSubpilars.filter(s => allowedIds.includes(s.id)) :
+                    allSubpilars;
+
+                // Urutkan berdasarkan ID
+                data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+                data.forEach(s => {
+                    $select.append(`<option value="${s.id}">${s.id}.${s.text}</option>`);
+                });
+
+                // Keep current value if still valid
+                if (currentVal && data.some(d => d.id === currentVal)) {
+                    $select.val(currentVal);
+                }
+            });
+        }
 
         // Optional: render awal (tanpa filter)
         renderSubPilarOptions([]);
@@ -2880,8 +3002,11 @@
                 allSubpilarsEdit.filter(s => allowedIds.includes(s.id)) :
                 allSubpilarsEdit;
 
+            // Urutkan berdasarkan ID
+            data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
             $select.empty();
-            data.forEach(s => $select.append(new Option(s.text, s.id)));
+            data.forEach(s => $select.append(new Option(`${s.id}.${s.text}`, s.id)));
 
             // Pertahankan nilai yang masih valid
             const keep = currentVals.filter(v => data.some(d => d.id === v));
@@ -2892,12 +3017,43 @@
         $('#edit_program_unggulan_id').on('change', function() {
             const id = $(this).val();
             renderEditSubPilarOptions(editProgramUnggulanMap[id] || []);
+            // Update edit biaya sub pilar dropdowns
+            updateEditBiayaSubPilarOptions(editProgramUnggulanMap[id] || []);
         });
+
+        // Function to update edit biaya sub pilar dropdowns
+        function updateEditBiayaSubPilarOptions(allowedIds) {
+            $('.edit-biaya-sub-pilar').each(function() {
+                const $select = $(this);
+                const currentVal = $select.val();
+
+                $select.empty();
+                $select.append('<option value="">Pilih Sub Pilar</option>');
+
+                const data = (allowedIds && allowedIds.length) ?
+                    allSubpilarsEdit.filter(s => allowedIds.includes(s.id)) :
+                    allSubpilarsEdit;
+
+                // Urutkan berdasarkan ID
+                data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+                data.forEach(s => {
+                    $select.append(`<option value="${s.id}">${s.id}.${s.text}</option>`);
+                });
+
+                // Keep current value if still valid
+                if (currentVal && data.some(d => d.id === currentVal)) {
+                    $select.val(currentVal);
+                }
+            });
+        }
 
         // Saat modal edit dibuka, apply filter sesuai nilai awal (jika ada)
         $('#editTjslModal').on('shown.bs.modal', function() {
             const id = $('#edit_program_unggulan_id').val();
             renderEditSubPilarOptions(editProgramUnggulanMap[id] || []);
+            // Also update edit biaya sub pilar options
+            updateEditBiayaSubPilarOptions(editProgramUnggulanMap[id] || []);
         });
 
         $('#edit-program-tab').on('shown.bs.tab', function() {
@@ -3193,6 +3349,7 @@
                 $('#edit_latitude').val('');
                 $('#edit_longitude').val('');
                 $('#edit_koordinat').val('');
+                $('#edit_koordinat_display').val('');
 
                 // Hapus peta edit jika ada
                 if (window.editMapInstance) {
@@ -3203,6 +3360,58 @@
 
             // Initialize remove button states
             updateRemoveButtons();
+
+            // Handler untuk koordinat gabungan - Form Tambah
+            $('#koordinat').on('input', function() {
+                const koordinat = $(this).val().trim();
+                if (koordinat) {
+                    const parts = koordinat.split(',');
+                    if (parts.length === 2) {
+                        const lat = parts[0].trim();
+                        const lng = parts[1].trim();
+                        $('#latitude').val(lat);
+                        $('#longitude').val(lng);
+
+                        // Update peta jika ada
+                        if (window.lokasiMapInstance && lat && lng) {
+                            const latNum = parseFloat(lat);
+                            const lngNum = parseFloat(lng);
+                            if (!isNaN(latNum) && !isNaN(lngNum)) {
+                                window.lokasiMapInstance.setMarker(latNum, lngNum, true);
+                            }
+                        }
+                    }
+                } else {
+                    $('#latitude').val('');
+                    $('#longitude').val('');
+                }
+            });
+
+            // Handler untuk koordinat gabungan - Form Edit
+            $('#edit_koordinat_display').on('input', function() {
+                const koordinat = $(this).val().trim();
+                if (koordinat) {
+                    const parts = koordinat.split(',');
+                    if (parts.length === 2) {
+                        const lat = parts[0].trim();
+                        const lng = parts[1].trim();
+                        $('#edit_latitude').val(lat);
+                        $('#edit_longitude').val(lng);
+
+                        // Update peta jika ada
+                        if (window.editMapInstance && lat && lng) {
+                            const latNum = parseFloat(lat);
+                            const lngNum = parseFloat(lng);
+                            if (!isNaN(latNum) && !isNaN(lngNum)) {
+                                window.editMapInstance.setMarker(latNum, lngNum, true);
+                            }
+                        }
+                    }
+                } else {
+                    $('#edit_latitude').val('');
+                    $('#edit_longitude').val('');
+                }
+            });
         });
     </script>
 
