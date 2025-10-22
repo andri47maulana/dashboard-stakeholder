@@ -482,9 +482,9 @@
                             <div class="tab-pane fade" id="biaya" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6><i class="fas fa-money-bill text-success"></i> Data Biaya TJSL</h6>
-                                    <button type="button" class="btn btn-sm btn-success" id="addBiaya">
+                                    {{-- <button type="button" class="btn btn-sm btn-success" id="addBiaya">
                                         <i class="fas fa-plus"></i> Tambah Biaya
-                                    </button>
+                                    </button> --}}
                                 </div>
                                 <div id="biayaContainer">
                                     <div class="biaya-item border p-3 mb-3 rounded bg-light">
@@ -903,9 +903,9 @@
                             <div class="tab-pane fade" id="edit-biaya" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h6 class="mb-0">Data Biaya Program</h6>
-                                    <button type="button" class="btn btn-sm btn-success" id="editAddBiaya">
+                                    {{-- <button type="button" class="btn btn-sm btn-success" id="editAddBiaya">
                                         <i class="fas fa-plus"></i> Tambah Biaya
-                                    </button>
+                                    </button> --}}
                                 </div>
                                 <div id="editBiayaContainer">
                                     <!-- Biaya items will be loaded here -->
@@ -1372,9 +1372,9 @@
                                        value="${biaya.anggaran || ''}" step="0.01" placeholder="0.00">
                             </div>
                             <div class="col-md-5">
-                                <label class="form-label">Keterangan</label>
-                                <input type="text" class="form-control" name="biaya[${index}][keterangan]"
-                                       value="${biaya.keterangan || ''}" placeholder="Keterangan biaya">
+                                <label class="form-label">Realisasi (Rp)</label>
+                                <input type="number" class="form-control" name="biaya[${index}][realisasi]"
+                                       value="${biaya.realisasi || ''}" step="0.01" placeholder="0.00">
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
                                 <button type="button" class="btn btn-danger btn-sm remove-edit-biaya">
@@ -1505,54 +1505,54 @@
             });
 
             // Event handler untuk tombol tambah di modal input
-            $('#addBiaya').click(function() {
-                const biayaHtml = `
-                <div class="biaya-item border p-3 mb-3 rounded bg-light">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <label class="form-label">Anggaran (Rp)</label>
-                            <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label">Keterangan</label>
-                            <input type="text" class="form-control" name="biaya[${biayaIndex}][keterangan]" placeholder="Keterangan biaya">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm removeBiaya">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-                $('#biayaContainer').append(biayaHtml);
-                biayaIndex++;
-            });
+            // $('#addBiaya').click(function() {
+            //     const biayaHtml = `
+        //     <div class="biaya-item border p-3 mb-3 rounded bg-light">
+        //         <div class="row">
+        //             <div class="col-md-5">
+        //                 <label class="form-label">Anggaran (Rp)</label>
+        //                 <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
+        //             </div>
+        //             <div class="col-md-5">
+        //                 <label class="form-label">Realisasi (Rp)</label>
+        //                 <input type="number" class="form-control" name="biaya[${biayaIndex}][realisasi]" step="0.01" placeholder="0.00">
+        //             </div>
+        //             <div class="col-md-2 d-flex align-items-end">
+        //                 <button type="button" class="btn btn-danger btn-sm removeBiaya">
+        //                     <i class="fas fa-trash"></i>
+        //                 </button>
+        //             </div>
+        //         </div>
+        //     </div>
+        // `;
+            //     $('#biayaContainer').append(biayaHtml);
+            //     biayaIndex++;
+            // });
 
             // Event handler untuk tombol tambah di modal edit
-            $('#editAddBiaya').click(function() {
-                const biayaHtml = `
-                <div class="biaya-item border p-3 mb-3 rounded bg-light">
-                    <div class="row">
-                        <div class="col-md-5">
-                            <label class="form-label">Anggaran (Rp)</label>
-                            <input type="number" class="form-control" name="biaya[${editBiayaIndex}][anggaran]" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="col-md-5">
-                            <label class="form-label">Keterangan</label>
-                            <input type="text" class="form-control" name="biaya[${editBiayaIndex}][keterangan]" placeholder="Keterangan biaya">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="button" class="btn btn-danger btn-sm remove-edit-biaya">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-                $('#editBiayaContainer').append(biayaHtml);
-                editBiayaIndex++;
-            });
+            // $('#editAddBiaya').click(function() {
+            //     const biayaHtml = `
+        //     <div class="biaya-item border p-3 mb-3 rounded bg-light">
+        //         <div class="row">
+        //             <div class="col-md-5">
+        //                 <label class="form-label">Anggaran (Rp)</label>
+        //                 <input type="number" class="form-control" name="biaya[${editBiayaIndex}][anggaran]" step="0.01" placeholder="0.00">
+        //             </div>
+        //             <div class="col-md-5">
+        //                 <label class="form-label">Keterangan</label>
+        //                 <input type="text" class="form-control" name="biaya[${editBiayaIndex}][keterangan]" placeholder="Keterangan biaya">
+        //             </div>
+        //             <div class="col-md-2 d-flex align-items-end">
+        //                 <button type="button" class="btn btn-danger btn-sm remove-edit-biaya">
+        //                     <i class="fas fa-trash"></i>
+        //                 </button>
+        //             </div>
+        //         </div>
+        //     </div>
+        // `;
+            //     $('#editBiayaContainer').append(biayaHtml);
+            //     editBiayaIndex++;
+            // });
 
             $('#editAddPublikasi').click(function() {
                 const publikasiHtml = `
