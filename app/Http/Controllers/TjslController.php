@@ -154,7 +154,8 @@ class TjslController extends Controller
     public function create()
     {
         $units = Unit::all();
-        return view('tjsl.create', compact('units'));
+        $pilars = Pilar::orderBy('pilar')->get();
+        return view('tjsl.create', compact('units', 'pilars'));
     }
 
     public function store(Request $request)
@@ -165,45 +166,64 @@ class TjslController extends Controller
             'user_id' => Auth::id()
         ]);
 
-        $request->validate([
-            'nama_program' => 'required|string|max:255',
-            'unit_id' => 'required|exists:tb_unit,id',
-            'pilar_id' => 'required|exists:m_pilar,id',
-            'deskripsi' => 'nullable|string',
-            'lokasi_program' => 'nullable|string|max:255',
-            'latitude' => 'nullable|numeric|min:-90|max:90',
-            'longitude' => 'nullable|numeric|min:-180|max:180',
-            'program_unggulan_id' => 'nullable|exists:m_program_unggulan,id',
-            'sub_pilar' => 'nullable|array',
-            'sub_pilar.*' => 'exists:m_sub_pilar,id',
-            'tanggal_mulai' => 'nullable|date',
-            'tanggal_akhir' => 'nullable|date',
-            'penerima_dampak' => 'nullable|string|max:255',
-            'status' => 'nullable|integer',
+        try {
+            \Log::info('Starting validation process');
+            
+            $request->validate([
+                'nama_program' => 'required|string|max:255',
+                'unit_id' => 'required|exists:tb_unit,id',
+                'pilar_id' => 'required|exists:m_pilar,id',
+                'deskripsi' => 'nullable|string',
+                'lokasi_program' => 'nullable|string|max:255',
+                'latitude' => 'nullable|numeric|min:-90|max:90',
+                'longitude' => 'nullable|numeric|min:-180|max:180',
+                'program_unggulan_id' => 'nullable|exists:m_program_unggulan,id',
+                'sub_pilar' => 'nullable|array',
+                'sub_pilar.*' => 'exists:m_sub_pilar,id',
+                'tanggal_mulai' => 'nullable|date',
+                'tanggal_akhir' => 'nullable|date',
+                'penerima_dampak' => 'nullable|string|max:255',
+                'status' => 'nullable|integer',
 
-            // Validasi untuk data terkait
-            'biaya.*.sub_pilar_id' => 'nullable|exists:m_sub_pilar,id',
-            'biaya.*.realisasi' => 'nullable|numeric|min:0',
-            'publikasi.*.media' => 'nullable|string|max:255',
-            'publikasi.*.link' => 'nullable|url|max:500',
+                // Validasi untuk data terkait
+                'biaya.*.sub_pilar_id' => 'nullable|exists:m_sub_pilar,id',
+                'biaya.*.realisasi' => 'nullable|numeric|min:0',
+                'publikasi.*.media' => 'nullable|string|max:255',
+                'publikasi.*.link' => 'nullable|url|max:500',
 
-            // Validasi untuk file dokumentasi
-            'proposal' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'izin_prinsip' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'survei_feedback' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'foto' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
+                // Validasi untuk file dokumentasi
+                'proposal' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'izin_prinsip' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'survei_feedback' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'foto' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
 
-            // Validasi untuk feedback array
-            'feedback.*.sangat_puas' => 'nullable|string',
-            'feedback.*.puas' => 'nullable|string',
-            'feedback.*.kurang_puas' => 'nullable|string',
-            'feedback.*.saran' => 'nullable|string',
-        ]);
+                // Validasi untuk feedback array
+                'feedback.*.sangat_puas' => 'nullable|string',
+                'feedback.*.puas' => 'nullable|string',
+                'feedback.*.kurang_puas' => 'nullable|string',
+                'feedback.*.saran' => 'nullable|string',
+            ]);
 
-        \Log::info('Validation passed, starting transaction');
+            \Log::info('Validation passed, starting transaction');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'message' => $e->getMessage()
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Unexpected error during validation', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
 
         try {
             \DB::beginTransaction();
+
+            // Debug: Log validation passed
+            \Log::info('TJSL validation passed, starting save process');
 
             // Debug: Log before creating TJSL
             \Log::info('Creating TJSL record', [
@@ -229,6 +249,11 @@ class TjslController extends Controller
                 'penerima_dampak' => $request->penerima_dampak,
                 'status' => $request->status ?? 1,
                 'created_by' => Auth::id(),
+            ]);
+
+            \Log::info('TJSL main record created successfully', [
+                'tjsl_id' => $tjsl->id,
+                'nama_program' => $tjsl->nama_program
             ]);
 
             // Debug: Log after TJSL creation
@@ -341,24 +366,60 @@ class TjslController extends Controller
                     'feedback_data' => $request->feedback
                 ]);
 
-                $feedbackData = $request->feedback[0]; // Ambil feedback pertama
-                if (!empty($feedbackData['sangat_puas']) || !empty($feedbackData['puas']) ||
-                    !empty($feedbackData['kurang_puas']) || !empty($feedbackData['saran'])) {
-                    $feedbackTjsl = FeedbackTjsl::create([
-                        'tjsl_id' => $tjsl->id,
-                        'sangat_puas' => isset($feedbackData['sangat_puas']) ? 1 : 0,
-                        'puas' => isset($feedbackData['puas']) ? 1 : 0,
-                        'kurang_puas' => isset($feedbackData['kurang_puas']) ? 1 : 0,
-                        'saran' => $feedbackData['saran'] ?? null,
-                    ]);
+                foreach ($request->feedback as $feedbackData) {
+                    if (!empty($feedbackData['sangat_puas']) || !empty($feedbackData['puas']) ||
+                        !empty($feedbackData['kurang_puas']) || !empty($feedbackData['saran'])) {
+                        
+                        // Initialize all feedback values to 0 (default for unchecked checkboxes)
+                        $sangat_puas = 0;
+                        $puas = 0;
+                        $kurang_puas = 0;
+                        
+                        // Handle feedback rating based on 'puas' field value
+                        if (isset($feedbackData['puas'])) {
+                            $puasValue = $feedbackData['puas'];
+                            if ($puasValue == '1' || $puasValue == 1) {
+                                $sangat_puas = 1; // Value 1 = Sangat Puas
+                            } elseif ($puasValue == '2' || $puasValue == 2) {
+                                $puas = 1; // Value 2 = Puas
+                            } elseif ($puasValue == '3' || $puasValue == 3) {
+                                $kurang_puas = 1; // Value 3 = Kurang Puas
+                            }
+                        }
+                        
+                        // Handle individual boolean checkbox fields (if they exist)
+                        if (isset($feedbackData['sangat_puas']) && ($feedbackData['sangat_puas'] == '1' || $feedbackData['sangat_puas'] === true)) {
+                            $sangat_puas = 1;
+                            $puas = 0;
+                            $kurang_puas = 0;
+                        }
+                        if (isset($feedbackData['puas']) && !is_numeric($feedbackData['puas']) && ($feedbackData['puas'] == '1' || $feedbackData['puas'] === true)) {
+                            $sangat_puas = 0;
+                            $puas = 1;
+                            $kurang_puas = 0;
+                        }
+                        if (isset($feedbackData['kurang_puas']) && ($feedbackData['kurang_puas'] == '1' || $feedbackData['kurang_puas'] === true)) {
+                            $sangat_puas = 0;
+                            $puas = 0;
+                            $kurang_puas = 1;
+                        }
 
-                    \Log::info('FeedbackTjsl created', [
-                        'feedback_id' => $feedbackTjsl->id,
-                        'sangat_puas' => $feedbackTjsl->sangat_puas,
-                        'puas' => $feedbackTjsl->puas,
-                        'kurang_puas' => $feedbackTjsl->kurang_puas,
-                        'saran' => $feedbackTjsl->saran
-                    ]);
+                        $feedbackTjsl = FeedbackTjsl::create([
+                            'tjsl_id' => $tjsl->id,
+                            'sangat_puas' => $sangat_puas,
+                            'puas' => $puas,
+                            'kurang_puas' => $kurang_puas,
+                            'saran' => $feedbackData['saran'] ?? null,
+                        ]);
+
+                        \Log::info('FeedbackTjsl created', [
+                            'feedback_id' => $feedbackTjsl->id,
+                            'sangat_puas' => $feedbackTjsl->sangat_puas,
+                            'puas' => $feedbackTjsl->puas,
+                            'kurang_puas' => $feedbackTjsl->kurang_puas,
+                            'saran' => $feedbackTjsl->saran
+                        ]);
+                    }
                 }
             }
 
