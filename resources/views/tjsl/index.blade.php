@@ -85,19 +85,14 @@
             @forelse($tjsls as $tjsl)
                 <div class="col-xl-3 col-md-6 mb-4 program-card" data-status="{{ $tjsl->status }}"
                     data-program="{{ strtolower($tjsl->nama_program) }}">
-                    <div class="card border-left-primary shadow py-0"
-                        style="height: 380px; display: flex; flex-direction: column;">
-                        <!-- Header dengan Background Warna -->
-                        <div class="card-header"
-                            style="background: linear-gradient(135deg, #4ec2df 0%, #224abe 100%); border: none; padding: 0.75rem 1.25rem; flex-shrink: 0; min-height: 70px; display: flex; align-items: center;">
-                            <div class="text-white font-weight-bold"
-                                style="font-size: 1.1rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                                {{ $tjsl->nama_program }}
-                            </div>
-                        </div>
-                        <div class="card-body" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <!-- Nama Program -->
                             <div class="row no-gutters align-items-center mb-2">
                                 <div class="col">
+                                    <div class="text-sm font-weight-bold mb-1">
+                                        {{ $tjsl->nama_program }}
+                                    </div>
                                 </div>
                                 <div class="col-auto">
                                     <div class="btn-group" role="group">
@@ -152,8 +147,8 @@
                                     <div class="text-xs mb-0 text-gray-600 d-flex align-items-center">
                                         @if ($tjsl->hasSubPilarImages())
                                             @foreach ($tjsl->sub_pilar_images as $image)
-                                                <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}"
-                                                    class="me-1" style="width: 50px; height: 50px; object-fit: contain;"
+                                                <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}" class="me-1"
+                                                    style="width: 50px; height: 50px; object-fit: contain;"
                                                     title="{{ $image['alt'] }}">
                                                 <span style="margin-right: 5px;"> </span>
                                             @endforeach
@@ -176,7 +171,7 @@
                             </div>
 
                             <!-- Tanggal Akhir -->
-                            <div class="row no-gutters align-items-center">
+                            <div class="row no-gutters align-items-center mb-3">
                                 <div class="col">
                                     <div class="text-sm mb-0 text-black-600">
                                         <i class="fas fa-calendar-check fa-sm text-black-400"></i>
@@ -184,13 +179,16 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Footer dengan Button -->
-                        <div class="card-footer bg-light border-0 p-3">
-                            <a href="{{ route('tjsl.show', $tjsl->id) }}" class="btn btn-primary btn-sm btn-block">
-                                <i class="fas fa-eye fa-sm"></i> Lihat Program
-                            </a>
+                            <!-- Button Lihat Detail -->
+                            <div class="row no-gutters">
+                                <div class="col">
+                                    <a href="{{ route('tjsl.show', $tjsl->id) }}"
+                                        class="btn btn-primary btn-sm btn-block">
+                                        <i class="fas fa-eye fa-sm"></i> Lihat Program
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1478,10 +1476,10 @@
                             <div class="col-md-6">
                                 <label class="form-label">File Saat Ini</label>
                                 <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].proposal ?
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].proposal ? 
                                         `<a href="/storage/dokumen/proposal/${dokumentasiData[0].proposal}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-download"></i> ${dokumentasiData[0].proposal}
-                                                                </a>` :
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].proposal}
+                                        </a>` : 
                                         '<span class="text-muted">Tidak ada file</span>'
                                     }
                                 </div>
@@ -1500,10 +1498,10 @@
                             <div class="col-md-6">
                                 <label class="form-label">File Saat Ini</label>
                                 <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].izin_prinsip ?
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].izin_prinsip ? 
                                         `<a href="/storage/dokumen/izin_prinsip/${dokumentasiData[0].izin_prinsip}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-download"></i> ${dokumentasiData[0].izin_prinsip}
-                                                                </a>` :
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].izin_prinsip}
+                                        </a>` : 
                                         '<span class="text-muted">Tidak ada file</span>'
                                     }
                                 </div>
@@ -1522,10 +1520,10 @@
                             <div class="col-md-6">
                                 <label class="form-label">File Saat Ini</label>
                                 <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].survei_feedback ?
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].survei_feedback ? 
                                         `<a href="/storage/dokumen/survei_feedback/${dokumentasiData[0].survei_feedback}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-download"></i> ${dokumentasiData[0].survei_feedback}
-                                                                </a>` :
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].survei_feedback}
+                                        </a>` : 
                                         '<span class="text-muted">Tidak ada file</span>'
                                     }
                                 </div>
@@ -1544,10 +1542,10 @@
                             <div class="col-md-6">
                                 <label class="form-label">File Saat Ini</label>
                                 <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].foto ?
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].foto ? 
                                         `<a href="/storage/dokumen/foto/${dokumentasiData[0].foto}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                                                    <i class="fas fa-download"></i> ${dokumentasiData[0].foto}
-                                                                </a>` :
+                                            <i class="fas fa-download"></i> ${dokumentasiData[0].foto}
+                                        </a>` : 
                                         '<span class="text-muted">Tidak ada file</span>'
                                     }
                                 </div>
@@ -1580,7 +1578,7 @@
                             <div class="col-md-3">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox"
-                                        name="feedback[${index}][puas]" id="edit_puas_${index}"
+                                        name="feedback[${index}][puas]" id="edit_puas_${index}" 
                                         value="1" ${feedback.puas == 1 ? 'checked' : ''}>
                                     <label class="form-check-label" for="edit_puas_${index}">
                                         Puas
@@ -1698,8 +1696,8 @@
 
             // Handler untuk tombol editAddDokumentasi sudah dihapus karena tidak diperlukan lagi
             /*
-                                    $('#editAddDokumentasi').click(function() {
-                                        const dokumentasiHtml = `
+            $('#editAddDokumentasi').click(function() {
+                const dokumentasiHtml = `
             <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
                 <div class="row">
                     <div class="col-md-4">
@@ -1718,10 +1716,10 @@
                 </div>
             </div>
         `;
-                                        $('#editDokumentasiContainer').append(dokumentasiHtml);
-                                        editDokumentasiIndex++;
-                                    });
-                                    */
+                $('#editDokumentasiContainer').append(dokumentasiHtml);
+                editDokumentasiIndex++;
+            });
+            */
 
             // Remove items in edit modal
             $(document).on('click', '.remove-edit-biaya', function() {
@@ -2454,8 +2452,8 @@
 
         // Handler untuk tombol addDokumentasi sudah dihapus karena tidak diperlukan lagi
         /*
-                                    $('#addDokumentasi').click(function() {
-                                        const dokumentasiHtml = `
+            $('#addDokumentasi').click(function() {
+                const dokumentasiHtml = `
         <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
             <div class="row">
                 <div class="col-md-4">
@@ -2474,11 +2472,11 @@
             </div>
         </div>
     `;
-                                        $('#dokumentasiContainer').append(dokumentasiHtml);
-                                        dokumentasiIndex++;
-                                        updateRemoveButtons();
-                                    });
-                                    */
+                $('#dokumentasiContainer').append(dokumentasiHtml);
+                dokumentasiIndex++;
+                updateRemoveButtons();
+            });
+            */
 
         // Remove handlers
         $(document).on('click', '.removeBiaya', function() {
