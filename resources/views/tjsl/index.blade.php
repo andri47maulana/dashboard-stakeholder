@@ -11,7 +11,9 @@
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
         @endif
 
@@ -74,9 +76,17 @@
         </div>
 
         <div class="d-sm-flex align-items-center justify-content-between mb-4">
-            <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" data-toggle="modal"
+            <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"
+                onclick="console.log('Test button clicked'); $('#testModal').modal('show');">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Test Modal
+            </button>
+            <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm"
+                onclick="console.log('Tambah Program clicked'); $('#tjslModal').modal('show');">
+                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Program (JS)
+            </button>
+            <button type="button" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm" data-toggle="modal"
                 data-target="#tjslModal">
-                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Program
+                <i class="fas fa-plus fa-sm text-white-50"></i> Tambah Program (Attr)
             </button>
         </div>
 
@@ -147,8 +157,8 @@
                                     <div class="text-xs mb-0 text-gray-600 d-flex align-items-center">
                                         @if ($tjsl->hasSubPilarImages())
                                             @foreach ($tjsl->sub_pilar_images as $image)
-                                                <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}" class="me-1"
-                                                    style="width: 50px; height: 50px; object-fit: contain;"
+                                                <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}"
+                                                    class="me-1" style="width: 50px; height: 50px; object-fit: contain;"
                                                     title="{{ $image['alt'] }}">
                                                 <span style="margin-right: 5px;"> </span>
                                             @endforeach
@@ -218,6 +228,27 @@
                 </div>
             </div>
         @endif
+    </div>
+
+    <!-- Test Modal Sederhana -->
+    <div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Modal</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Ini adalah test modal sederhana untuk memastikan Bootstrap modal berfungsi.</p>
+                    <p>Jika modal ini muncul, berarti Bootstrap modal bekerja dengan baik.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Input Data TJSL Komprehensif -->
@@ -651,7 +682,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
                             <i class="fas fa-times"></i> Batal
                         </button>
                         <button type="submit" class="btn btn-primary" id="submitBtn">
@@ -1000,403 +1031,460 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
     <script>
-        // Util reset Select2
-        function resetSelect2(selector, disabled) {
-            $(selector).val(null).trigger('change');
-            $(selector).prop('disabled', !!disabled);
-        }
-
-        // Inisialisasi berjenjang: provinsi → kab/kota → kecamatan → desa
-        function initWilayahSelect2Group(group) {
-            const {
-                prov,
-                kab,
-                kec,
-                desa
-            } = group;
-
-            // Destroy jika sudah pernah diinit (hindari duplikasi container)
-            [prov, kab, kec, desa].forEach(sel => {
-                if ($(sel).hasClass('select2-hidden-accessible')) $(sel).select2('destroy');
-            });
-
-            // Provinsi (level: provinsi)
-            $(prov).prop('disabled', false).select2({
-                placeholder: 'Pilih Provinsi',
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '/get-wilayah',
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({
-                        level: 'provinsi',
-                        q: params.term || ''
-                    }),
-                    processResults: data => ({
-                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
-                            id: item.kode,
-                            text: item.nama
-                        }))
-                    })
-                }
-            }).on('change', function() {
-                const hasProv = !!$(this).val();
-                resetSelect2(kab, !hasProv);
-                resetSelect2(kec, true);
-                resetSelect2(desa, true);
-            });
-
-            // Kabupaten/Kota (level: kabupaten, parent: provinsi)
-            $(kab).select2({
-                placeholder: 'Pilih Kabupaten/Kota',
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '/get-wilayah',
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({
-                        level: 'kabupaten',
-                        parent: $(prov).val() || '',
-                        q: params.term || ''
-                    }),
-                    processResults: data => ({
-                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
-                            id: item.kode,
-                            text: item.nama
-                        }))
-                    })
-                }
-            }).on('change', function() {
-                const hasKab = !!$(this).val();
-                resetSelect2(kec, !hasKab);
-                resetSelect2(desa, true);
-            });
-
-            // Kecamatan (level: kecamatan, parent: kabupaten)
-            $(kec).select2({
-                placeholder: 'Pilih Kecamatan',
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '/get-wilayah',
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({
-                        level: 'kecamatan',
-                        parent: $(kab).val() || '',
-                        q: params.term || ''
-                    }),
-                    processResults: data => ({
-                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
-                            id: item.kode,
-                            text: item.nama
-                        }))
-                    })
-                }
-            }).on('change', function() {
-                const hasKec = !!$(this).val();
-                resetSelect2(desa, !hasKec);
-            });
-
-            // Desa/Kelurahan (level: desa, parent: kecamatan)
-            $(desa).select2({
-                placeholder: 'Pilih Desa/Kelurahan',
-                allowClear: true,
-                width: '100%',
-                minimumInputLength: 0,
-                ajax: {
-                    url: '/get-wilayah',
-                    dataType: 'json',
-                    delay: 250,
-                    data: params => ({
-                        level: 'desa',
-                        parent: $(kec).val() || '',
-                        q: params.term || ''
-                    }),
-                    processResults: data => ({
-                        results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(item => ({
-                            id: item.kode,
-                            text: item.nama
-                        }))
-                    })
-                }
-            });
-
-            // Set initial state
-            $(kab).prop('disabled', !$(prov).val());
-            $(kec).prop('disabled', !$(kab).val());
-            $(desa).prop('disabled', !$(kec).val());
-        }
-
-        // Helper untuk init jika elemen ada
-        function initWilayahIfExists() {
-            if ($('#lokasi_provinsi').length) {
-                initWilayahSelect2Group({
-                    prov: '#lokasi_provinsi',
-                    kab: '#lokasi_kabupaten',
-                    kec: '#lokasi_kecamatan',
-                    desa: '#lokasi_desa'
-                });
-            }
-            if ($('#edit_lokasi_provinsi').length) {
-                initWilayahSelect2Group({
-                    prov: '#edit_lokasi_provinsi',
-                    kab: '#edit_lokasi_kabupaten',
-                    kec: '#edit_lokasi_kecamatan',
-                    desa: '#edit_lokasi_desa'
-                });
-            }
-        }
-
-        $(document).ready(function() {
-            // Declare dynamic form index variables
-            let biayaIndex = 1;
-            window.publikasiIndex = 1;
-            let dokumentasiIndex = 1;
-            let feedbackIndex = 1;
-
-            // Pastikan inisialisasi berjalan pada konteks visible
-            // Init saat load (jika tab sudah aktif)
-            initWilayahIfExists();
-
-            // Re-init saat tab dibuka (Bootstrap 4)
-            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-                const target = $(e.target).attr('href'); // #program atau #edit-program
-                if (target === '#program' || target === '#edit-program') {
-                    initWilayahIfExists();
-                }
-            });
-
-            // Re-init saat modal ditampilkan
-            $('.modal').on('shown.bs.modal', function() {
-                initWilayahIfExists();
-            });
-
-            // Inisialisasi peta saat modal tambah benar-benar ditampilkan
-            let addMapInstance = null;
-            $('#tjslModal').on('shown.bs.modal', function() {
-                // Pastikan Leaflet sudah ter-load
-                if (typeof L === 'undefined') {
-                    console.error('Leaflet belum ter-load');
-                    return;
-                }
-                if (!addMapInstance) {
-                    addMapInstance = initLeafletMap('lokasiMap', 'latitude', 'longitude', 'koordinat');
-                } else {
-                    // Pastikan peta merender ulang ukuran saat modal dibuka
-                    setTimeout(function() {
-                        addMapInstance.map.invalidateSize(true);
-                    }, 100);
+        // Pastikan jQuery tersedia sebelum menggunakan $
+        (function($) {
+            $(document).ready(function() {
+                // Util reset Select2
+                function resetSelect2(selector, disabled) {
+                    $(selector).val(null).trigger('change');
+                    $(selector).prop('disabled', !!disabled);
                 }
 
-                // Jika input sudah berisi angka, posisikan marker
-                const lat = parseFloat($('#latitude').val());
-                const lng = parseFloat($('#longitude').val());
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    addMapInstance.setMarker(lat, lng, true);
-                }
-            });
+                // Inisialisasi berjenjang: provinsi → kab/kota → kecamatan → desa
+                function initWilayahSelect2Group(group) {
+                    const {
+                        prov,
+                        kab,
+                        kec,
+                        desa
+                    } = group;
 
-            // Reset koordinat ketika modal ditutup
-            $('#tjslModal').on('hidden.bs.modal', function() {
-                $('#latitude').val('');
-                $('#longitude').val('');
-                $('#koordinat').val('');
-            });
-
-            // Sinkronisasi dua arah: input -> peta
-            $('#latitude, #longitude').on('input change', function() {
-                const lat = parseFloat($('#latitude').val());
-                const lng = parseFloat($('#longitude').val());
-                if (!isNaN(lat) && !isNaN(lng) && addMapInstance) {
-                    addMapInstance.setMarker(lat, lng, true);
-                    $('#koordinat').val(lat.toFixed(6) + ',' + lng.toFixed(6));
-                } else {
-                    $('#koordinat').val('');
-                }
-            });
-
-            // Apply filter button
-            $('#applyFilter').click(function() {
-                applyFilters();
-            });
-
-            // Handle Edit Program Button Click
-            $(document).on('click', '.edit-program-btn', function() {
-                const tjslId = $(this).data('id');
-
-                // Set form action URL
-                $('#editTjslForm').attr('action', `/tjsl/${tjslId}`);
-
-                // Load TJSL data
-                loadTjslData(tjslId);
-            });
-
-            // Handle Delete Program Button Click
-            $(document).on('click', '.delete-program-btn', function() {
-                const tjslId = $(this).data('id');
-                const programName = $(this).data('name');
-
-                // Show confirmation dialog
-                if (confirm(
-                        `Apakah Anda yakin ingin menghapus program "${programName}"?\n\nTindakan ini tidak dapat dibatalkan dan akan menghapus semua data terkait program ini.`
-                    )) {
-                    // Create form for DELETE request
-                    const form = $('<form>', {
-                        'method': 'POST',
-                        'action': `/tjsl/${tjslId}`
+                    // Destroy jika sudah pernah diinit (hindari duplikasi container)
+                    [prov, kab, kec, desa].forEach(sel => {
+                        if ($(sel).hasClass('select2-hidden-accessible')) $(sel).select2('destroy');
                     });
 
-                    // Add CSRF token
-                    form.append($('<input>', {
-                        'type': 'hidden',
-                        'name': '_token',
-                        'value': '{{ csrf_token() }}'
-                    }));
+                    // Provinsi (level: provinsi)
+                    $(prov).prop('disabled', false).select2({
+                        placeholder: 'Pilih Provinsi',
+                        allowClear: true,
+                        width: '100%',
+                        minimumInputLength: 0,
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({
+                                level: 'provinsi',
+                                q: params.term || ''
+                            }),
+                            processResults: data => ({
+                                results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(
+                                    item => ({
+                                        id: item.kode,
+                                        text: item.nama
+                                    }))
+                            })
+                        }
+                    }).on('change', function() {
+                        const hasProv = !!$(this).val();
+                        resetSelect2(kab, !hasProv);
+                        resetSelect2(kec, true);
+                        resetSelect2(desa, true);
+                    });
 
-                    // Add method spoofing for DELETE
-                    form.append($('<input>', {
-                        'type': 'hidden',
-                        'name': '_method',
-                        'value': 'DELETE'
-                    }));
+                    // Kabupaten/Kota (level: kabupaten, parent: provinsi)
+                    $(kab).select2({
+                        placeholder: 'Pilih Kabupaten/Kota',
+                        allowClear: true,
+                        width: '100%',
+                        minimumInputLength: 0,
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({
+                                level: 'kabupaten',
+                                parent: $(prov).val() || '',
+                                q: params.term || ''
+                            }),
+                            processResults: data => ({
+                                results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(
+                                    item => ({
+                                        id: item.kode,
+                                        text: item.nama
+                                    }))
+                            })
+                        }
+                    }).on('change', function() {
+                        const hasKab = !!$(this).val();
+                        resetSelect2(kec, !hasKab);
+                        resetSelect2(desa, true);
+                    });
 
-                    // Append form to body and submit
-                    $('body').append(form);
-                    form.submit();
+                    // Kecamatan (level: kecamatan, parent: kabupaten)
+                    $(kec).select2({
+                        placeholder: 'Pilih Kecamatan',
+                        allowClear: true,
+                        width: '100%',
+                        minimumInputLength: 0,
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({
+                                level: 'kecamatan',
+                                parent: $(kab).val() || '',
+                                q: params.term || ''
+                            }),
+                            processResults: data => ({
+                                results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(
+                                    item => ({
+                                        id: item.kode,
+                                        text: item.nama
+                                    }))
+                            })
+                        }
+                    }).on('change', function() {
+                        const hasKec = !!$(this).val();
+                        resetSelect2(desa, !hasKec);
+                    });
+
+                    // Desa/Kelurahan (level: desa, parent: kecamatan)
+                    $(desa).select2({
+                        placeholder: 'Pilih Desa/Kelurahan',
+                        allowClear: true,
+                        width: '100%',
+                        minimumInputLength: 0,
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: params => ({
+                                level: 'desa',
+                                parent: $(kec).val() || '',
+                                q: params.term || ''
+                            }),
+                            processResults: data => ({
+                                results: data.sort((a, b) => a.nama.localeCompare(b.nama)).map(
+                                    item => ({
+                                        id: item.kode,
+                                        text: item.nama
+                                    }))
+                            })
+                        }
+                    });
+
+                    // Set initial state
+                    $(kab).prop('disabled', !$(prov).val());
+                    $(kec).prop('disabled', !$(kab).val());
+                    $(desa).prop('disabled', !$(kec).val());
                 }
-            });
-            // Function to load TJSL data for editing
-            function loadTjslData(tjslId) {
-                $.ajax({
-                    url: `/tjsl/${tjslId}/edit-data`,
-                    method: 'GET',
-                    beforeSend: function() {
-                        // Show loading overlay without removing modal content
-                        if (!$('#editTjslModal .loading-overlay').length) {
-                            $('#editTjslModal .modal-content').append(
-                                '<div class="loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">' +
-                                '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br><small>Loading...</small></div>' +
-                                '</div>'
-                            );
-                        }
-                    },
-                    success: function(response) {
-                        // Remove loading overlay
-                        $('#editTjslModal .loading-overlay').remove();
 
+                // Helper untuk init jika elemen ada
+                function initWilayahIfExists() {
+                    if ($('#lokasi_provinsi').length) {
+                        initWilayahSelect2Group({
+                            prov: '#lokasi_provinsi',
+                            kab: '#lokasi_kabupaten',
+                            kec: '#lokasi_kecamatan',
+                            desa: '#lokasi_desa'
+                        });
+                    }
+                    if ($('#edit_lokasi_provinsi').length) {
+                        initWilayahSelect2Group({
+                            prov: '#edit_lokasi_provinsi',
+                            kab: '#edit_lokasi_kabupaten',
+                            kec: '#edit_lokasi_kecamatan',
+                            desa: '#edit_lokasi_desa'
+                        });
+                    }
+                }
 
+                // Declare dynamic form index variables
+                let biayaIndex = 1;
+                window.publikasiIndex = 1;
+                let dokumentasiIndex = 1;
+                let feedbackIndex = 1;
 
-                        // Format dates for HTML date inputs
-                        let tanggalMulai = response.tanggal_mulai ? response.tanggal_mulai.split('T')[
-                            0] : '';
-                        let tanggalAkhir = response.tanggal_akhir ? response.tanggal_akhir.split('T')[
-                            0] : '';
+                // Pastikan inisialisasi berjalan pada konteks visible
+                // Init saat load (jika tab sudah aktif)
+                initWilayahIfExists();
 
-                        // Populate form fields
-                        $('#edit_nama_program').val(response.nama_program);
-
-                        // Set unit_id dengan dropdown custom
-                        if (response.unit_id) {
-                            // Cari nama unit berdasarkan unit_id
-                            var unitText = $('#edit_unit_id option[value="' + response.unit_id + '"]')
-                                .text();
-                            editUnitDropdown.setValue(response.unit_id, unitText);
-                        } else {
-                            editUnitDropdown.setValue('', '');
-                        }
-
-                        $('#edit_pilar_id').val(response.pilar_id);
-                        $('#edit_program_unggulan_id').val(response.program_unggulan_id);
-                        $('#edit_deskripsi').val(response.deskripsi);
-                        $('#edit_penerima_dampak').val(response.penerima_dampak);
-                        $('#edit_tanggal_mulai').val(tanggalMulai);
-                        $('#edit_tanggal_akhir').val(tanggalAkhir);
-                        $('#edit_status').val(response.status);
-                        $('#edit_tpb').val(response.tpb);
-
-                        // Set latitude dan longitude
-                        $('#edit_latitude').val(response.latitude || '');
-                        $('#edit_longitude').val(response.longitude || '');
-
-                        // Handle lokasi program
-                        if (response.lokasi_program) {
-                            $('#edit_lokasi_program').val(response.lokasi_program);
-                        }
-
-                        // Handle sub_pilar (multiple select) - set setelah program unggulan
-                        if (response.program_unggulan_id) {
-                            // Trigger filter sub pilar berdasarkan program unggulan
-                            setTimeout(function() {
-                                $('#edit_program_unggulan_id').trigger('change');
-                                // Set sub pilar setelah filter diterapkan
-                                if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
-                                    $('#edit_sub_pilar').val(response.sub_pilar).trigger(
-                                        'change');
-                                }
-                            }, 100);
-                        } else {
-                            // Jika tidak ada program unggulan, set sub pilar langsung
-                            if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
-                                $('#edit_sub_pilar').val(response.sub_pilar).trigger('change');
-                            }
-                        }
-
-                        // Load related data
-                        loadEditBiayaData(response.biaya || []);
-                        loadEditPublikasiData(response.publikasi || []);
-                        loadEditDokumentasiData(response.dokumentasi || []);
-                        loadEditFeedbackData(response.feedback || []);
-
-                        // Inisialisasi peta edit
-                        setTimeout(function() {
-                            const editMapControl = initEditLeafletMap('editMapContainer',
-                                'edit_latitude', 'edit_longitude', 'edit_koordinat');
-
-                            if (response.latitude && response.longitude) {
-                                const lat = parseFloat(response.latitude);
-                                const lng = parseFloat(response.longitude);
-                                editMapControl.setMarker(lat, lng, true);
-
-                                // Isi field koordinat gabungan juga
-                                $('#edit_koordinat_display').val(lat.toFixed(6) + ', ' + lng
-                                    .toFixed(6));
-                            }
-                        }, 500);
-
-                        // Show modal
-                        $('#editTjslModal').modal('show');
-
-                        // Preselect wilayah berdasarkan kode jika lokasi_program berformat kode (e.g. 11.01.01.2002)
-                        if (response.lokasi_program && typeof response.lokasi_program === 'string') {
-                            const kode = response.lokasi_program.trim();
-                            const isKodeWilayah = /^\d{2}\.\d{2}\.\d{2}\.\d{4}$/.test(kode);
-                            if (isKodeWilayah) {
-                                parseAndSetWilayahFromCode(kode);
-                            }
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        // Remove loading overlay
-                        $('#editTjslModal .loading-overlay').remove();
-                        alert('Error loading data: ' + error);
-                        $('#editTjslModal').modal('hide');
+                // Re-init saat tab dibuka (Bootstrap 4)
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+                    const target = $(e.target).attr('href'); // #program atau #edit-program
+                    if (target === '#program' || target === '#edit-program') {
+                        initWilayahIfExists();
                     }
                 });
-            }
 
-            // Functions to load related data
-            function loadEditBiayaData(biayaData) {
-                const container = $('#editBiayaContainer');
-                container.empty();
+                // Re-init saat modal ditampilkan
+                $('.modal').on('shown.bs.modal', function() {
+                    initWilayahIfExists();
 
-                biayaData.forEach(function(biaya, index) {
-                    const biayaHtml = `
+                    // Re-inisialisasi dropdown searchable untuk unit/kebun
+                    if ($(this).attr('id') === 'tjslModal') {
+                        console.log('Inisialisasi ulang dropdown unit/kebun...');
+                        // Pastikan dropdown searchable berfungsi
+                        setTimeout(function() {
+                            if (typeof createSearchableDropdown === 'function') {
+                                // Hapus dropdown lama jika ada
+                                $('#unit_id').parent().find('.searchable-dropdown').remove();
+                                $('#edit_unit_id').parent().find('.searchable-dropdown')
+                                .remove();
+
+                                // Buat ulang dropdown
+                                createSearchableDropdown('#unit_id',
+                                    'Ketik untuk mencari Unit/Kebun');
+                                createSearchableDropdown('#edit_unit_id',
+                                    'Ketik untuk mencari Unit/Kebun');
+                                console.log(
+                                'Dropdown unit/kebun berhasil diinisialisasi ulang');
+                            }
+                        }, 100);
+                    }
+                });
+
+                // Inisialisasi peta saat modal tambah benar-benar ditampilkan
+                let addMapInstance = null;
+                $('#tjslModal').on('shown.bs.modal', function() {
+                    console.log('Modal TJSL ditampilkan');
+
+                    // Pastikan Leaflet sudah ter-load
+                    if (typeof L === 'undefined') {
+                        console.error('Leaflet belum ter-load - modal tetap bisa digunakan');
+                        // Jangan return, biarkan modal tetap berfungsi
+                    } else {
+                        console.log('Leaflet tersedia, inisialisasi peta...');
+
+                        // Tunggu sebentar untuk memastikan modal benar-benar terlihat
+                        setTimeout(function() {
+                            try {
+                                if (!addMapInstance) {
+                                    addMapInstance = initLeafletMap('lokasiMap', 'latitude',
+                                        'longitude', 'koordinat');
+                                    console.log('Peta baru dibuat:', addMapInstance);
+                                } else {
+                                    // Pastikan peta merender ulang ukuran saat modal dibuka
+                                    setTimeout(function() {
+                                        if (addMapInstance && addMapInstance.map) {
+                                            addMapInstance.map.invalidateSize(true);
+                                            console.log('Peta di-refresh');
+                                        }
+                                    }, 100);
+                                }
+
+                                // Jika input sudah berisi angka, posisikan marker
+                                const lat = parseFloat($('#latitude').val());
+                                const lng = parseFloat($('#longitude').val());
+                                if (!isNaN(lat) && !isNaN(lng) && addMapInstance &&
+                                    addMapInstance
+                                    .setMarker) {
+                                    addMapInstance.setMarker(lat, lng, true);
+                                    console.log('Marker diset ke:', lat, lng);
+                                }
+                            } catch (error) {
+                                console.error('Error inisialisasi peta:', error);
+                                // Modal tetap bisa digunakan meskipun peta error
+                            }
+                        }, 200);
+                    }
+                });
+
+                // Reset koordinat ketika modal ditutup
+                $('#tjslModal').on('hidden.bs.modal', function() {
+                    $('#latitude').val('');
+                    $('#longitude').val('');
+                    $('#koordinat').val('');
+                });
+
+                // Sinkronisasi dua arah: input -> peta
+                $('#latitude, #longitude').on('input change', function() {
+                    const lat = parseFloat($('#latitude').val());
+                    const lng = parseFloat($('#longitude').val());
+                    if (!isNaN(lat) && !isNaN(lng) && addMapInstance) {
+                        addMapInstance.setMarker(lat, lng, true);
+                        $('#koordinat').val(lat.toFixed(6) + ',' + lng.toFixed(6));
+                    } else {
+                        $('#koordinat').val('');
+                    }
+                });
+
+                // Apply filter button
+                $('#applyFilter').click(function() {
+                    applyFilters();
+                });
+
+                // Handle Edit Program Button Click
+                $(document).on('click', '.edit-program-btn', function() {
+                    const tjslId = $(this).data('id');
+
+                    // Set form action URL
+                    $('#editTjslForm').attr('action', `/tjsl/${tjslId}`);
+
+                    // Load TJSL data
+                    loadTjslData(tjslId);
+                });
+
+                // Handle Delete Program Button Click
+                $(document).on('click', '.delete-program-btn', function() {
+                    const tjslId = $(this).data('id');
+                    const programName = $(this).data('name');
+
+                    // Show confirmation dialog
+                    if (confirm(
+                            `Apakah Anda yakin ingin menghapus program "${programName}"?\n\nTindakan ini tidak dapat dibatalkan dan akan menghapus semua data terkait program ini.`
+                        )) {
+                        // Create form for DELETE request
+                        const form = $('<form>', {
+                            'method': 'POST',
+                            'action': `/tjsl/${tjslId}`
+                        });
+
+                        // Add CSRF token
+                        form.append($('<input>', {
+                            'type': 'hidden',
+                            'name': '_token',
+                            'value': '{{ csrf_token() }}'
+                        }));
+
+                        // Add method spoofing for DELETE
+                        form.append($('<input>', {
+                            'type': 'hidden',
+                            'name': '_method',
+                            'value': 'DELETE'
+                        }));
+
+                        // Append form to body and submit
+                        $('body').append(form);
+                        form.submit();
+                    }
+                });
+                // Function to load TJSL data for editing
+                function loadTjslData(tjslId) {
+                    $.ajax({
+                        url: `/tjsl/${tjslId}/edit-data`,
+                        method: 'GET',
+                        beforeSend: function() {
+                            // Show loading overlay without removing modal content
+                            if (!$('#editTjslModal .loading-overlay').length) {
+                                $('#editTjslModal .modal-content').append(
+                                    '<div class="loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">' +
+                                    '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br><small>Loading...</small></div>' +
+                                    '</div>'
+                                );
+                            }
+                        },
+                        success: function(response) {
+                            // Remove loading overlay
+                            $('#editTjslModal .loading-overlay').remove();
+
+
+
+                            // Format dates for HTML date inputs
+                            let tanggalMulai = response.tanggal_mulai ? response.tanggal_mulai
+                                .split('T')[
+                                    0] : '';
+                            let tanggalAkhir = response.tanggal_akhir ? response.tanggal_akhir
+                                .split('T')[
+                                    0] : '';
+
+                            // Populate form fields
+                            $('#edit_nama_program').val(response.nama_program);
+
+                            // Set unit_id dengan dropdown custom
+                            if (response.unit_id) {
+                                // Cari nama unit berdasarkan unit_id
+                                var unitText = $('#edit_unit_id option[value="' + response.unit_id +
+                                        '"]')
+                                    .text();
+                                editUnitDropdown.setValue(response.unit_id, unitText);
+                            } else {
+                                editUnitDropdown.setValue('', '');
+                            }
+
+                            $('#edit_pilar_id').val(response.pilar_id);
+                            $('#edit_program_unggulan_id').val(response.program_unggulan_id);
+                            $('#edit_deskripsi').val(response.deskripsi);
+                            $('#edit_penerima_dampak').val(response.penerima_dampak);
+                            $('#edit_tanggal_mulai').val(tanggalMulai);
+                            $('#edit_tanggal_akhir').val(tanggalAkhir);
+                            $('#edit_status').val(response.status);
+                            $('#edit_tpb').val(response.tpb);
+
+                            // Set latitude dan longitude
+                            $('#edit_latitude').val(response.latitude || '');
+                            $('#edit_longitude').val(response.longitude || '');
+
+                            // Handle lokasi program
+                            if (response.lokasi_program) {
+                                $('#edit_lokasi_program').val(response.lokasi_program);
+                            }
+
+                            // Handle sub_pilar (multiple select) - set setelah program unggulan
+                            if (response.program_unggulan_id) {
+                                // Trigger filter sub pilar berdasarkan program unggulan
+                                setTimeout(function() {
+                                    $('#edit_program_unggulan_id').trigger('change');
+                                    // Set sub pilar setelah filter diterapkan
+                                    if (response.sub_pilar && Array.isArray(response
+                                            .sub_pilar)) {
+                                        $('#edit_sub_pilar').val(response.sub_pilar)
+                                            .trigger(
+                                                'change');
+                                    }
+                                }, 100);
+                            } else {
+                                // Jika tidak ada program unggulan, set sub pilar langsung
+                                if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
+                                    $('#edit_sub_pilar').val(response.sub_pilar).trigger('change');
+                                }
+                            }
+
+                            // Load related data
+                            loadEditBiayaData(response.biaya || []);
+                            loadEditPublikasiData(response.publikasi || []);
+                            loadEditDokumentasiData(response.dokumentasi || []);
+                            loadEditFeedbackData(response.feedback || []);
+
+                            // Inisialisasi peta edit
+                            setTimeout(function() {
+                                const editMapControl = initEditLeafletMap(
+                                    'editMapContainer',
+                                    'edit_latitude', 'edit_longitude', 'edit_koordinat');
+
+                                if (response.latitude && response.longitude) {
+                                    const lat = parseFloat(response.latitude);
+                                    const lng = parseFloat(response.longitude);
+                                    editMapControl.setMarker(lat, lng, true);
+
+                                    // Isi field koordinat gabungan juga
+                                    $('#edit_koordinat_display').val(lat.toFixed(6) + ', ' +
+                                        lng
+                                        .toFixed(6));
+                                }
+                            }, 500);
+
+                            // Show modal
+                            $('#editTjslModal').modal('show');
+
+                            // Preselect wilayah berdasarkan kode jika lokasi_program berformat kode (e.g. 11.01.01.2002)
+                            if (response.lokasi_program && typeof response.lokasi_program ===
+                                'string') {
+                                const kode = response.lokasi_program.trim();
+                                const isKodeWilayah = /^\d{2}\.\d{2}\.\d{2}\.\d{4}$/.test(kode);
+                                if (isKodeWilayah) {
+                                    parseAndSetWilayahFromCode(kode);
+                                }
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            // Remove loading overlay
+                            $('#editTjslModal .loading-overlay').remove();
+                            alert('Error loading data: ' + error);
+                            $('#editTjslModal').modal('hide');
+                        }
+                    });
+                }
+
+                // Functions to load related data
+                function loadEditBiayaData(biayaData) {
+                    const container = $('#editBiayaContainer');
+                    container.empty();
+
+                    biayaData.forEach(function(biaya, index) {
+                        const biayaHtml = `
                     <div class="biaya-item border p-3 mb-3 rounded bg-light">
                         <input type="hidden" name="biaya[${index}][id]" value="${biaya.id || ''}">
                         <div class="row">
@@ -1422,16 +1510,16 @@
                         </div>
                     </div>
                 `;
-                    container.append(biayaHtml);
-                });
-            }
+                        container.append(biayaHtml);
+                    });
+                }
 
-            function loadEditPublikasiData(publikasiData) {
-                const container = $('#editPublikasiContainer');
-                container.empty();
+                function loadEditPublikasiData(publikasiData) {
+                    const container = $('#editPublikasiContainer');
+                    container.empty();
 
-                publikasiData.forEach(function(publikasi, index) {
-                    const publikasiHtml = `
+                    publikasiData.forEach(function(publikasi, index) {
+                        const publikasiHtml = `
                     <div class="publikasi-item border p-3 mb-3 rounded bg-light">
                         <input type="hidden" name="publikasi[${index}][id]" value="${publikasi.id || ''}">
                         <div class="row">
@@ -1453,18 +1541,18 @@
                         </div>
                     </div>
                 `;
-                    container.append(publikasiHtml);
-                });
-            }
+                        container.append(publikasiHtml);
+                    });
+                }
 
-            function loadEditDokumentasiData(dokumentasiData) {
-                // Tab dokumentasi di modal edit menggunakan struktur yang sama dengan modal input
-                // Karena dokumentasi adalah file upload, kita hanya perlu menampilkan nama file yang sudah ada
-                const container = $('#editDokumentasiContainer');
-                container.empty();
+                function loadEditDokumentasiData(dokumentasiData) {
+                    // Tab dokumentasi di modal edit menggunakan struktur yang sama dengan modal input
+                    // Karena dokumentasi adalah file upload, kita hanya perlu menampilkan nama file yang sudah ada
+                    const container = $('#editDokumentasiContainer');
+                    container.empty();
 
-                // Struktur dokumentasi tetap (sesuai dengan modal input)
-                const dokumentasiHtml = `
+                    // Struktur dokumentasi tetap (sesuai dengan modal input)
+                    const dokumentasiHtml = `
                     <!-- Proposal (PDF) -->
                     <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
                         <div class="row">
@@ -1476,202 +1564,282 @@
                             <div class="col-md-6">
                                 <label class="form-label">File Saat Ini</label>
                                 <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].proposal ? 
+                                    ${dokumentasiData.length > 0 && dokumentasiData[0].proposal ?
                                         `<a href="/storage/dokumen/proposal/${dokumentasiData[0].proposal}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                                    <i class="fas fa-download"></i> ${dokumentasiData[0].proposal}
+                                                                                </a>` :
                                             <i class="fas fa-download"></i> ${dokumentasiData[0].proposal}
-                                        </a>` : 
-                                        '<span class="text-muted">Tidak ada file</span>'
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                        </a>`:
+                        '<span class="text-muted">Tidak ada file</span>'
+                } <
+                /div> <
+                /div> <
+                /div> <
+                /div>
 
-                    <!-- Izin Prinsip (PDF) -->
-                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Izin Prinsip (PDF)</label>
-                                <input type="file" class="form-control" name="izin_prinsip" accept=".pdf,.doc,.docx">
-                                <small class="form-text text-muted">Format: PDF, DOC, DOCX (Max: 10MB)</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">File Saat Ini</label>
-                                <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].izin_prinsip ? 
-                                        `<a href="/storage/dokumen/izin_prinsip/${dokumentasiData[0].izin_prinsip}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> ${dokumentasiData[0].izin_prinsip}
-                                        </a>` : 
-                                        '<span class="text-muted">Tidak ada file</span>'
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <
+                !--Izin Prinsip(PDF) -- >
+                    <
+                    div class = "dokumentasi-item border p-3 mb-3 rounded bg-light" >
+                    <
+                    div class = "row" >
+                    <
+                    div class = "col-md-6" >
+                    <
+                    label class = "form-label" > Izin Prinsip(PDF) < /label> <
+                    input type = "file"
+                class = "form-control"
+                name = "izin_prinsip"
+                accept = ".pdf,.doc,.docx" >
+                    <
+                    small class = "form-text text-muted" > Format: PDF, DOC, DOCX(Max: 10 MB) < /small> <
+                    /div> <
+                    div class = "col-md-6" >
+                    <
+                    label class = "form-label" > File Saat Ini < /label> <
+                    div class = "current-file" >
+                    $ {
+                        dokumentasiData.length > 0 && dokumentasiData[0].izin_prinsip ?
+                            `<a href="/storage/dokumen/izin_prinsip/${dokumentasiData[0].izin_prinsip}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                                <i class="fas fa-download"></i> ${dokumentasiData[0].izin_prinsip}
+                                                                            </a>` :
+                            <
+                            i class = "fas fa-download" > < /i> ${dokumentasiData[0].izin_prinsip} <
+                            /a>` :
+                    '<span class="text-muted">Tidak ada file</span>'
+                } <
+                /div> <
+                /div> <
+                /div> <
+                /div>
 
-                    <!-- Survei Feedback (PDF) -->
-                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Survei Feedback (PDF)</label>
-                                <input type="file" class="form-control" name="survei_feedback" accept=".pdf,.doc,.docx">
-                                <small class="form-text text-muted">Format: PDF, DOC, DOCX (Max: 10MB)</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">File Saat Ini</label>
-                                <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].survei_feedback ? 
-                                        `<a href="/storage/dokumen/survei_feedback/${dokumentasiData[0].survei_feedback}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> ${dokumentasiData[0].survei_feedback}
-                                        </a>` : 
-                                        '<span class="text-muted">Tidak ada file</span>'
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <
+                !--Survei Feedback(PDF) -- >
+                <
+                div class = "dokumentasi-item border p-3 mb-3 rounded bg-light" >
+                <
+                div class = "row" >
+                <
+                div class = "col-md-6" >
+                <
+                label class = "form-label" > Survei Feedback(PDF) < /label> <
+                input type = "file"
+            class = "form-control"
+            name = "survei_feedback"
+            accept = ".pdf,.doc,.docx" >
+                <
+                small class = "form-text text-muted" > Format: PDF, DOC, DOCX(Max: 10 MB) < /small> <
+                /div> <
+                div class = "col-md-6" >
+                <
+                label class = "form-label" > File Saat Ini < /label> <
+                div class = "current-file" >
+                $ {
+                    dokumentasiData.length > 0 && dokumentasiData[0].survei_feedback ?
+                        `<a href="/storage/dokumen/survei_feedback/${dokumentasiData[0].survei_feedback}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                                    <i class="fas fa-download"></i> ${dokumentasiData[0].survei_feedback}
+                                                                                </a>` :
+                        <
+                        i class = "fas fa-download" > < /i> ${dokumentasiData[0].survei_feedback} <
+                        /a>` :
+                        '<span class="text-muted">Tidak ada file</span>'
+                    } <
+                    /div> <
+                    /div> <
+                    /div> <
+                    /div>
 
-                    <!-- Foto (JPG, PNG) -->
-                    <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <label class="form-label">Foto (JPG, PNG)</label>
-                                <input type="file" class="form-control" name="foto" accept=".jpg,.jpeg,.png,.gif">
-                                <small class="form-text text-muted">Format: JPG, PNG, GIF (Max: 5MB)</small>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">File Saat Ini</label>
-                                <div class="current-file">
-                                    ${dokumentasiData.length > 0 && dokumentasiData[0].foto ? 
-                                        `<a href="/storage/dokumen/foto/${dokumentasiData[0].foto}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-download"></i> ${dokumentasiData[0].foto}
-                                        </a>` : 
-                                        '<span class="text-muted">Tidak ada file</span>'
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                container.append(dokumentasiHtml);
-            }
+                    <
+                    !--Foto(JPG, PNG) -- >
+                    <
+                    div class = "dokumentasi-item border p-3 mb-3 rounded bg-light" >
+                    <
+                    div class = "row" >
+                    <
+                    div class = "col-md-6" >
+                    <
+                    label class = "form-label" > Foto(JPG, PNG) < /label> <
+                    input type = "file"
+                class = "form-control"
+                name = "foto"
+                accept = ".jpg,.jpeg,.png,.gif" >
+                    <
+                    small class = "form-text text-muted" > Format: JPG, PNG, GIF(Max: 5 MB) < /small> <
+                    /div> <
+                    div class = "col-md-6" >
+                    <
+                    label class = "form-label" > File Saat Ini < /label> <
+                    div class = "current-file" >
+                    $ {
+                        dokumentasiData.length > 0 && dokumentasiData[0].foto ?
+                            `<a href="/storage/dokumen/foto/${dokumentasiData[0].foto}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                                <i class="fas fa-download"></i> ${dokumentasiData[0].foto}
+                                                                            </a>` :
+                            <
+                            i class = "fas fa-download" > < /i> ${dokumentasiData[0].foto} <
+                            /a>` :
+                    '<span class="text-muted">Tidak ada file</span>'
+                } <
+                /div> <
+                /div> <
+                /div> <
+                /div>
+            `;
+                        container.append(dokumentasiHtml);
+                    }
 
-            function loadEditFeedbackData(feedbackData) {
-                const container = $('#editFeedbackContainer');
-                container.empty();
+                    function loadEditFeedbackData(feedbackData) {
+                        const container = $('#editFeedbackContainer');
+                        container.empty();
 
-                feedbackData.forEach(function(feedback, index) {
-                    const feedbackHtml = `
-                    <div class="feedback-item border p-3 mb-3 rounded bg-light">
-                        <input type="hidden" name="feedback[${index}][id]" value="${feedback.id || ''}">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox"
-                                        name="feedback[${index}][sangat_puas]" id="edit_sangat_puas_${index}"
-                                        value="1" ${feedback.sangat_puas == 1 ? 'checked' : ''}>
-                                    <label class="form-check-label" for="edit_sangat_puas_${index}">
-                                        Sangat Puas
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox"
-                                        name="feedback[${index}][puas]" id="edit_puas_${index}" 
-                                        value="1" ${feedback.puas == 1 ? 'checked' : ''}>
-                                    <label class="form-check-label" for="edit_puas_${index}">
-                                        Puas
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox"
-                                        name="feedback[${index}][kurang_puas]" id="edit_kurang_puas_${index}"
-                                        value="1" ${feedback.kurang_puas == 1 ? 'checked' : ''}>
-                                    <label class="form-check-label" for="edit_kurang_puas_${index}">
-                                        Kurang Puas
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col-12">
-                                <label class="form-label">Saran</label>
-                                <textarea class="form-control" name="feedback[${index}][saran]"
-                                          rows="2" placeholder="Masukkan saran...">${feedback.saran || ''}</textarea>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                    container.append(feedbackHtml);
-                });
-            }
+                        feedbackData.forEach(function(feedback, index) {
+                            const feedbackHtml = ` <
+            div class = "feedback-item border p-3 mb-3 rounded bg-light" >
+            <
+            input type = "hidden"
+            name = "feedback[${index}][id]"
+            value = "${feedback.id || ''}" >
+                <
+                div class = "row" >
+                <
+                div class = "col-md-3" >
+                <
+                div class = "form-check" >
+                <
+                input class = "form-check-input"
+            type = "checkbox"
+            name = "feedback[${index}][sangat_puas]"
+            id = "edit_sangat_puas_${index}"
+            value = "1"
+            $ {
+                feedback.sangat_puas == 1 ? 'checked' : ''
+            } >
+            <
+            label class = "form-check-label"
+            for = "edit_sangat_puas_${index}" >
+            Sangat Puas
+                <
+                /label> <
+                /div> <
+                /div> <
+                div class = "col-md-3" >
+                <
+                div class = "form-check" >
+                <
+                input class = "form-check-input"
+            type = "checkbox"
+            name = "feedback[${index}][puas]"
+            id = "edit_puas_${index}"
+            value = "1"
+            $ {
+                feedback.puas == 1 ? 'checked' : ''
+            } >
+            <
+            label class = "form-check-label"
+            for = "edit_puas_${index}" >
+            Puas
+                <
+                /label> <
+                /div> <
+                /div> <
+                div class = "col-md-3" >
+                <
+                div class = "form-check" >
+                <
+                input class = "form-check-input"
+            type = "checkbox"
+            name = "feedback[${index}][kurang_puas]"
+            id = "edit_kurang_puas_${index}"
+            value = "1"
+            $ {
+                feedback.kurang_puas == 1 ? 'checked' : ''
+            } >
+            <
+            label class = "form-check-label"
+            for = "edit_kurang_puas_${index}" >
+            Kurang Puas
+                <
+                /label> <
+                /div> <
+                /div> <
+                /div> <
+                div class = "row mt-2" >
+                <
+                div class = "col-12" >
+                <
+                label class = "form-label" > Saran < /label> <
+                textarea class = "form-control"
+            name = "feedback[${index}][saran]"
+            rows = "2"
+            placeholder = "Masukkan saran..." > $ {
+                    feedback.saran || ''
+                } < /textarea> <
+                /div> <
+                /div> <
+                /div>
+            `;
+                            container.append(feedbackHtml);
+                        });
+                    }
 
-            // Add new items in edit modal
-            let editBiayaIndex = 1000; // Start with high number to avoid conflicts
-            let editPublikasiIndex = 1000;
-            let editDokumentasiIndex = 1000;
-            let editFeedbackIndex = 1000;
-            // Event handler untuk tombol edit program
-            $('.edit-program-btn').click(function() {
-                const tjslId = $(this).data('id');
-                loadTjslData(tjslId);
-            });
+                    // Add new items in edit modal
+                    let editBiayaIndex = 1000; // Start with high number to avoid conflicts
+                    let editPublikasiIndex = 1000;
+                    let editDokumentasiIndex = 1000;
+                    let editFeedbackIndex = 1000;
 
-            // Event handler untuk tombol tambah di modal input
-            // $('#addBiaya').click(function() {
-            //     const biayaHtml = `
-        //     <div class="biaya-item border p-3 mb-3 rounded bg-light">
-        //         <div class="row">
-        //             <div class="col-md-5">
-        //                 <label class="form-label">Anggaran (Rp)</label>
-        //                 <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
-        //             </div>
-        //             <div class="col-md-5">
-        //                 <label class="form-label">Realisasi (Rp)</label>
-        //                 <input type="number" class="form-control" name="biaya[${biayaIndex}][realisasi]" step="0.01" placeholder="0.00">
-        //             </div>
-        //             <div class="col-md-2 d-flex align-items-end">
-        //                 <button type="button" class="btn btn-danger btn-sm removeBiaya">
-        //                     <i class="fas fa-trash"></i>
-        //                 </button>
-        //             </div>
-        //         </div>
-        //     </div>
-        // `;
-            //     $('#biayaContainer').append(biayaHtml);
-            //     biayaIndex++;
-            // });
+                    // Event handler untuk tombol tambah di modal input
+                    // $('#addBiaya').click(function() {
+                    //     const biayaHtml = `
+            //     <div class="biaya-item border p-3 mb-3 rounded bg-light">
+            //         <div class="row">
+            //             <div class="col-md-5">
+            //                 <label class="form-label">Anggaran (Rp)</label>
+            //                 <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
+            //             </div>
+            //             <div class="col-md-5">
+            //                 <label class="form-label">Realisasi (Rp)</label>
+            //                 <input type="number" class="form-control" name="biaya[${biayaIndex}][realisasi]" step="0.01" placeholder="0.00">
+            //             </div>
+            //             <div class="col-md-2 d-flex align-items-end">
+            //                 <button type="button" class="btn btn-danger btn-sm removeBiaya">
+            //                     <i class="fas fa-trash"></i>
+            //                 </button>
+            //             </div>
+            //         </div>
+            //     </div>
+            // `;
+                //     $('#biayaContainer').append(biayaHtml);
+                //     biayaIndex++;
+                // });
 
-            // Event handler untuk tombol tambah di modal edit
-            // $('#editAddBiaya').click(function() {
-            //     const biayaHtml = `
-        //     <div class="biaya-item border p-3 mb-3 rounded bg-light">
-        //         <div class="row">
-        //             <div class="col-md-5">
-        //                 <label class="form-label">Anggaran (Rp)</label>
-        //                 <input type="number" class="form-control" name="biaya[${editBiayaIndex}][anggaran]" step="0.01" placeholder="0.00">
-        //             </div>
-        //             <div class="col-md-5">
-        //                 <label class="form-label">Keterangan</label>
-        //                 <input type="text" class="form-control" name="biaya[${editBiayaIndex}][keterangan]" placeholder="Keterangan biaya">
-        //             </div>
-        //             <div class="col-md-2 d-flex align-items-end">
-        //                 <button type="button" class="btn btn-danger btn-sm remove-edit-biaya">
-        //                     <i class="fas fa-trash"></i>
-        //                 </button>
-        //             </div>
-        //         </div>
-        //     </div>
-        // `;
-            //     $('#editBiayaContainer').append(biayaHtml);
-            //     editBiayaIndex++;
-            // });
+                // Event handler untuk tombol tambah di modal edit
+                // $('#editAddBiaya').click(function() {
+                //     const biayaHtml = `
+            //     <div class="biaya-item border p-3 mb-3 rounded bg-light">
+            //         <div class="row">
+            //             <div class="col-md-5">
+            //                 <label class="form-label">Anggaran (Rp)</label>
+            //                 <input type="number" class="form-control" name="biaya[${editBiayaIndex}][anggaran]" step="0.01" placeholder="0.00">
+            //             </div>
+            //             <div class="col-md-5">
+            //                 <label class="form-label">Keterangan</label>
+            //                 <input type="text" class="form-control" name="biaya[${editBiayaIndex}][keterangan]" placeholder="Keterangan biaya">
+            //             </div>
+            //             <div class="col-md-2 d-flex align-items-end">
+            //                 <button type="button" class="btn btn-danger btn-sm remove-edit-biaya">
+            //                     <i class="fas fa-trash"></i>
+            //                 </button>
+            //             </div>
+            //         </div>
+            //     </div>
+            // `;
+                //     $('#editBiayaContainer').append(biayaHtml);
+                //     editBiayaIndex++;
+                // });
 
-            $('#editAddPublikasi').click(function() {
-                const publikasiHtml = `
+                $('#editAddPublikasi').click(function() {
+                    const publikasiHtml = `
                 <div class="publikasi-item border p-3 mb-3 rounded bg-light">
                     <div class="row">
                         <div class="col-md-4">
@@ -1690,176 +1858,203 @@
                     </div>
                 </div>
             `;
-                $('#editPublikasiContainer').append(publikasiHtml);
-                editPublikasiIndex++;
-            });
+                    $('#editPublikasiContainer').append(publikasiHtml);
+                    editPublikasiIndex++;
+                });
 
+                // Handler untuk tombol editAddDokumentasi sudah dihapus karena tidak diperlukan lagi
+                /*
+                                                    $('#editAddDokumentasi').click(function() {
+                                                        const dokumentasiHtml = `
             // Handler untuk tombol editAddDokumentasi sudah dihapus karena tidak diperlukan lagi
             /*
             $('#editAddDokumentasi').click(function() {
                 const dokumentasiHtml = `
-            <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
-                <div class="row">
-                    <div class="col-md-4">
-                        <label class="form-label">Nama Dokumen</label>
-                        <input type="text" class="form-control" name="dokumentasi[${editDokumentasiIndex}][nama_dokumen]" placeholder="Nama Dokumen">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Link Dokumen</label>
-                        <input type="url" class="form-control" name="dokumentasi[${editDokumentasiIndex}][link]" placeholder="https://...">
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger btn-sm remove-edit-dokumentasi">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label class="form-label">Nama Dokumen</label>
+                            <input type="text" class="form-control" name="dokumentasi[${editDokumentasiIndex}][nama_dokumen]" placeholder="Nama Dokumen">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Link Dokumen</label>
+                            <input type="url" class="form-control" name="dokumentasi[${editDokumentasiIndex}][link]" placeholder="https://...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger btn-sm remove-edit-dokumentasi">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-                $('#editDokumentasiContainer').append(dokumentasiHtml);
-                editDokumentasiIndex++;
-            });
-            */
+            `;
+                                                    $('#editDokumentasiContainer').append(dokumentasiHtml);
+                                                    editDokumentasiIndex++;
+                                                });
+                                                */
+            $('#editDokumentasiContainer').append(dokumentasiHtml);
+            editDokumentasiIndex++;
+        });
+        */
 
-            // Remove items in edit modal
-            $(document).on('click', '.remove-edit-biaya', function() {
-                $(this).closest('.biaya-item').remove();
-            });
-
-            $(document).on('click', '.remove-edit-publikasi', function() {
-                $(this).closest('.publikasi-item').remove();
-            });
-
-            $(document).on('click', '.remove-edit-publikasi', function() {
-                $(this).closest('.publikasi-item').remove();
-            });
-
-            // Reset edit modal when closed
-            $('#editTjslModal').on('hidden.bs.modal', function() {
-                $('#editTjslForm')[0].reset();
-                $('#editBiayaContainer').empty();
-                $('#editPublikasiContainer').empty();
-                $('#editDokumentasiContainer').empty();
-                $('#editFeedbackContainer').empty();
-
-                // Reset to first tab
-                $('#edit-program-tab').tab('show');
-
-                // Clear validation states
-                $('.is-invalid').removeClass('is-invalid');
-            });
-
-            // Auto filter on change (KECUALI region - karena region punya handler khusus)
-            $('#filterPilar, #filterKebun, #filterTahun').change(function() {
-                applyFilters();
-            });
-
-            function applyFilters() {
-                const filters = {
-                    region: $('#filterRegion').val(),
-                    pilar_id: $('#filterPilar').val(),
-                    unit_id: $('#filterKebun').val(),
-                    tahun: $('#filterTahun').val()
-                };
-
-                // Build query string
-                const queryString = Object.keys(filters)
-                    .filter(key => filters[key] !== '' && filters[key] !== null)
-                    .map(key => key + '=' + encodeURIComponent(filters[key]))
-                    .join('&');
-
-                // Redirect with filters
-                window.location.href = '{{ route('tjsl.index') }}' + (queryString ? '?' + queryString : '');
-            }
-
-            // Filter kebun berdasarkan region yang dipilih
-            $('#filterRegion').on('change', function() {
-                const selectedRegion = $(this).val();
-                const kebunSelect = $('#filterKebun');
-
-
-                if (selectedRegion && selectedRegion.trim() !== '') {
-
-                    // AJAX call untuk mendapatkan unit berdasarkan region
-                    $.ajax({
-                        url: '{{ route('get.units.by.region') }}',
-                        method: 'GET',
-                        data: {
-                            region: selectedRegion
-                        },
-                        beforeSend: function() {
-                            kebunSelect.html('<option value="">Loading...</option>');
-                        },
-                        success: function(response) {
-
-
-                            kebunSelect.html('<option value="">Semua Kebun</option>');
-
-                            if (response && Array.isArray(response) && response.length > 0) {
-                                response.forEach(function(unit) {
-                                    kebunSelect.append(
-                                        `<option value="${unit.id}">${unit.unit}</option>`
-                                    );
-                                });
-                            } else {
-
-                                kebunSelect.append('<option value="">Tidak ada kebun</option>');
-                            }
-
-                            // Auto filter setelah region dipilih
-                            applyFilters();
-                        },
-                        error: function(xhr, status, error) {
-                            kebunSelect.html('<option value="">Error loading data</option>');
-                        }
-                    });
-                } else {
-                    // Reset ke semua kebun dengan sorting
-                    kebunSelect.html('<option value="">Semua Kebun</option>');
-                    const units = [
-                        @foreach ($units->sortBy('unit') as $unit)
-                            {
-                                id: '{{ $unit->id }}',
-                                unit: '{{ $unit->unit }}'
-                            },
-                        @endforeach
-                    ];
-
-                    units.forEach(function(unit) {
-                        kebunSelect.append(
-                            `<option value="${unit.id}">${unit.unit}</option>`
-                        );
-                    });
-                }
-            });
-
-            // Reset filter button
-            $('#resetFilter').click(function() {
-                $('#filterRegion').val('');
-                $('#filterPilar').val('');
-                $('#filterKebun').val('');
-                $('#filterTahun').val('');
-
-                // Trigger region change to reset kebun dropdown
-                $('#filterRegion').trigger('change');
-
-                // Apply filters (redirect to clean URL)
-                window.location.href = '{{ route('tjsl.index') }}';
-            });
-
-            // Manual test setelah 3 detik
-            setTimeout(function() {
-                $('#filterRegion').val('').trigger('change');
-            }, 3000);
+        // Remove items in edit modal
+        $(document).on('click', '.remove-edit-biaya', function() {
+            $(this).closest('.biaya-item').remove();
         });
 
-        // Util: inisialisasi Leaflet dengan klik-peta -> isi input
-        function initLeafletMap(mapId, latInputId, lngInputId, hiddenKoordId) {
-            // Pusat default Indonesia (Jakarta)
-            const defaultCenter = [-6.200000, 106.816666];
+        $(document).on('click', '.remove-edit-publikasi', function() {
+            $(this).closest('.publikasi-item').remove();
+        });
+
+        $(document).on('click', '.remove-edit-publikasi', function() {
+            $(this).closest('.publikasi-item').remove();
+        });
+
+        // Reset edit modal when closed
+        $('#editTjslModal').on('hidden.bs.modal', function() {
+            $('#editTjslForm')[0].reset();
+            $('#editBiayaContainer').empty();
+            $('#editPublikasiContainer').empty();
+            $('#editDokumentasiContainer').empty();
+            $('#editFeedbackContainer').empty();
+
+            // Reset to first tab
+            $('#edit-program-tab').tab('show');
+
+            // Clear validation states
+            $('.is-invalid').removeClass('is-invalid');
+        });
+
+        // Auto filter on change (KECUALI region - karena region punya handler khusus)
+        $('#filterPilar, #filterKebun, #filterTahun').change(function() {
+            applyFilters();
+        });
+
+        function applyFilters() {
+            const filters = {
+                region: $('#filterRegion').val(),
+                pilar_id: $('#filterPilar').val(),
+                unit_id: $('#filterKebun').val(),
+                tahun: $('#filterTahun').val()
+            };
+
+            // Build query string
+            const queryString = Object.keys(filters)
+                .filter(key => filters[key] !== '' && filters[key] !== null)
+                .map(key => key + '=' + encodeURIComponent(filters[key]))
+                .join('&');
+
+            // Redirect with filters
+            window.location.href = '{{ route('tjsl.index') }}' + (queryString ? '?' + queryString :
+                '');
+        }
+
+        // Filter kebun berdasarkan region yang dipilih
+        $('#filterRegion').on('change', function() {
+            const selectedRegion = $(this).val();
+            const kebunSelect = $('#filterKebun');
+
+
+            if (selectedRegion && selectedRegion.trim() !== '') {
+
+                // AJAX call untuk mendapatkan unit berdasarkan region
+                $.ajax({
+                    url: '{{ route('get.units.by.region') }}',
+                    method: 'GET',
+                    data: {
+                        region: selectedRegion
+                    },
+                    beforeSend: function() {
+                        kebunSelect.html('<option value="">Loading...</option>');
+                    },
+                    success: function(response) {
+
+
+                        kebunSelect.html('<option value="">Semua Kebun</option>');
+
+                        if (response && Array.isArray(response) && response.length >
+                            0) {
+                            response.forEach(function(unit) {
+                                kebunSelect.append(
+                                    `<option value="${unit.id}">${unit.unit}</option>`
+                                );
+                            });
+                        } else {
+
+                            kebunSelect.append(
+                                '<option value="">Tidak ada kebun</option>');
+                        }
+
+                        // Auto filter setelah region dipilih
+                        applyFilters();
+                    },
+                    error: function(xhr, status, error) {
+                        kebunSelect.html(
+                            '<option value="">Error loading data</option>');
+                    }
+                });
+            } else {
+                // Reset ke semua kebun dengan sorting
+                kebunSelect.html('<option value="">Semua Kebun</option>');
+                const units = [
+                    @foreach ($units->sortBy('unit') as $unit)
+                        {
+                            id: '{{ $unit->id }}',
+                            unit: '{{ $unit->unit }}'
+                        },
+                    @endforeach
+                ];
+
+                units.forEach(function(unit) {
+                    kebunSelect.append(
+                        `<option value="${unit.id}">${unit.unit}</option>`
+                    );
+                });
+            }
+        });
+
+        // Reset filter button
+        $('#resetFilter').click(function() {
+            $('#filterRegion').val('');
+            $('#filterPilar').val('');
+            $('#filterKebun').val('');
+            $('#filterTahun').val('');
+
+            // Trigger region change to reset kebun dropdown
+            $('#filterRegion').trigger('change');
+
+            // Apply filters (redirect to clean URL)
+            window.location.href = '{{ route('tjsl.index') }}';
+        });
+
+        // Manual test setelah 3 detik
+        setTimeout(function() {
+            $('#filterRegion').val('').trigger('change');
+        }, 3000);
+    });
+
+    // Util: inisialisasi Leaflet dengan klik-peta -> isi input
+    function initLeafletMap(mapId, latInputId, lngInputId, hiddenKoordId) {
+        console.log('initLeafletMap called with mapId:', mapId);
+
+        // Cek apakah container peta ada
+        const mapContainer = document.getElementById(mapId);
+        if (!mapContainer) {
+            console.error('Map container not found:', mapId);
+            return null;
+        }
+
+        console.log('Map container found:', mapContainer);
+
+        // Pusat default Indonesia (Jakarta)
+        const defaultCenter = [-6.200000, 106.816666];
+
+        try {
             const map = L.map(mapId, {
                 zoomControl: true
             }).setView(defaultCenter, 6);
+
+            console.log('Leaflet map initialized successfully');
 
             // Definisi berbagai layer peta
             const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -1896,6 +2091,7 @@
             // Pastikan render saat container sebelumnya tersembunyi (modal)
             setTimeout(function() {
                 map.invalidateSize(true);
+                console.log('Map invalidateSize called');
             }, 100);
 
             let marker = null;
@@ -1944,351 +2140,370 @@
                 map,
                 setMarker
             };
+
+        } catch (error) {
+            console.error('Error initializing Leaflet map:', error);
+            return null;
+        }
+    }
+
+
+
+    // Fungsi untuk mengekstrak dan mengisi data wilayah dari kode
+    function parseAndSetWilayahFromCode(kodeWilayah) {
+        // console.log('=== parseAndSetWilayahFromCode START ===');
+        // console.log('Parsing kode wilayah:', kodeWilayah);
+        // console.log('Modal edit visible:', $('#editTjslModal').is(':visible'));
+        // console.log('Edit provinsi element exists:', $('#edit_lokasi_provinsi').length);
+
+        if (!kodeWilayah || kodeWilayah.length < 10) {
+            // console.log('Kode wilayah tidak valid atau terlalu pendek');
+            return;
         }
 
-
-
-        // Fungsi untuk mengekstrak dan mengisi data wilayah dari kode
-        function parseAndSetWilayahFromCode(kodeWilayah) {
-            // console.log('=== parseAndSetWilayahFromCode START ===');
-            // console.log('Parsing kode wilayah:', kodeWilayah);
-            // console.log('Modal edit visible:', $('#editTjslModal').is(':visible'));
-            // console.log('Edit provinsi element exists:', $('#edit_lokasi_provinsi').length);
-
-            if (!kodeWilayah || kodeWilayah.length < 10) {
-                // console.log('Kode wilayah tidak valid atau terlalu pendek');
-                return;
-            }
-
-            // Format kode: 11.01.01.2002
-            // 11 = Provinsi, 01 = Kabupaten, 01 = Kecamatan, 2002 = Desa
-            const parts = kodeWilayah.split('.');
-            if (parts.length !== 4) {
-                // console.log('Format kode wilayah tidak sesuai, parts:', parts);
-                return;
-            }
-
-            const kodeProvinsi = parts[0];
-            const kodeKabupaten = parts[0] + '.' + parts[1];
-            const kodeKecamatan = parts[0] + '.' + parts[1] + '.' + parts[2];
-            const kodeDesa = kodeWilayah;
-
-            // console.log('Kode yang akan di-set:', {
-            //     provinsi: kodeProvinsi,
-            //     kabupaten: kodeKabupaten,
-            //     kecamatan: kodeKecamatan,
-            //     desa: kodeDesa
-            // });
-
-            // Tunggu sebentar untuk memastikan Select2 sudah terinisialisasi
-            setTimeout(function() {
-                // console.log('Starting to set provinsi...');
-                // Set provinsi terlebih dahulu
-                setWilayahByCode('edit_lokasi_provinsi', kodeProvinsi, function() {
-                    // console.log('Provinsi set, now setting kabupaten...');
-                    // Setelah provinsi ter-set, set kabupaten
-                    setTimeout(function() {
-                        $('#edit_lokasi_kabupaten').prop('disabled', false);
-                        setWilayahByCode('edit_lokasi_kabupaten', kodeKabupaten,
-                            function() {
-                                // console.log(
-                                //     'Kabupaten set, now setting kecamatan...');
-                                // Setelah kabupaten ter-set, set kecamatan
-                                setTimeout(function() {
-                                    $('#edit_lokasi_kecamatan').prop(
-                                        'disabled', false);
-                                    setWilayahByCode(
-                                        'edit_lokasi_kecamatan',
-                                        kodeKecamatan,
-                                        function() {
-                                            // console.log(
-                                            //     'Kecamatan set, now setting desa...'
-                                            // );
-                                            // Setelah kecamatan ter-set, set desa
-                                            setTimeout(function() {
-                                                $('#edit_lokasi_desa')
-                                                    .prop(
-                                                        'disabled',
-                                                        false);
-                                                setWilayahByCode
-                                                    (
-                                                        'edit_lokasi_desa',
-                                                        kodeDesa,
-                                                        function() {
-                                                            // console
-                                                            //     .log(
-                                                            //         'All regions set, composing location...'
-                                                            //     );
-                                                            composeEditLokasiProgram
-                                                                ();
-                                                            // console
-                                                            //     .log(
-                                                            //         '=== parseAndSetWilayahFromCode END ==='
-                                                            //     );
-                                                        });
-                                            }, 300);
-                                        });
-                                }, 300);
-                            });
-                    }, 300);
-                });
-            }, 500); // Delay untuk memastikan modal dan Select2 sudah siap
+        // Format kode: 11.01.01.2002
+        // 11 = Provinsi, 01 = Kabupaten, 01 = Kecamatan, 2002 = Desa
+        const parts = kodeWilayah.split('.');
+        if (parts.length !== 4) {
+            // console.log('Format kode wilayah tidak sesuai, parts:', parts);
+            return;
         }
 
-        function setWilayahByCode(selectId, kode, callback) {
-            // console.log('Setting wilayah untuk', selectId, 'dengan kode:', kode);
+        const kodeProvinsi = parts[0];
+        const kodeKabupaten = parts[0] + '.' + parts[1];
+        const kodeKecamatan = parts[0] + '.' + parts[1] + '.' + parts[2];
+        const kodeDesa = kodeWilayah;
 
-            $.ajax({
-                url: '/get-wilayah-by-code',
-                method: 'GET',
-                data: {
-                    kode: kode
-                },
-                success: function(data) {
-                    // console.log('Response untuk', selectId, ':', data);
+        // console.log('Kode yang akan di-set:', {
+        //     provinsi: kodeProvinsi,
+        //     kabupaten: kodeKabupaten,
+        //     kecamatan: kodeKecamatan,
+        //     desa: kodeDesa
+        // });
 
-                    if (data && data.nama) {
-                        // Clear existing options first
-                        $('#' + selectId).empty();
+        // Tunggu sebentar untuk memastikan Select2 sudah terinisialisasi
+        setTimeout(function() {
+            // console.log('Starting to set provinsi...');
+            // Set provinsi terlebih dahulu
+            setWilayahByCode('edit_lokasi_provinsi', kodeProvinsi, function() {
+                // console.log('Provinsi set, now setting kabupaten...');
+                // Setelah provinsi ter-set, set kabupaten
+                setTimeout(function() {
+                    $('#edit_lokasi_kabupaten').prop('disabled', false);
+                    setWilayahByCode('edit_lokasi_kabupaten', kodeKabupaten,
+                        function() {
+                            // console.log(
+                            //     'Kabupaten set, now setting kecamatan...');
+                            // Setelah kabupaten ter-set, set kecamatan
+                            setTimeout(function() {
+                                $('#edit_lokasi_kecamatan').prop(
+                                    'disabled', false);
+                                setWilayahByCode(
+                                    'edit_lokasi_kecamatan',
+                                    kodeKecamatan,
+                                    function() {
+                                        // console.log(
+                                        //     'Kecamatan set, now setting desa...'
+                                        // );
+                                        // Setelah kecamatan ter-set, set desa
+                                        setTimeout(function() {
+                                            $('#edit_lokasi_desa')
+                                                .prop(
+                                                    'disabled',
+                                                    false);
+                                            setWilayahByCode
+                                                (
+                                                    'edit_lokasi_desa',
+                                                    kodeDesa,
+                                                    function() {
+                                                        // console
+                                                        //     .log(
+                                                        //         'All regions set, composing location...'
+                                                        //     );
+                                                        composeEditLokasiProgram
+                                                            ();
+                                                        // console
+                                                        //     .log(
+                                                        //         '=== parseAndSetWilayahFromCode END ==='
+                                                        //     );
+                                                    });
+                                        }, 300);
+                                    });
+                            }, 300);
+                        });
+                }, 300);
+            });
+        }, 500); // Delay untuk memastikan modal dan Select2 sudah siap
+    }
 
-                        // Buat option baru dan set sebagai selected
-                        const newOption = new Option(data.nama, data.kode, true, true);
-                        $('#' + selectId).append(newOption).trigger('change');
+    function setWilayahByCode(selectId, kode, callback) {
+        // console.log('Setting wilayah untuk', selectId, 'dengan kode:', kode);
 
-                        // console.log('Berhasil set', selectId, 'dengan nilai:', data.nama);
+        $.ajax({
+            url: '/get-wilayah-by-code',
+            method: 'GET',
+            data: {
+                kode: kode
+            },
+            success: function(data) {
+                // console.log('Response untuk', selectId, ':', data);
 
-                        if (callback) {
-                            callback();
-                        }
-                    } else {
-                        // console.log('Data tidak valid untuk', selectId);
-                        if (callback) {
-                            callback();
-                        }
+                if (data && data.nama) {
+                    // Clear existing options first
+                    $('#' + selectId).empty();
+
+                    // Buat option baru dan set sebagai selected
+                    const newOption = new Option(data.nama, data.kode, true, true);
+                    $('#' + selectId).append(newOption).trigger('change');
+
+                    // console.log('Berhasil set', selectId, 'dengan nilai:', data.nama);
+
+                    if (callback) {
+                        callback();
                     }
-                },
-                error: function(xhr, status, error) {
-                    // console.log('Error loading wilayah data for', selectId, ':', error);
-                    // console.log('Response:', xhr.responseText);
+                } else {
+                    // console.log('Data tidak valid untuk', selectId);
                     if (callback) {
                         callback();
                     }
                 }
-            });
-        }
+            },
+            error: function(xhr, status, error) {
+                // console.log('Error loading wilayah data for', selectId, ':', error);
+                // console.log('Response:', xhr.responseText);
+                if (callback) {
+                    callback();
+                }
+            }
+        });
+    }
 
-        // Fungsi untuk inisialisasi Select2 wilayah edit
-        function initEditWilayahSelect2() {
-            // Provinsi Edit
-            $('#edit_lokasi_provinsi').select2({
-                placeholder: 'Pilih Provinsi',
-                allowClear: true,
-                width: '100%',
-                ajax: {
-                    url: '/get-wilayah',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function(params) {
-                        return {
-                            level: 'provinsi',
-                            q: params.term || ''
-                        };
-                    },
-                    processResults: function(data) {
-                        // Sort data berdasarkan nama secara ascending
-                        const sortedData = data.sort(function(a, b) {
-                            return a.nama.localeCompare(b.nama);
-                        });
+    // Fungsi untuk inisialisasi Select2 wilayah edit
+    function initEditWilayahSelect2() {
+        // Provinsi Edit
+        $('#edit_lokasi_provinsi').select2({
+            placeholder: 'Pilih Provinsi',
+            allowClear: true,
+            width: '100%',
+            ajax: {
+                url: '/get-wilayah',
+                dataType: 'json',
+                delay: 250,
+                data: function(params) {
+                    return {
+                        level: 'provinsi',
+                        q: params.term || ''
+                    };
+                },
+                processResults: function(data) {
+                    // Sort data berdasarkan nama secara ascending
+                    const sortedData = data.sort(function(a, b) {
+                        return a.nama.localeCompare(b.nama);
+                    });
 
-                        return {
-                            results: sortedData.map(function(item) {
-                                return {
-                                    id: item.kode,
-                                    text: item.nama
-                                };
-                            })
-                        };
+                    return {
+                        results: sortedData.map(function(item) {
+                            return {
+                                id: item.kode,
+                                text: item.nama
+                            };
+                        })
+                    };
+                }
+            }
+        }).on('change', function() {
+            const provinsiKode = $(this).val();
+            resetEditSelect('#edit_lokasi_kabupaten');
+            resetEditSelect('#edit_lokasi_kecamatan');
+            resetEditSelect('#edit_lokasi_desa');
+
+            if (provinsiKode) {
+                $('#edit_lokasi_kabupaten').prop('disabled', false);
+                $('#edit_lokasi_kabupaten').select2({
+                    placeholder: 'Pilih Kabupaten/Kota',
+                    allowClear: true,
+                    width: '100%',
+                    ajax: {
+                        url: '/get-wilayah',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                level: 'kabupaten',
+                                parent_kode: provinsiKode,
+                                q: params.term || ''
+                            };
+                        },
+                        processResults: function(data) {
+                            // Sort data berdasarkan nama secara ascending
+                            const sortedData = data.sort(function(a, b) {
+                                return a.nama.localeCompare(b.nama);
+                            });
+
+                            return {
+                                results: sortedData.map(function(item) {
+                                    return {
+                                        id: item.kode,
+                                        text: item.nama
+                                    };
+                                })
+                            };
+                        }
                     }
-                }
-            }).on('change', function() {
-                const provinsiKode = $(this).val();
-                resetEditSelect('#edit_lokasi_kabupaten');
-                resetEditSelect('#edit_lokasi_kecamatan');
-                resetEditSelect('#edit_lokasi_desa');
-
-                if (provinsiKode) {
-                    $('#edit_lokasi_kabupaten').prop('disabled', false);
-                    $('#edit_lokasi_kabupaten').select2({
-                        placeholder: 'Pilih Kabupaten/Kota',
-                        allowClear: true,
-                        width: '100%',
-                        ajax: {
-                            url: '/get-wilayah',
-                            dataType: 'json',
-                            delay: 250,
-                            data: function(params) {
-                                return {
-                                    level: 'kabupaten',
-                                    parent_kode: provinsiKode,
-                                    q: params.term || ''
-                                };
-                            },
-                            processResults: function(data) {
-                                // Sort data berdasarkan nama secara ascending
-                                const sortedData = data.sort(function(a, b) {
-                                    return a.nama.localeCompare(b.nama);
-                                });
-
-                                return {
-                                    results: sortedData.map(function(item) {
-                                        return {
-                                            id: item.kode,
-                                            text: item.nama
-                                        };
-                                    })
-                                };
-                            }
-                        }
-                    });
-                } else {
-                    $('#edit_lokasi_kabupaten').prop('disabled', true);
-                }
-                composeEditLokasiProgram();
-            });
-
-            // Kabupaten Edit
-            $('#edit_lokasi_kabupaten').on('change', function() {
-                const kabupatenKode = $(this).val();
-                resetEditSelect('#edit_lokasi_kecamatan');
-                resetEditSelect('#edit_lokasi_desa');
-
-                if (kabupatenKode) {
-                    $('#edit_lokasi_kecamatan').prop('disabled', false);
-                    $('#edit_lokasi_kecamatan').select2({
-                        placeholder: 'Pilih Kecamatan',
-                        allowClear: true,
-                        width: '100%',
-                        ajax: {
-                            url: '/get-wilayah',
-                            dataType: 'json',
-                            delay: 250,
-                            data: function(params) {
-                                return {
-                                    level: 'kecamatan',
-                                    parent_kode: kabupatenKode,
-                                    q: params.term || ''
-                                };
-                            },
-                            processResults: function(data) {
-                                // Sort data berdasarkan nama secara ascending
-                                const sortedData = data.sort(function(a, b) {
-                                    return a.nama.localeCompare(b.nama);
-                                });
-
-                                return {
-                                    results: sortedData.map(function(item) {
-                                        return {
-                                            id: item.kode,
-                                            text: item.nama
-                                        };
-                                    })
-                                };
-                            }
-                        }
-                    });
-                } else {
-                    $('#edit_lokasi_kecamatan').prop('disabled', true);
-                }
-                composeEditLokasiProgram();
-            });
-
-            // Kecamatan Edit
-            $('#edit_lokasi_kecamatan').on('change', function() {
-                const kecamatanKode = $(this).val();
-                resetEditSelect('#edit_lokasi_desa');
-
-                if (kecamatanKode) {
-                    $('#edit_lokasi_desa').prop('disabled', false);
-                    $('#edit_lokasi_desa').select2({
-                        placeholder: 'Pilih Desa/Kelurahan',
-                        allowClear: true,
-                        width: '100%',
-                        ajax: {
-                            url: '/get-wilayah',
-                            dataType: 'json',
-                            delay: 250,
-                            data: function(params) {
-                                return {
-                                    level: 'desa',
-                                    parent_kode: kecamatanKode,
-                                    q: params.term || ''
-                                };
-                            },
-                            processResults: function(data) {
-                                // Sort data berdasarkan nama secara ascending
-                                const sortedData = data.sort(function(a, b) {
-                                    return a.nama.localeCompare(b.nama);
-                                });
-
-                                return {
-                                    results: sortedData.map(function(item) {
-                                        return {
-                                            id: item.kode,
-                                            text: item.nama
-                                        };
-                                    })
-                                };
-                            }
-                        }
-                    });
-                } else {
-                    $('#edit_lokasi_desa').prop('disabled', true);
-                }
-                composeEditLokasiProgram();
-            });
-
-            // Desa Edit
-            $('#edit_lokasi_desa').on('change', function() {
-                composeEditLokasiProgram();
-            });
-        }
-
-        // Fungsi untuk reset select edit
-        function resetEditSelect(selector) {
-            $(selector).empty().append('<option></option>').val(null).trigger('change').prop('disabled', true);
-        }
-
-        // Fungsi untuk menyusun lokasi program edit
-        function composeEditLokasiProgram() {
-            // Ambil kode wilayah (value) bukan nama (text)
-            const provKode = $('#edit_lokasi_provinsi').val() || '';
-            const kabKode = $('#edit_lokasi_kabupaten').val() || '';
-            const kecKode = $('#edit_lokasi_kecamatan').val() || '';
-            const desaKode = $('#edit_lokasi_desa').val() || '';
-
-            // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
-            if (desaKode) {
-                $('#edit_lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
-            } else if (kecKode) {
-                $('#edit_lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
-            } else if (kabKode) {
-                $('#edit_lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
-            } else if (provKode) {
-                $('#edit_lokasi_program').val(provKode); // Kode provinsi (format: NN)
+                });
             } else {
-                $('#edit_lokasi_program').val('');
+                $('#edit_lokasi_kabupaten').prop('disabled', true);
             }
+            composeEditLokasiProgram();
+        });
+
+        // Kabupaten Edit
+        $('#edit_lokasi_kabupaten').on('change', function() {
+            const kabupatenKode = $(this).val();
+            resetEditSelect('#edit_lokasi_kecamatan');
+            resetEditSelect('#edit_lokasi_desa');
+
+            if (kabupatenKode) {
+                $('#edit_lokasi_kecamatan').prop('disabled', false);
+                $('#edit_lokasi_kecamatan').select2({
+                    placeholder: 'Pilih Kecamatan',
+                    allowClear: true,
+                    width: '100%',
+                    ajax: {
+                        url: '/get-wilayah',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                level: 'kecamatan',
+                                parent_kode: kabupatenKode,
+                                q: params.term || ''
+                            };
+                        },
+                        processResults: function(data) {
+                            // Sort data berdasarkan nama secara ascending
+                            const sortedData = data.sort(function(a, b) {
+                                return a.nama.localeCompare(b.nama);
+                            });
+
+                            return {
+                                results: sortedData.map(function(item) {
+                                    return {
+                                        id: item.kode,
+                                        text: item.nama
+                                    };
+                                })
+                            };
+                        }
+                    }
+                });
+            } else {
+                $('#edit_lokasi_kecamatan').prop('disabled', true);
+            }
+            composeEditLokasiProgram();
+        });
+
+        // Kecamatan Edit
+        $('#edit_lokasi_kecamatan').on('change', function() {
+            const kecamatanKode = $(this).val();
+            resetEditSelect('#edit_lokasi_desa');
+
+            if (kecamatanKode) {
+                $('#edit_lokasi_desa').prop('disabled', false);
+                $('#edit_lokasi_desa').select2({
+                    placeholder: 'Pilih Desa/Kelurahan',
+                    allowClear: true,
+                    width: '100%',
+                    ajax: {
+                        url: '/get-wilayah',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function(params) {
+                            return {
+                                level: 'desa',
+                                parent_kode: kecamatanKode,
+                                q: params.term || ''
+                            };
+                        },
+                        processResults: function(data) {
+                            // Sort data berdasarkan nama secara ascending
+                            const sortedData = data.sort(function(a, b) {
+                                return a.nama.localeCompare(b.nama);
+                            });
+
+                            return {
+                                results: sortedData.map(function(item) {
+                                    return {
+                                        id: item.kode,
+                                        text: item.nama
+                                    };
+                                })
+                            };
+                        }
+                    }
+                });
+            } else {
+                $('#edit_lokasi_desa').prop('disabled', true);
+            }
+            composeEditLokasiProgram();
+        });
+
+        // Desa Edit
+        $('#edit_lokasi_desa').on('change', function() {
+            composeEditLokasiProgram();
+        });
+    }
+
+    // Fungsi untuk reset select edit
+    function resetEditSelect(selector) {
+        $(selector).empty().append('<option></option>').val(null).trigger('change').prop('disabled', true);
+    }
+
+    // Fungsi untuk menyusun lokasi program edit
+    function composeEditLokasiProgram() {
+        // Ambil kode wilayah (value) bukan nama (text)
+        const provKode = $('#edit_lokasi_provinsi').val() || '';
+        const kabKode = $('#edit_lokasi_kabupaten').val() || '';
+        const kecKode = $('#edit_lokasi_kecamatan').val() || '';
+        const desaKode = $('#edit_lokasi_desa').val() || '';
+
+        // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
+        if (desaKode) {
+            $('#edit_lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+        } else if (kecKode) {
+            $('#edit_lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
+        } else if (kabKode) {
+            $('#edit_lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
+        } else if (provKode) {
+            $('#edit_lokasi_program').val(provKode); // Kode provinsi (format: NN)
+        } else {
+            $('#edit_lokasi_program').val('');
+        }
+    }
+
+    // Fungsi untuk inisialisasi peta edit
+    function initEditLeafletMap(containerId, latInputId, lngInputId, hiddenKoordId) {
+        console.log('initEditLeafletMap called with containerId:', containerId);
+
+        // Cek apakah container peta ada
+        const mapContainer = document.getElementById(containerId);
+        if (!mapContainer) {
+            console.error('Edit map container not found:', containerId);
+            return null;
         }
 
-        // Fungsi untuk inisialisasi peta edit
-        function initEditLeafletMap(containerId, latInputId, lngInputId, hiddenKoordId) {
-            // Hapus peta yang sudah ada jika ada
-            if (window.editMapInstance) {
-                window.editMapInstance.remove();
-            }
+        console.log('Edit map container found:', mapContainer);
 
+        // Hapus peta yang sudah ada jika ada
+        if (window.editMapInstance) {
+            window.editMapInstance.remove();
+            console.log('Previous edit map instance removed');
+        }
+
+        try {
             // Inisialisasi peta dengan center default
             const map = L.map(containerId).setView([-6.2088, 106.8456], 10);
+            console.log('Edit Leaflet map initialized successfully');
 
             // Simpan instance peta untuk referensi global
             window.editMapInstance = map;
@@ -2325,6 +2540,7 @@
             // Pastikan render saat container sebelumnya tersembunyi (modal)
             setTimeout(function() {
                 map.invalidateSize(true);
+                console.log('Edit map invalidateSize called');
             }, 100);
 
             let marker = null;
@@ -2366,94 +2582,103 @@
                 map,
                 setMarker
             };
+
+        } catch (error) {
+            console.error('Error initializing edit Leaflet map:', error);
+            return null;
+        }
+    }
+
+    // Add Biaya
+    $('#addBiaya').click(function() {
+        const biayaHtml = `
+            <div class="biaya-item border p-3 mb-3 rounded bg-light">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Sub Pilar/TPB</label>
+                        <select class="form-control biaya-sub-pilar" name="biaya[${biayaIndex}][sub_pilar_id]">
+                            <option value="">Pilih Sub Pilar</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Anggaran (Rp)</label>
+                        <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Realisasi (Rp)</label>
+                        <input type="number" class="form-control" name="biaya[${biayaIndex}][realisasi]" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm removeBiaya">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        const $newBiaya = $(biayaHtml);
+        $('#biayaContainer').append($newBiaya);
+
+        // Populate sub pilar options for the new dropdown
+        const $newSelect = $newBiaya.find('.biaya-sub-pilar');
+
+        // Urutkan berdasarkan ID sebelum menambahkan opsi
+        const sortedSubpilars = [...allSubpilars].sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+        sortedSubpilars.forEach(function(subpilar) {
+            $newSelect.append(
+                `<option value="${subpilar.id}">${subpilar.id}.${subpilar.text}</option>`);
+        });
+
+        // Update sub pilar options based on current program unggulan
+        const programUnggulanId = $('#program_unggulan_id').val();
+        if (programUnggulanId && programUnggulanMap[programUnggulanId]) {
+            updateBiayaSubPilarOptions(programUnggulanMap[programUnggulanId]);
         }
 
-        // Add Biaya
-        $('#addBiaya').click(function() {
-            const biayaHtml = `
-        <div class="biaya-item border p-3 mb-3 rounded bg-light">
-            <div class="row">
-                <div class="col-md-4">
-                    <label class="form-label">Sub Pilar/TPB</label>
-                    <select class="form-control biaya-sub-pilar" name="biaya[${biayaIndex}][sub_pilar_id]">
-                        <option value="">Pilih Sub Pilar</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Anggaran (Rp)</label>
-                    <input type="number" class="form-control" name="biaya[${biayaIndex}][anggaran]" step="0.01" placeholder="0.00">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Realisasi (Rp)</label>
-                    <input type="number" class="form-control" name="biaya[${biayaIndex}][realisasi]" step="0.01" placeholder="0.00">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger btn-sm removeBiaya">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-            const $newBiaya = $(biayaHtml);
-            $('#biayaContainer').append($newBiaya);
+        biayaIndex++;
+    });
 
-            // Populate sub pilar options for the new dropdown
-            const $newSelect = $newBiaya.find('.biaya-sub-pilar');
+    // Add Publikasi
+    $('#addPublikasi').click(function() {
+        // Pastikan counter tersedia (hindari ReferenceError jika scope berbeda)
+        if (typeof window.publikasiIndex === 'undefined') {
+            window.publikasiIndex = 1;
+        }
+        const index = window.publikasiIndex;
 
-            // Urutkan berdasarkan ID sebelum menambahkan opsi
-            const sortedSubpilars = [...allSubpilars].sort((a, b) => parseInt(a.id) - parseInt(b.id));
-
-            sortedSubpilars.forEach(function(subpilar) {
-                $newSelect.append(
-                    `<option value="${subpilar.id}">${subpilar.id}.${subpilar.text}</option>`);
-            });
-
-            // Update sub pilar options based on current program unggulan
-            const programUnggulanId = $('#program_unggulan_id').val();
-            if (programUnggulanId && programUnggulanMap[programUnggulanId]) {
-                updateBiayaSubPilarOptions(programUnggulanMap[programUnggulanId]);
-            }
-
-            biayaIndex++;
-        });
-
-        // Add Publikasi
-        $('#addPublikasi').click(function() {
-            // Pastikan counter tersedia (hindari ReferenceError jika scope berbeda)
-            if (typeof window.publikasiIndex === 'undefined') {
-                window.publikasiIndex = 1;
-            }
-            const index = window.publikasiIndex;
-
-            const publikasiHtml = `
-        <div class="publikasi-item border p-3 mb-3 rounded bg-light">
-            <div class="row">
-                <div class="col-md-4">
-                    <label class="form-label">Media</label>
-                    <input type="text" class="form-control" name="publikasi[${index}][media]" placeholder="Nama Media">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Link</label>
-                    <input type="url" class="form-control" name="publikasi[${index}][link]" placeholder="https://...">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger btn-sm remove-publikasi">
-                        <i class="fas fa-trash"></i>
-                    </button>
+        const publikasiHtml = `
+            <div class="publikasi-item border p-3 mb-3 rounded bg-light">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Media</label>
+                        <input type="text" class="form-control" name="publikasi[${index}][media]" placeholder="Nama Media">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Link</label>
+                        <input type="url" class="form-control" name="publikasi[${index}][link]" placeholder="https://...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-publikasi">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    `;
-            $('#publikasiContainer').append(publikasiHtml);
-            window.publikasiIndex++;
-            updateRemoveButtons();
-        });
+        `;
+        $('#publikasiContainer').append(publikasiHtml);
+        window.publikasiIndex++;
+        updateRemoveButtons();
+    });
 
-        // Handler untuk tombol addDokumentasi sudah dihapus karena tidak diperlukan lagi
-        /*
-            $('#addDokumentasi').click(function() {
-                const dokumentasiHtml = `
+    // Handler untuk tombol addDokumentasi sudah dihapus karena tidak diperlukan lagi
+    /*
+                                                $('#addDokumentasi').click(function() {
+                                                    const dokumentasiHtml = `
+            // Handler untuk tombol addDokumentasi sudah dihapus karena tidak diperlukan lagi
+            /*
+                $('#addDokumentasi').click(function() {
+                    const dokumentasiHtml = `
         <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
             <div class="row">
                 <div class="col-md-4">
@@ -2472,11 +2697,16 @@
             </div>
         </div>
     `;
-                $('#dokumentasiContainer').append(dokumentasiHtml);
-                dokumentasiIndex++;
-                updateRemoveButtons();
-            });
-            */
+                                                        $('#dokumentasiContainer').append(dokumentasiHtml);
+                                                        dokumentasiIndex++;
+                                                        updateRemoveButtons();
+                                                    });
+                                                    */
+        $('#dokumentasiContainer').append(dokumentasiHtml);
+        dokumentasiIndex++;
+        updateRemoveButtons();
+        });
+        */
 
         // Remove handlers
         $(document).on('click', '.removeBiaya', function() {
@@ -2504,7 +2734,8 @@
         $('#sub_pilar').select2({
             placeholder: "Pilih Sub Pilar",
             allowClear: true,
-            width: '100%'
+            width: '100%',
+            dropdownParent: $('#tjslModal')
         });
 
         // Hapus Select2 dan buat dropdown searchable manual
@@ -2529,7 +2760,7 @@
 
             // Buat dropdown list
             var $dropdown = $(
-                '<div class="searchable-dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ced4da; border-top: none; z-index: 1050; border-radius: 0 0 0.25rem 0.25rem;"></div>'
+                '<div class="searchable-dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #ced4da; border-top: none; z-index: 9999; border-radius: 0 0 0.25rem 0.25rem;"></div>'
             );
 
             // Simpan opsi asli
@@ -2559,6 +2790,7 @@
 
             // Event untuk menampilkan dropdown
             $input.on('focus click', function() {
+                console.log('Dropdown focus/click event triggered for:', selectId);
                 showOptions('');
                 $dropdown.show();
                 $input.css('border-radius', '0.25rem 0.25rem 0 0');
@@ -2567,6 +2799,7 @@
             // Event untuk mencari
             $input.on('input', function() {
                 var searchTerm = $(this).val().toLowerCase();
+                console.log('Search term:', searchTerm, 'for dropdown:', selectId);
                 showOptions(searchTerm);
                 $dropdown.show();
 
@@ -2681,7 +2914,8 @@
                         $options.first().addClass('active').css('background-color', '#007bff').css('color',
                             'white');
                     } else {
-                        $active.removeClass('active').css('background-color', 'white').css('color', 'black');
+                        $active.removeClass('active').css('background-color', 'white').css('color',
+                            'black');
                         var next = $active.next('.dropdown-option[data-value]');
                         if (next.length === 0) next = $options.first();
                         next.addClass('active').css('background-color', '#007bff').css('color', 'white');
@@ -2689,9 +2923,11 @@
                 } else if (e.key === 'ArrowUp') {
                     e.preventDefault();
                     if ($active.length === 0) {
-                        $options.last().addClass('active').css('background-color', '#007bff').css('color', 'white');
+                        $options.last().addClass('active').css('background-color', '#007bff').css('color',
+                            'white');
                     } else {
-                        $active.removeClass('active').css('background-color', 'white').css('color', 'black');
+                        $active.removeClass('active').css('background-color', 'white').css('color',
+                            'black');
                         var prev = $active.prev('.dropdown-option[data-value]');
                         if (prev.length === 0) prev = $options.last();
                         prev.addClass('active').css('background-color', '#007bff').css('color', 'white');
@@ -2814,89 +3050,93 @@
             }
         });
 
-        // Tambahkan event handler untuk form submit validation (input form saja)
-        $('#tjslForm').on('submit', function(e) {
-            console.log('Input form submit triggered');
+        $(document).ready(function() {
+            // Tambahkan event handler untuk form submit validation (input form saja)
+            $('#tjslForm').on('submit', function(e) {
+                console.log('Input form submit triggered');
 
-            // Validasi hanya field input form (bukan edit modal)
-            var isValid = true;
-            var invalidFields = [];
+                // Validasi hanya field input form (bukan edit modal)
+                var isValid = true;
+                var invalidFields = [];
 
-            // Validasi nama_program
-            var namaProgram = $('#nama_program').val().trim();
-            console.log('Nama Program:', namaProgram);
-            if (!namaProgram) {
-                $('#nama_program').addClass('is-invalid');
-                invalidFields.push('Nama Program');
-                isValid = false;
-            } else {
-                $('#nama_program').removeClass('is-invalid').addClass('is-valid');
-            }
-
-            // Validasi unit_id (dropdown custom)
-            if (typeof unitDropdown !== 'undefined') {
-                console.log('Using custom unit dropdown');
-                if (!unitDropdown.validate()) {
-                    $('#unit_id').addClass('is-invalid');
-                    invalidFields.push('Unit/Kebun');
+                // Validasi nama_program
+                var namaProgram = $('#nama_program').val().trim();
+                console.log('Nama Program:', namaProgram);
+                if (!namaProgram) {
+                    $('#nama_program').addClass('is-invalid');
+                    invalidFields.push('Nama Program');
                     isValid = false;
                 } else {
-                    $('#unit_id').removeClass('is-invalid').addClass('is-valid');
+                    $('#nama_program').removeClass('is-invalid').addClass('is-valid');
                 }
-            } else {
-                // Fallback untuk validasi unit_id biasa
-                var unitId = $('#unit_id').val();
-                console.log('Unit ID (fallback):', unitId);
-                if (!unitId) {
-                    $('#unit_id').addClass('is-invalid');
-                    invalidFields.push('Unit/Kebun');
+
+                // Validasi unit_id (dropdown custom)
+                if (typeof unitDropdown !== 'undefined') {
+                    console.log('Using custom unit dropdown');
+                    if (!unitDropdown.validate()) {
+                        $('#unit_id').addClass('is-invalid');
+                        invalidFields.push('Unit/Kebun');
+                        isValid = false;
+                    } else {
+                        $('#unit_id').removeClass('is-invalid').addClass('is-valid');
+                    }
+                } else {
+                    // Fallback untuk validasi unit_id biasa
+                    var unitId = $('#unit_id').val();
+                    console.log('Unit ID (fallback):', unitId);
+                    if (!unitId) {
+                        $('#unit_id').addClass('is-invalid');
+                        invalidFields.push('Unit/Kebun');
+                        isValid = false;
+                    } else {
+                        $('#unit_id').removeClass('is-invalid').addClass('is-valid');
+                    }
+                }
+
+                // Validasi pilar_id
+                var pilarId = $('#pilar_id').val();
+                console.log('Pilar ID:', pilarId);
+                if (!pilarId) {
+                    $('#pilar_id').addClass('is-invalid');
+                    invalidFields.push('Pilar');
                     isValid = false;
                 } else {
-                    $('#unit_id').removeClass('is-invalid').addClass('is-valid');
-                }
-            }
-
-            // Validasi pilar_id
-            var pilarId = $('#pilar_id').val();
-            console.log('Pilar ID:', pilarId);
-            if (!pilarId) {
-                $('#pilar_id').addClass('is-invalid');
-                invalidFields.push('Pilar');
-                isValid = false;
-            } else {
-                $('#pilar_id').removeClass('is-invalid').addClass('is-valid');
-            }
-
-            console.log('Validation result:', isValid, 'Invalid fields:', invalidFields);
-
-            if (!isValid) {
-                e.preventDefault();
-                var errorMessage = 'Field berikut wajib diisi:\n• ' + invalidFields.join('\n• ');
-                alert(errorMessage);
-
-                // Scroll ke field pertama yang invalid
-                var firstInvalidField = $('.is-invalid').first();
-                if (firstInvalidField.length) {
-                    firstInvalidField.focus();
-                    $('html, body').animate({
-                        scrollTop: firstInvalidField.offset().top - 100
-                    }, 500);
+                    $('#pilar_id').removeClass('is-invalid').addClass('is-valid');
                 }
 
-                return false;
-            }
+                console.log('Validation result:', isValid, 'Invalid fields:', invalidFields);
 
-            console.log('Input form validation passed, submitting...');
+                if (!isValid) {
+                    e.preventDefault();
+                    var errorMessage = 'Field berikut wajib diisi:\n• ' + invalidFields.join(
+                        '\n• ');
+                    alert(errorMessage);
+
+                    // Scroll ke field pertama yang invalid
+                    var firstInvalidField = $('.is-invalid').first();
+                    if (firstInvalidField.length) {
+                        firstInvalidField.focus();
+                        $('html, body').animate({
+                            scrollTop: firstInvalidField.offset().top - 100
+                        }, 500);
+                    }
+
+                    return false;
+                }
+
+                console.log('Input form validation passed, submitting...');
+            });
+
+            // Initialize Select2 for edit modal sub_pilar
+            $('#edit_sub_pilar').select2({
+                placeholder: "Pilih Sub Pilar",
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#editTjslModal')
+            });
         });
 
-        // Initialize Select2 for edit modal sub_pilar
-        $('#edit_sub_pilar').select2({
-            placeholder: "Pilih Sub Pilar",
-            allowClear: true,
-            width: '100%',
-            dropdownParent: $('#editTjslModal')
-        });
-
+        $(document).ready(function() {
         // Kumpulkan mapping Program Unggulan -> daftar sub_pilar (array id)
         const programUnggulanMap = {};
         $('#program_unggulan_id option').each(function() {
@@ -2920,11 +3160,16 @@
             }));
 
         function renderSubPilarOptions(allowedIds) {
+            console.log('renderSubPilarOptions called with allowedIds:', allowedIds);
             const $select = $('#sub_pilar');
+            console.log('Sub pilar select element found:', $select.length);
+
             // Rebuild opsi sesuai allowedIds; jika kosong, tampilkan semua
             const data = (allowedIds && allowedIds.length) ?
                 allSubpilars.filter(s => allowedIds.includes(s.id)) :
                 allSubpilars;
+
+            console.log('Filtered data:', data);
 
             // Urutkan berdasarkan ID
             data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
@@ -2934,14 +3179,44 @@
             data.forEach(s => $select.append(new Option(`${s.id}.${s.text}`, s.id)));
             // Kosongkan nilai terpilih dan trigger update ke Select2
             $select.val(null).trigger('change');
+
+            console.log('Sub pilar options updated, total options:', $select.find('option').length);
         }
 
         // Filter saat program unggulan berubah
         $('#program_unggulan_id').on('change', function() {
             const id = $(this).val();
+            console.log('Program unggulan berubah:', id);
+            console.log('Program unggulan map:', programUnggulanMap[id]);
             renderSubPilarOptions(programUnggulanMap[id] || []);
             // Update biaya sub pilar dropdowns
             updateBiayaSubPilarOptions(programUnggulanMap[id] || []);
+        });
+
+        // Juga tambahkan event handler untuk edit modal
+        $('#edit_program_unggulan_id').on('change', function() {
+            const id = $(this).val();
+            console.log('Edit program unggulan berubah:', id);
+            console.log('Edit program unggulan map:', programUnggulanMap[id]);
+
+            // Update edit sub pilar dropdown
+            const $editSubPilar = $('#edit_sub_pilar');
+            $editSubPilar.empty();
+            $editSubPilar.append('<option value="">Pilih Sub Pilar</option>');
+
+            const data = (programUnggulanMap[id] && programUnggulanMap[id].length) ?
+                allSubpilars.filter(s => programUnggulanMap[id].includes(s.id)) :
+                allSubpilars;
+
+            // Urutkan berdasarkan ID
+            data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+            data.forEach(s => {
+                $editSubPilar.append(`<option value="${s.id}">${s.id}.${s.text}</option>`);
+            });
+
+            // Trigger Select2 update
+            $editSubPilar.trigger('change');
         });
 
         // Function to update biaya sub pilar dropdowns
@@ -2961,7 +3236,8 @@
                 data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
                 data.forEach(s => {
-                    $select.append(`<option value="${s.id}">${s.id}.${s.text}</option>`);
+                    $select.append(
+                        `<option value="${s.id}">${s.id}.${s.text}</option>`);
                 });
 
                 // Keep current value if still valid
@@ -3016,6 +3292,8 @@
         // Filter saat Program Unggulan berubah di modal edit
         $('#edit_program_unggulan_id').on('change', function() {
             const id = $(this).val();
+            console.log('Edit program unggulan berubah:', id);
+            console.log('Edit program unggulan map:', editProgramUnggulanMap[id]);
             renderEditSubPilarOptions(editProgramUnggulanMap[id] || []);
             // Update edit biaya sub pilar dropdowns
             updateEditBiayaSubPilarOptions(editProgramUnggulanMap[id] || []);
@@ -3038,7 +3316,8 @@
                 data.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
                 data.forEach(s => {
-                    $select.append(`<option value="${s.id}">${s.id}.${s.text}</option>`);
+                    $select.append(
+                        `<option value="${s.id}">${s.id}.${s.text}</option>`);
                 });
 
                 // Keep current value if still valid
@@ -3064,242 +3343,252 @@
             }
         });
 
+        // Event handler untuk tombol edit program
+        $('.edit-program-btn').click(function() {
+            const tjslId = $(this).data('id');
+            loadTjslData(tjslId);
+        });
+
         // initWilayahSelect2();
+        });
+        })(jQuery);
     </script>
 
     <script>
-        $(document).ready(function() {
+        // Pastikan jQuery tersedia sebelum menggunakan $
+        (function($) {
+            $(document).ready(function() {
 
-            // Event handler untuk refresh peta edit ketika tab program diklik
-            $('#edit-program-tab').on('shown.bs.tab', function() {
-                if (window.editMapInstance) {
-                    setTimeout(function() {
-                        window.editMapInstance.invalidateSize(true);
-                    }, 100);
-                }
-            });
-
-            // Inisialisasi Select2 ketika tab program dibuka
-            $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function(e) {
-                var target = $(e.target).attr("href");
-                // console.log('Tab dibuka:', target);
-
-                if (target === '#program') {
-                    // console.log('Tab program aktif, inisialisasi Select2');
-                    setTimeout(function() {
-                        initWilayahSelect2();
-                    }, 100);
-                }
-            });
-
-            // Juga panggil saat document ready jika tab program sudah aktif
-            if ($('#program').hasClass('active')) {
-                // console.log('Tab program sudah aktif saat load');
-                initWilayahSelect2();
-            } else {
-                // console.log('Tab program tidak aktif, tunggu sampai dibuka');
-            }
-            // Definisi fungsi initWilayahSelect2
-            function initWilayahSelect2() {
-                // console.log('initWilayahSelect2 dipanggil');
-                // console.log('Element lokasi_provinsi ditemukan:', $('#lokasi_provinsi').length);
-                // console.log('Element lokasi_provinsi visible:', $('#lokasi_provinsi').is(':visible'));
-                // console.log('Element lokasi_provinsi CSS display:', $('#lokasi_provinsi').css('display'));
-
-                // Cek apakah Select2 sudah ada
-                if ($('#lokasi_provinsi').hasClass('select2-hidden-accessible')) {
-                    // console.log('Select2 sudah diinisialisasi sebelumnya, destroy dulu');
-                    $('#lokasi_provinsi').select2('destroy');
-                }
-
-                // Test dengan data statis dulu
-                $('#lokasi_provinsi').empty().append('<option value="">Pilih Provinsi</option>');
-                $('#lokasi_provinsi').append('<option value="test1">Test Provinsi 1</option>');
-                $('#lokasi_provinsi').append('<option value="test2">Test Provinsi 2</option>');
-
-                // Inisialisasi Select2 tanpa AJAX dulu
-                var select2Instance = $('#lokasi_provinsi').select2({
-                    placeholder: 'Pilih Provinsi',
-                    allowClear: true,
-                    width: '100%'
-                });
-
-                // console.log('Select2 instance created:', select2Instance);
-                // console.log('Select2 container:', $('.select2-container').length);
-
-                // Cek apakah container Select2 terlihat
-                setTimeout(function() {
-                    // console.log('Select2 container visible:', $('.select2-container').is(':visible'));
-                    // console.log('Select2 container CSS:', $('.select2-container').css('display'));
-                }, 100);
-
-                $('#lokasi_provinsi').on('select2:open', function() {
-                    // console.log('Select2 provinsi dibuka');
-                }).on('change', function() {
-                    const prov = $(this).val();
-
-                    // Reset tingkat bawah
-                    resetSelect('#lokasi_kabupaten');
-                    resetSelect('#lokasi_kecamatan');
-                    resetSelect('#lokasi_desa');
-
-                    // Enable kabupaten bila provinsi dipilih
-                    $('#lokasi_kabupaten').prop('disabled', !prov);
-
-                    composeLokasiProgram();
-                });
-
-                // Kabupaten/Kota
-                $('#lokasi_kabupaten').select2({
-                    placeholder: 'Pilih Kabupaten/Kota',
-                    allowClear: true,
-                    width: '100%',
-                    ajax: {
-                        url: '/get-wilayah',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            return {
-                                level: 'kabupaten',
-                                parent: $('#lokasi_provinsi').val() || '',
-                                q: params.term || ''
-                            };
-                        },
-                        processResults: function(data) {
-                            // Sort data berdasarkan nama secara ascending
-                            const sortedData = data.sort(function(a, b) {
-                                return a.nama.localeCompare(b.nama);
-                            });
-
-                            return {
-                                results: sortedData.map(function(item) {
-                                    return {
-                                        id: item.kode,
-                                        text: item.nama
-                                    };
-                                })
-                            };
-                        }
+                // Event handler untuk refresh peta edit ketika tab program diklik
+                $('#edit-program-tab').on('shown.bs.tab', function() {
+                    if (window.editMapInstance) {
+                        setTimeout(function() {
+                            window.editMapInstance.invalidateSize(true);
+                        }, 100);
                     }
-                }).on('change', function() {
-                    const kab = $(this).val();
-
-                    // Reset tingkat bawah
-                    resetSelect('#lokasi_kecamatan');
-                    resetSelect('#lokasi_desa');
-
-                    // Enable kecamatan bila kabupaten dipilih
-                    $('#lokasi_kecamatan').prop('disabled', !kab);
-
-                    composeLokasiProgram();
                 });
 
-                // Kecamatan
-                $('#lokasi_kecamatan').select2({
-                    placeholder: 'Pilih Kecamatan',
-                    allowClear: true,
-                    width: '100%',
-                    ajax: {
-                        url: '/get-wilayah',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            return {
-                                level: 'kecamatan',
-                                parent: $('#lokasi_kabupaten').val() || '',
-                                q: params.term || ''
-                            };
-                        },
-                        processResults: function(data) {
-                            // Sort data berdasarkan nama secara ascending
-                            const sortedData = data.sort(function(a, b) {
-                                return a.nama.localeCompare(b.nama);
-                            });
+                // Inisialisasi Select2 ketika tab program dibuka
+                $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+                    var target = $(e.target).attr("href");
+                    // console.log('Tab dibuka:', target);
 
-                            return {
-                                results: sortedData.map(function(item) {
-                                    return {
-                                        id: item.kode,
-                                        text: item.nama
-                                    };
-                                })
-                            };
-                        }
+                    if (target === '#program') {
+                        // console.log('Tab program aktif, inisialisasi Select2');
+                        setTimeout(function() {
+                            initWilayahSelect2();
+                        }, 100);
                     }
-                }).on('change', function() {
-                    const kec = $(this).val();
-
-                    // Reset tingkat bawah
-                    resetSelect('#lokasi_desa');
-
-                    // Enable desa bila kecamatan dipilih
-                    $('#lokasi_desa').prop('disabled', !kec);
-
-                    composeLokasiProgram();
                 });
 
-                // Desa
-                $('#lokasi_desa').select2({
-                    placeholder: 'Pilih Desa/Kelurahan',
-                    allowClear: true,
-                    width: '100%',
-                    ajax: {
-                        url: '/get-wilayah',
-                        dataType: 'json',
-                        delay: 250,
-                        data: function(params) {
-                            return {
-                                level: 'desa',
-                                parent: $('#lokasi_kecamatan').val() || '',
-                                q: params.term || ''
-                            };
-                        },
-                        processResults: function(data) {
-                            // Sort data berdasarkan nama secara ascending
-                            const sortedData = data.sort(function(a, b) {
-                                return a.nama.localeCompare(b.nama);
-                            });
-
-                            return {
-                                results: sortedData.map(function(item) {
-                                    return {
-                                        id: item.kode,
-                                        text: item.nama
-                                    };
-                                })
-                            };
-                        }
-                    }
-                }).on('change', function() {
-                    composeLokasiProgram();
-                });
-            }
-
-
-            function resetSelect(selector) {
-                $(selector).val(null).trigger('change').prop('disabled', true);
-            }
-
-            function composeLokasiProgram() {
-                // Ambil kode wilayah (id) bukan nama (text)
-                const provKode = $('#lokasi_provinsi').val() || '';
-                const kabKode = $('#lokasi_kabupaten').val() || '';
-                const kecKode = $('#lokasi_kecamatan').val() || '';
-                const desaKode = $('#lokasi_desa').val() || '';
-
-                // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
-                if (desaKode) {
-                    $('#lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
-                } else if (kecKode) {
-                    $('#lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
-                } else if (kabKode) {
-                    $('#lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
-                } else if (provKode) {
-                    $('#lokasi_program').val(provKode); // Kode provinsi (format: NN)
+                // Juga panggil saat document ready jika tab program sudah aktif
+                if ($('#program').hasClass('active')) {
+                    // console.log('Tab program sudah aktif saat load');
+                    initWilayahSelect2();
                 } else {
-                    $('#lokasi_program').val('');
+                    // console.log('Tab program tidak aktif, tunggu sampai dibuka');
                 }
-            }
+                // Definisi fungsi initWilayahSelect2
+                function initWilayahSelect2() {
+                    // console.log('initWilayahSelect2 dipanggil');
+                    // console.log('Element lokasi_provinsi ditemukan:', $('#lokasi_provinsi').length);
+                    // console.log('Element lokasi_provinsi visible:', $('#lokasi_provinsi').is(':visible'));
+                    // console.log('Element lokasi_provinsi CSS display:', $('#lokasi_provinsi').css('display'));
+
+                    // Cek apakah Select2 sudah ada
+                    if ($('#lokasi_provinsi').hasClass('select2-hidden-accessible')) {
+                        // console.log('Select2 sudah diinisialisasi sebelumnya, destroy dulu');
+                        $('#lokasi_provinsi').select2('destroy');
+                    }
+
+                    // Test dengan data statis dulu
+                    $('#lokasi_provinsi').empty().append('<option value="">Pilih Provinsi</option>');
+                    $('#lokasi_provinsi').append('<option value="test1">Test Provinsi 1</option>');
+                    $('#lokasi_provinsi').append('<option value="test2">Test Provinsi 2</option>');
+
+                    // Inisialisasi Select2 tanpa AJAX dulu
+                    var select2Instance = $('#lokasi_provinsi').select2({
+                        placeholder: 'Pilih Provinsi',
+                        allowClear: true,
+                        width: '100%'
+                    });
+
+                    // console.log('Select2 instance created:', select2Instance);
+                    // console.log('Select2 container:', $('.select2-container').length);
+
+                    // Cek apakah container Select2 terlihat
+                    setTimeout(function() {
+                        // console.log('Select2 container visible:', $('.select2-container').is(':visible'));
+                        // console.log('Select2 container CSS:', $('.select2-container').css('display'));
+                    }, 100);
+
+                    $('#lokasi_provinsi').on('select2:open', function() {
+                        // console.log('Select2 provinsi dibuka');
+                    }).on('change', function() {
+                        const prov = $(this).val();
+
+                        // Reset tingkat bawah
+                        resetSelect('#lokasi_kabupaten');
+                        resetSelect('#lokasi_kecamatan');
+                        resetSelect('#lokasi_desa');
+
+                        // Enable kabupaten bila provinsi dipilih
+                        $('#lokasi_kabupaten').prop('disabled', !prov);
+
+                        composeLokasiProgram();
+                    });
+
+                    // Kabupaten/Kota
+                    $('#lokasi_kabupaten').select2({
+                        placeholder: 'Pilih Kabupaten/Kota',
+                        allowClear: true,
+                        width: '100%',
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: function(params) {
+                                return {
+                                    level: 'kabupaten',
+                                    parent: $('#lokasi_provinsi').val() || '',
+                                    q: params.term || ''
+                                };
+                            },
+                            processResults: function(data) {
+                                // Sort data berdasarkan nama secara ascending
+                                const sortedData = data.sort(function(a, b) {
+                                    return a.nama.localeCompare(b.nama);
+                                });
+
+                                return {
+                                    results: sortedData.map(function(item) {
+                                        return {
+                                            id: item.kode,
+                                            text: item.nama
+                                        };
+                                    })
+                                };
+                            }
+                        }
+                    }).on('change', function() {
+                        const kab = $(this).val();
+
+                        // Reset tingkat bawah
+                        resetSelect('#lokasi_kecamatan');
+                        resetSelect('#lokasi_desa');
+
+                        // Enable kecamatan bila kabupaten dipilih
+                        $('#lokasi_kecamatan').prop('disabled', !kab);
+
+                        composeLokasiProgram();
+                    });
+
+                    // Kecamatan
+                    $('#lokasi_kecamatan').select2({
+                        placeholder: 'Pilih Kecamatan',
+                        allowClear: true,
+                        width: '100%',
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: function(params) {
+                                return {
+                                    level: 'kecamatan',
+                                    parent: $('#lokasi_kabupaten').val() || '',
+                                    q: params.term || ''
+                                };
+                            },
+                            processResults: function(data) {
+                                // Sort data berdasarkan nama secara ascending
+                                const sortedData = data.sort(function(a, b) {
+                                    return a.nama.localeCompare(b.nama);
+                                });
+
+                                return {
+                                    results: sortedData.map(function(item) {
+                                        return {
+                                            id: item.kode,
+                                            text: item.nama
+                                        };
+                                    })
+                                };
+                            }
+                        }
+                    }).on('change', function() {
+                        const kec = $(this).val();
+
+                        // Reset tingkat bawah
+                        resetSelect('#lokasi_desa');
+
+                        // Enable desa bila kecamatan dipilih
+                        $('#lokasi_desa').prop('disabled', !kec);
+
+                        composeLokasiProgram();
+                    });
+
+                    // Desa
+                    $('#lokasi_desa').select2({
+                        placeholder: 'Pilih Desa/Kelurahan',
+                        allowClear: true,
+                        width: '100%',
+                        ajax: {
+                            url: '/get-wilayah',
+                            dataType: 'json',
+                            delay: 250,
+                            data: function(params) {
+                                return {
+                                    level: 'desa',
+                                    parent: $('#lokasi_kecamatan').val() || '',
+                                    q: params.term || ''
+                                };
+                            },
+                            processResults: function(data) {
+                                // Sort data berdasarkan nama secara ascending
+                                const sortedData = data.sort(function(a, b) {
+                                    return a.nama.localeCompare(b.nama);
+                                });
+
+                                return {
+                                    results: sortedData.map(function(item) {
+                                        return {
+                                            id: item.kode,
+                                            text: item.nama
+                                        };
+                                    })
+                                };
+                            }
+                        }
+                    }).on('change', function() {
+                        composeLokasiProgram();
+                    });
+                }
+
+                function resetSelect(selector) {
+                    $(selector).val(null).trigger('change').prop('disabled', true);
+                }
+
+                function composeLokasiProgram() {
+                    // Ambil kode wilayah (id) bukan nama (text)
+                    const provKode = $('#lokasi_provinsi').val() || '';
+                    const kabKode = $('#lokasi_kabupaten').val() || '';
+                    const kecKode = $('#lokasi_kecamatan').val() || '';
+                    const desaKode = $('#lokasi_desa').val() || '';
+
+                    // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
+                    if (desaKode) {
+                        $('#lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+                    } else if (kecKode) {
+                        $('#lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
+                    } else if (kabKode) {
+                        $('#lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
+                    } else if (provKode) {
+                        $('#lokasi_program').val(provKode); // Kode provinsi (format: NN)
+                    } else {
+                        $('#lokasi_program').val('');
+                    }
+                }
+            });
 
             // Reset Select2 when modal is closed
             $('#tjslModal').on('hidden.bs.modal', function() {
@@ -3412,7 +3701,8 @@
                     $('#edit_longitude').val('');
                 }
             });
-        });
+        })
+        (jQuery);
     </script>
 
     <style>

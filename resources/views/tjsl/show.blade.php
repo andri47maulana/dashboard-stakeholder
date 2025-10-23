@@ -256,8 +256,6 @@
 <!-- Modal untuk menambah feedback -->
 @include('tjsl.modals.add-feedback') --}}
 
-@endsection
-
 <!-- Chart.js Script -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
