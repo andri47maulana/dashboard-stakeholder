@@ -8,22 +8,22 @@ if (typeof jQuery === 'undefined') {
     // Global variables untuk data
     let allSubpilars = [];
     let programUnggulanMap = {};
-    
+
     // Disable the edit button handler in tjsl-scripts.js to avoid conflicts
     // $(document).on('click', '.edit-program-btn', function(e) {
     //     e.preventDefault(); // Prevent default Bootstrap modal behavior
     //     e.stopPropagation(); // Stop event bubbling
-    //     
+    //
     //     const tjslId = $(this).data('id');
     //     console.log('Edit button clicked from tjsl-scripts.js, TJSL ID:', tjslId);
     //     console.log('Triggering custom event editButtonClicked');
-    //     
+    //
     //     // Trigger custom event that can be handled by index-backup.blade.php
     //     $(document).trigger('editButtonClicked', [tjslId]);
     //     console.log('Custom event triggered');
     // });
     let allUnits = [];
-    
+
     // Global variables untuk dynamic forms
     let biayaIndex = 1;
     let publikasiIndex = 1;
@@ -33,7 +33,7 @@ if (typeof jQuery === 'undefined') {
     let editPublikasiIndex = 1;
     let editDokumentasiIndex = 1;
     let editFeedbackIndex = 1;
-    
+
     // Global variables untuk maps
     let lokasiMap = null;
     let editMap = null;
@@ -46,8 +46,8 @@ if (typeof jQuery === 'undefined') {
         if (typeof window.subpilarsData !== 'undefined') {
             allSubpilars = window.subpilarsData;
         }
-        
-        // Ambil data units dari server jika tersedia  
+
+        // Ambil data units dari server jika tersedia
         if (typeof window.unitsData !== 'undefined') {
             allUnits = window.unitsData;
         }
@@ -56,7 +56,7 @@ if (typeof jQuery === 'undefined') {
         $('#program_unggulan_id option, #edit_program_unggulan_id option').each(function() {
             const id = $(this).val();
             if (!id) return;
-            
+
             let subPilars = $(this).data('subpilars');
             if (typeof subPilars === 'string') {
                 try {
@@ -81,17 +81,17 @@ if (typeof jQuery === 'undefined') {
             lokasiMap.remove();
             lokasiMap = null;
         }
-        
+
         if (!$('#lokasiMap').length) {
             console.warn('Element #lokasiMap not found');
             return;
         }
 
         console.log('Initializing lokasi map');
-        
+
         try {
             lokasiMap = L.map('lokasiMap').setView([-6.2088, 106.8456], 10);
-            
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
@@ -100,27 +100,27 @@ if (typeof jQuery === 'undefined') {
             lokasiMap.on('click', function(e) {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
-                
+
                 if (currentMarker) {
                     lokasiMap.removeLayer(currentMarker);
                 }
-                
+
                 currentMarker = L.marker([lat, lng]).addTo(lokasiMap);
-                
+
                 $('#koordinat').val(`${lat}, ${lng}`);
                 $('#latitude').val(lat);
                 $('#longitude').val(lng);
-                
+
                 console.log('Marker placed at:', lat, lng);
             });
-            
+
             // Force map to resize after initialization
             setTimeout(function() {
                 if (lokasiMap) {
                     lokasiMap.invalidateSize();
                 }
             }, 100);
-            
+
         } catch (error) {
             console.error('Error initializing lokasi map:', error);
         }
@@ -132,17 +132,17 @@ if (typeof jQuery === 'undefined') {
             editMap.remove();
             editMap = null;
         }
-        
+
         if (!$('#editMapContainer').length) {
             console.warn('Element #editMapContainer not found');
             return;
         }
 
         console.log('Initializing edit map');
-        
+
         try {
             editMap = L.map('editMapContainer').setView([-6.2088, 106.8456], 10);
-            
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19
@@ -151,28 +151,28 @@ if (typeof jQuery === 'undefined') {
             editMap.on('click', function(e) {
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
-                
+
                 if (editCurrentMarker) {
                     editMap.removeLayer(editCurrentMarker);
                 }
-                
+
                 editCurrentMarker = L.marker([lat, lng]).addTo(editMap);
-                
+
                 $('#edit_koordinat_display').val(`${lat}, ${lng}`);
                 $('#edit_koordinat').val(`${lat}, ${lng}`);
                 $('#edit_latitude').val(lat);
                 $('#edit_longitude').val(lng);
-                
+
                 console.log('Edit marker placed at:', lat, lng);
             });
-            
+
             // Force map to resize after initialization
             setTimeout(function() {
                 if (editMap) {
                     editMap.invalidateSize();
                 }
             }, 100);
-            
+
         } catch (error) {
             console.error('Error initializing edit map:', error);
         }
@@ -181,7 +181,7 @@ if (typeof jQuery === 'undefined') {
     // Initialize Select2 dengan konfigurasi yang robust
     function initializeSelect2(selector, placeholder, parentModal) {
         const element = $(selector);
-        
+
         if (!element.length) {
             console.warn('Element not found:', selector);
             return false;
@@ -193,7 +193,7 @@ if (typeof jQuery === 'undefined') {
         }
 
         console.log('Initializing Select2 for:', selector);
-        
+
         element.select2({
             placeholder: placeholder,
             allowClear: true,
@@ -243,39 +243,39 @@ if (typeof jQuery === 'undefined') {
     function updateSubPilarOptions(selectId, allowedIds) {
         const $select = $(selectId);
         const currentValues = $select.val() || [];
-        
+
         // Destroy Select2 sementara
         if ($select.hasClass('select2-hidden-accessible')) {
             $select.select2('destroy');
         }
-        
+
         $select.empty();
-        
+
         // Filter sub pilars berdasarkan allowed IDs
         let filteredSubpilars = allSubpilars;
         if (allowedIds && allowedIds.length > 0) {
             filteredSubpilars = allSubpilars.filter(sp => allowedIds.includes(String(sp.id)));
         }
-        
+
         // Sort berdasarkan ID
         filteredSubpilars.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-        
+
         // Tambahkan options
         filteredSubpilars.forEach(function(subPilar) {
             $select.append(`<option value="${subPilar.id}">${subPilar.id}.${subPilar.sub_pilar}</option>`);
         });
-        
+
         // Pertahankan nilai yang masih valid
-        const validValues = currentValues.filter(val => 
+        const validValues = currentValues.filter(val =>
             filteredSubpilars.some(sp => String(sp.id) === String(val))
         );
-        
+
         $select.val(validValues);
-        
+
         // Re-initialize Select2
         const parentModal = selectId.includes('edit') ? '#editTjslModal' : '#tjslModal';
         initializeSelect2(selectId, 'Pilih TPB', parentModal);
-        
+
         console.log('Sub pilar options updated for:', selectId, 'Filtered count:', filteredSubpilars.length);
     }
 
@@ -283,7 +283,7 @@ if (typeof jQuery === 'undefined') {
     $('#program_unggulan_id').on('change', function() {
         const selectedId = $(this).val();
         const allowedSubpilars = selectedId ? programUnggulanMap[selectedId] : [];
-        
+
         console.log('Program unggulan changed:', selectedId, 'Allowed subpilars:', allowedSubpilars);
         updateSubPilarOptions('#sub_pilar', allowedSubpilars);
         updateBiayaSubPilarOptions(allowedSubpilars);
@@ -292,7 +292,7 @@ if (typeof jQuery === 'undefined') {
     $('#edit_program_unggulan_id').on('change', function() {
         const selectedId = $(this).val();
         const allowedSubpilars = selectedId ? programUnggulanMap[selectedId] : [];
-        
+
         console.log('Edit program unggulan changed:', selectedId, 'Allowed subpilars:', allowedSubpilars);
         updateSubPilarOptions('#edit_sub_pilar', allowedSubpilars);
         updateEditBiayaSubPilarOptions(allowedSubpilars);
@@ -303,20 +303,20 @@ if (typeof jQuery === 'undefined') {
         $('.biaya-sub-pilar').each(function() {
             const $select = $(this);
             const currentValue = $select.val();
-            
+
             $select.empty().append('<option value="">Pilih Sub Pilar</option>');
-            
+
             let filteredSubpilars = allSubpilars;
             if (allowedIds && allowedIds.length > 0) {
                 filteredSubpilars = allSubpilars.filter(sp => allowedIds.includes(String(sp.id)));
             }
-            
+
             filteredSubpilars.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-            
+
             filteredSubpilars.forEach(function(subPilar) {
                 $select.append(`<option value="${subPilar.id}">${subPilar.id}.${subPilar.sub_pilar}</option>`);
             });
-            
+
             // Pertahankan nilai jika masih valid
             if (currentValue && filteredSubpilars.some(sp => String(sp.id) === String(currentValue))) {
                 $select.val(currentValue);
@@ -328,20 +328,20 @@ if (typeof jQuery === 'undefined') {
         $('.edit-biaya-sub-pilar').each(function() {
             const $select = $(this);
             const currentValue = $select.val();
-            
+
             $select.empty().append('<option value="">Pilih Sub Pilar</option>');
-            
+
             let filteredSubpilars = allSubpilars;
             if (allowedIds && allowedIds.length > 0) {
                 filteredSubpilars = allSubpilars.filter(sp => allowedIds.includes(String(sp.id)));
             }
-            
+
             filteredSubpilars.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-            
+
             filteredSubpilars.forEach(function(subPilar) {
                 $select.append(`<option value="${subPilar.id}">${subPilar.id}.${subPilar.sub_pilar}</option>`);
             });
-            
+
             if (currentValue && filteredSubpilars.some(sp => String(sp.id) === String(currentValue))) {
                 $select.val(currentValue);
             }
@@ -354,7 +354,7 @@ if (typeof jQuery === 'undefined') {
         setTimeout(function() {
             initializeSelect2('#sub_pilar', 'Pilih TPB', '#tjslModal');
             initializeSelect2('#unit_id', 'Pilih Unit/Kebun', '#tjslModal');
-            
+
             // Reset form dan filter
             $('#program_unggulan_id').val('').trigger('change');
         }, 200);
@@ -381,7 +381,7 @@ if (typeof jQuery === 'undefined') {
         setTimeout(function() {
             initializeSelect2('#edit_sub_pilar', 'Pilih TPB', '#editTjslModal');
             initializeSelect2('#edit_unit_id', 'Pilih Unit/Kebun', '#editTjslModal');
-            
+
             // Apply filter berdasarkan program unggulan yang terpilih
             const selectedProgramId = $('#edit_program_unggulan_id').val();
             if (selectedProgramId) {
@@ -396,6 +396,31 @@ if (typeof jQuery === 'undefined') {
         console.log('Edit modal fully shown');
         setTimeout(function() {
             initializeEditMap();
+
+            // Set coordinates if they were stored from edit button click
+            if (window.editCoordinates) {
+                setTimeout(function() {
+                    if (editMap) {
+                        console.log('Setting stored coordinates on map:', window.editCoordinates);
+
+                        // Force map to resize
+                        editMap.invalidateSize();
+
+                        // Set view and marker
+                        editMap.setView([window.editCoordinates.lat, window.editCoordinates.lng], 15);
+
+                        // Remove existing marker
+                        if (editCurrentMarker) {
+                            editMap.removeLayer(editCurrentMarker);
+                        }
+
+                        // Add new marker
+                        editCurrentMarker = L.marker([window.editCoordinates.lat, window.editCoordinates.lng]).addTo(editMap);
+
+                        console.log('Coordinates set on edit map successfully');
+                    }
+                }, 500); // Additional delay to ensure map is fully rendered
+            }
         }, 300);
     });
 
@@ -403,15 +428,15 @@ if (typeof jQuery === 'undefined') {
     $('#koordinat').on('input', function() {
         const koordinat = $(this).val();
         const parts = koordinat.split(',');
-        
+
         if (parts.length === 2) {
             const lat = parseFloat(parts[0].trim());
             const lng = parseFloat(parts[1].trim());
-            
+
             if (!isNaN(lat) && !isNaN(lng)) {
                 $('#latitude').val(lat);
                 $('#longitude').val(lng);
-                
+
                 if (lokasiMap) {
                     if (currentMarker) {
                         lokasiMap.removeLayer(currentMarker);
@@ -427,16 +452,16 @@ if (typeof jQuery === 'undefined') {
     $('#edit_koordinat_display').on('input', function() {
         const koordinat = $(this).val();
         const parts = koordinat.split(',');
-        
+
         if (parts.length === 2) {
             const lat = parseFloat(parts[0].trim());
             const lng = parseFloat(parts[1].trim());
-            
+
             if (!isNaN(lat) && !isNaN(lng)) {
                 $('#edit_latitude').val(lat);
                 $('#edit_longitude').val(lng);
                 $('#edit_koordinat').val(`${lat}, ${lng}`);
-                
+
                 if (editMap) {
                     if (editCurrentMarker) {
                         editMap.removeLayer(editCurrentMarker);
@@ -733,6 +758,46 @@ if (typeof jQuery === 'undefined') {
         });
     }
 
+    // Edit publikasi functions
+    let editPublikasiIndex = 1;
+
+    function addEditPublikasiItem() {
+        const html = `
+            <div class="publikasi-item border p-3 mb-3 rounded bg-light">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Media</label>
+                        <input type="text" class="form-control" name="publikasi[${editPublikasiIndex}][media]" placeholder="Nama Media">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Link</label>
+                        <input type="url" class="form-control" name="publikasi[${editPublikasiIndex}][link]" placeholder="https://...">
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger btn-sm remove-edit-publikasi">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        $('#editPublikasiContainer').append(html);
+        editPublikasiIndex++;
+        updateEditRemoveButtons();
+    }
+
+    function updateEditRemoveButtons() {
+        const publikasiItems = $('#editPublikasiContainer .publikasi-item');
+        publikasiItems.each(function(index) {
+            const removeBtn = $(this).find('.remove-edit-publikasi');
+            if (publikasiItems.length === 1) {
+                removeBtn.prop('disabled', true);
+            } else {
+                removeBtn.prop('disabled', false);
+            }
+        });
+    }
+
     // Dynamic form handlers for create modal
     $(document).on('click', '#addBiaya', function() {
         addBiayaItem();
@@ -749,6 +814,16 @@ if (typeof jQuery === 'undefined') {
     $(document).on('click', '#addFeedback', function() {
         addFeedbackItem();
     });
+
+    // Dynamic form handlers for edit modal
+    $(document).on('click', '#editAddPublikasi', function() {
+        addEditPublikasiItem();
+    });
+
+    $(document).on('click', '.remove-edit-publikasi', function() {
+        $(this).closest('.publikasi-item').remove();
+        updateEditRemoveButtons();
+    });
     setTimeout(function() {
         if ($('#sub_pilar').length) {
             initializeSelect2('#sub_pilar', 'Pilih TPB', '#tjslModal');
@@ -762,7 +837,7 @@ if (typeof jQuery === 'undefined') {
         if ($('#edit_unit_id').length) {
             initializeSelect2('#edit_unit_id', 'Pilih Unit/Kebun', '#editTjslModal');
         }
-        
+
         // Initialize wilayah dropdowns
         if ($('#lokasi_provinsi').length) {
             initWilayahSelect2Group('lokasi');
