@@ -50,29 +50,35 @@
                                             </tr>
                                             <tr>
                                                 <td><strong>Sub Pilar</strong></td>
-                                                <td>: 
+                                                <td>:
                                                     @php
                                                         $subPilarData = $tjsl->sub_pilar;
                                                         if (is_string($subPilarData)) {
                                                             // Try to decode as JSON first
                                                             $decoded = json_decode($subPilarData, true);
-                                                            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                                                            if (
+                                                                json_last_error() === JSON_ERROR_NONE &&
+                                                                is_array($decoded)
+                                                            ) {
                                                                 $subPilarNumbers = $decoded;
                                                             } else {
                                                                 // If not JSON, try comma-separated values
-                                                                $subPilarNumbers = array_map('trim', explode(',', $subPilarData));
+                                                                $subPilarNumbers = array_map(
+                                                                    'trim',
+                                                                    explode(',', $subPilarData),
+                                                                );
                                                             }
                                                         } elseif (is_array($subPilarData)) {
                                                             $subPilarNumbers = $subPilarData;
                                                         } else {
                                                             $subPilarNumbers = [];
                                                         }
-                                                        
+
                                                         // Remove quotes and brackets, then join with comma
-                                                        $cleanNumbers = array_map(function($num) {
+                                                        $cleanNumbers = array_map(function ($num) {
                                                             return trim(str_replace(['"', '[', ']'], '', $num));
                                                         }, $subPilarNumbers);
-                                                        
+
                                                         echo implode(', ', $cleanNumbers);
                                                     @endphp
                                                 </td>

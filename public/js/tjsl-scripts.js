@@ -758,9 +758,6 @@ if (typeof jQuery === 'undefined') {
         });
     }
 
-    // Edit publikasi functions
-    let editPublikasiIndex = 1;
-
     function addEditPublikasiItem() {
         const html = `
             <div class="publikasi-item border p-3 mb-3 rounded bg-light">
@@ -824,6 +821,7 @@ if (typeof jQuery === 'undefined') {
         $(this).closest('.publikasi-item').remove();
         updateEditRemoveButtons();
     });
+
     setTimeout(function() {
         if ($('#sub_pilar').length) {
             initializeSelect2('#sub_pilar', 'Pilih TPB', '#tjslModal');

@@ -24,8 +24,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="edit-biaya-tab" data-toggle="tab" href="#edit-biaya"
-                                role="tab">
+                            <a class="nav-link" id="edit-biaya-tab" data-toggle="tab" href="#edit-biaya" role="tab">
                                 <i class="fas fa-money-bill"></i> Biaya
                             </a>
                         </li>
@@ -258,12 +257,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="edit_tpb" class="form-label">TPB</label>
-                                        <input type="text" class="form-control" id="edit_tpb" name="tpb">
-                                    </div>
-                                </div>
+
                             </div>
                         </div>
 
@@ -277,7 +271,8 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label class="form-label">Sub Pilar/TPB</label>
-                                            <select class="form-control biaya-sub-pilar" name="biaya[0][sub_pilar_id]" id="edit_biaya_sub_pilar">
+                                            <select class="form-control biaya-sub-pilar" name="biaya[0][sub_pilar_id]"
+                                                id="edit_biaya_sub_pilar">
                                                 <option value="">Pilih Sub Pilar</option>
                                                 @foreach ($subpilars as $subPilar)
                                                     <option value="{{ $subPilar->id }}">
@@ -287,13 +282,13 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label">Anggaran (Rp)</label>
-                                            <input type="number" class="form-control" name="biaya[0][anggaran]" id="edit_biaya_anggaran"
-                                                step="0.01" placeholder="0.00">
+                                            <input type="number" class="form-control" name="biaya[0][anggaran]"
+                                                id="edit_biaya_anggaran" step="0.01" placeholder="0.00">
                                         </div>
                                         <div class="col-md-4">
                                             <label class="form-label">Realisasi (Rp)</label>
-                                            <input type="number" class="form-control" name="biaya[0][realisasi]" id="edit_biaya_realisasi"
-                                                step="0.01" placeholder="0.00">
+                                            <input type="number" class="form-control" name="biaya[0][realisasi]"
+                                                id="edit_biaya_realisasi" step="0.01" placeholder="0.00">
                                         </div>
                                     </div>
                                 </div>
@@ -313,16 +308,17 @@
                                     <div class="row">
                                         <div class="col-md-4">
                                             <label class="form-label">Media</label>
-                                            <input type="text" class="form-control" name="publikasi[0][media]" id="edit_publikasi_media"
-                                                placeholder="Nama Media">
+                                            <input type="text" class="form-control" name="publikasi[0][media]"
+                                                id="edit_publikasi_media" placeholder="Nama Media">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Link</label>
-                                            <input type="url" class="form-control" name="publikasi[0][link]" id="edit_publikasi_link"
-                                                placeholder="https://...">
+                                            <input type="url" class="form-control" name="publikasi[0][link]"
+                                                id="edit_publikasi_link" placeholder="https://...">
                                         </div>
                                         <div class="col-md-2 d-flex align-items-end">
-                                            <button type="button" class="btn btn-danger btn-sm remove-edit-publikasi" disabled>
+                                            <button type="button" class="btn btn-danger btn-sm remove-edit-publikasi"
+                                                disabled>
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </div>
@@ -342,7 +338,8 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label class="form-label">Proposal (PDF)</label>
-                                            <input type="file" class="form-control" name="proposal" accept=".pdf">
+                                            <input type="file" class="form-control" name="proposal"
+                                                accept=".pdf">
                                             <small class="form-text text-muted">Format: PDF</small>
                                         </div>
                                         <div class="col-md-6">
@@ -359,7 +356,8 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label class="form-label">Izin Prinsip (PDF)</label>
-                                            <input type="file" class="form-control" name="izin_prinsip" accept=".pdf">
+                                            <input type="file" class="form-control" name="izin_prinsip"
+                                                accept=".pdf">
                                             <small class="form-text text-muted">Format: PDF</small>
                                         </div>
                                         <div class="col-md-6">
@@ -376,7 +374,8 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label class="form-label">Survei Feedback (PDF)</label>
-                                            <input type="file" class="form-control" name="survei_feedback" accept=".pdf">
+                                            <input type="file" class="form-control" name="survei_feedback"
+                                                accept=".pdf">
                                             <small class="form-text text-muted">Format: PDF</small>
                                         </div>
                                         <div class="col-md-6">
@@ -393,7 +392,8 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <label class="form-label">Foto (JPG, PNG)</label>
-                                            <input type="file" class="form-control" name="foto" accept=".jpg,.jpeg,.png">
+                                            <input type="file" class="form-control" name="foto"
+                                                accept=".jpg,.jpeg,.png">
                                             <small class="form-text text-muted">Format: JPG, PNG</small>
                                         </div>
                                         <div class="col-md-6">
@@ -418,19 +418,24 @@
                                         <div class="col-md-12">
                                             <label class="form-label">Tingkat Kepuasan</label>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="sangat_puas" id="edit_sangat_puas" value="1">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="feedback[0][sangat_puas]" id="edit_sangat_puas"
+                                                    value="1">
                                                 <label class="form-check-label" for="edit_sangat_puas">
                                                     Sangat Puas
                                                 </label>
                                             </div>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="puas" id="edit_puas" value="1">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="feedback[0][puas]" id="edit_puas" value="1">
                                                 <label class="form-check-label" for="edit_puas">
                                                     Puas
                                                 </label>
                                             </div>
                                             <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" name="kurang_puas" id="edit_kurang_puas" value="1">
+                                                <input class="form-check-input" type="checkbox"
+                                                    name="feedback[0][kurang_puas]" id="edit_kurang_puas"
+                                                    value="1">
                                                 <label class="form-check-label" for="edit_kurang_puas">
                                                     Kurang Puas
                                                 </label>
@@ -440,7 +445,7 @@
                                     <div class="row mt-3">
                                         <div class="col-md-12">
                                             <label class="form-label">Saran</label>
-                                            <textarea class="form-control" name="saran" rows="3" placeholder="Masukkan saran..."></textarea>
+                                            <textarea class="form-control" name="feedback[0][saran]" rows="3" placeholder="Masukkan saran..."></textarea>
                                         </div>
                                     </div>
                                 </div>

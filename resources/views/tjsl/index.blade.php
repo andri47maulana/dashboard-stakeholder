@@ -522,7 +522,7 @@
                                 if (!setEditMapCoordinates()) {
                                     console.log(
                                         'Map not ready, will set coordinates when modal is shown'
-                                        );
+                                    );
                                 }
                             } else {
                                 console.log('No coordinates data available');
@@ -664,7 +664,7 @@
                                 window.editPublikasiIndex = data.publikasi.length;
 
                                 console.log(
-                                `Loaded ${data.publikasi.length} publikasi records`);
+                                    `Loaded ${data.publikasi.length} publikasi records`);
                             } else {
                                 // Add one empty publikasi item if no data
                                 const publikasiHtml = `
@@ -735,6 +735,68 @@
                         console.error('Error loading data:', error);
                         alert('Error loading data: ' + error);
                         $('#editTjslModal').modal('hide');
+                    }
+                });
+            });
+
+            // Handler untuk form submission edit modal
+            $('#editTjslForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
+
+                var formData = new FormData(this);
+                var tjslId = $('#editTjslForm').attr('action').split('/').pop();
+
+                // Show loading state
+                $('#editSubmitBtn').prop('disabled', true).html(
+                    '<i class="fas fa-spinner fa-spin"></i> Updating...');
+
+                $.ajax({
+                    url: $('#editTjslForm').attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Close modal
+                        $('#editTjslModal').modal('hide');
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Program TJSL berhasil diperbarui',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect to index page
+                            window.location.href = "{{ route('tjsl.index') }}";
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Update error:', xhr.responseText);
+                        var errorMessage = 'Terjadi kesalahan saat mengupdate data';
+
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            var errors = xhr.responseJSON.errors;
+                            var errorList = [];
+                            for (var field in errors) {
+                                errorList.push(errors[field][0]);
+                            }
+                            errorMessage = errorList.join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: errorMessage
+                        });
+                    },
+                    complete: function() {
+                        // Reset button state
+                        $('#editSubmitBtn').prop('disabled', false).html(
+                            '<i class="fas fa-save"></i> Update Program TJSL');
                     }
                 });
             });
