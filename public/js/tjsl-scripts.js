@@ -3,11 +3,25 @@ if (typeof jQuery === 'undefined') {
     console.error('jQuery is not loaded! TJSL Scripts cannot initialize.');
 } else {
     $(document).ready(function() {
-        console.log('TJSL Scripts loaded - Version 2.3 - ' + new Date().toISOString());
+        console.log('TJSL Scripts loaded - Version 2.4 - ' + new Date().toISOString());
 
     // Global variables untuk data
     let allSubpilars = [];
     let programUnggulanMap = {};
+    
+    // Disable the edit button handler in tjsl-scripts.js to avoid conflicts
+    // $(document).on('click', '.edit-program-btn', function(e) {
+    //     e.preventDefault(); // Prevent default Bootstrap modal behavior
+    //     e.stopPropagation(); // Stop event bubbling
+    //     
+    //     const tjslId = $(this).data('id');
+    //     console.log('Edit button clicked from tjsl-scripts.js, TJSL ID:', tjslId);
+    //     console.log('Triggering custom event editButtonClicked');
+    //     
+    //     // Trigger custom event that can be handled by index-backup.blade.php
+    //     $(document).trigger('editButtonClicked', [tjslId]);
+    //     console.log('Custom event triggered');
+    // });
     let allUnits = [];
     
     // Global variables untuk dynamic forms

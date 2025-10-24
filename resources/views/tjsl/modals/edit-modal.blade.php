@@ -270,49 +270,180 @@
                         <!-- Tab Biaya -->
                         <div class="tab-pane fade" id="edit-biaya" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Data Biaya Program</h6>
-                                {{-- <button type="button" class="btn btn-sm btn-success" id="editAddBiaya">
-                                    <i class="fas fa-plus"></i> Tambah Biaya
-                                </button> --}}
+                                <h6><i class="fas fa-money-bill text-success"></i> Data Biaya TJSL</h6>
                             </div>
                             <div id="editBiayaContainer">
-                                <!-- Biaya items will be loaded here -->
+                                <div class="biaya-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Sub Pilar/TPB</label>
+                                            <select class="form-control biaya-sub-pilar" name="biaya[0][sub_pilar_id]" id="edit_biaya_sub_pilar">
+                                                <option value="">Pilih Sub Pilar</option>
+                                                @foreach ($subpilars as $subPilar)
+                                                    <option value="{{ $subPilar->id }}">
+                                                        {{ $subPilar->id }}.{{ $subPilar->sub_pilar }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Anggaran (Rp)</label>
+                                            <input type="number" class="form-control" name="biaya[0][anggaran]" id="edit_biaya_anggaran"
+                                                step="0.01" placeholder="0.00">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Realisasi (Rp)</label>
+                                            <input type="number" class="form-control" name="biaya[0][realisasi]" id="edit_biaya_realisasi"
+                                                step="0.01" placeholder="0.00">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Tab Publikasi -->
                         <div class="tab-pane fade" id="edit-publikasi" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Data Publikasi Program</h6>
-                                <button type="button" class="btn btn-sm btn-success" id="editAddPublikasi">
+                                <h6><i class="fas fa-newspaper text-info"></i> Data Publikasi TJSL</h6>
+                                <button type="button" class="btn btn-sm btn-info" id="editAddPublikasi">
                                     <i class="fas fa-plus"></i> Tambah Publikasi
                                 </button>
                             </div>
                             <div id="editPublikasiContainer">
-                                <!-- Publikasi items will be loaded here -->
+                                <div class="publikasi-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Media</label>
+                                            <input type="text" class="form-control" name="publikasi[0][media]" id="edit_publikasi_media"
+                                                placeholder="Nama Media">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Link</label>
+                                            <input type="url" class="form-control" name="publikasi[0][link]" id="edit_publikasi_link"
+                                                placeholder="https://...">
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger btn-sm remove-edit-publikasi" disabled>
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Tab Dokumentasi -->
                         <div class="tab-pane fade" id="edit-dokumentasi" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Dokumentasi Program</h6>
-                                {{-- <button type="button" class="btn btn-sm btn-success" id="editAddDokumentasi">
-                                    <i class="fas fa-plus"></i> Tambah Dokumentasi
-                                </button> --}}
+                                <h6><i class="fas fa-file-alt text-warning"></i> Data Dokumentasi TJSL</h6>
                             </div>
                             <div id="editDokumentasiContainer">
-                                <!-- Dokumentasi items will be loaded here -->
+                                <!-- Proposal (PDF) -->
+                                <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Proposal (PDF)</label>
+                                            <input type="file" class="form-control" name="proposal" accept=".pdf">
+                                            <small class="form-text text-muted">Format: PDF</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">File Saat Ini</label>
+                                            <div class="current-file" id="current_proposal">
+                                                <span class="text-muted">Tidak ada file</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Izin Prinsip (PDF) -->
+                                <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Izin Prinsip (PDF)</label>
+                                            <input type="file" class="form-control" name="izin_prinsip" accept=".pdf">
+                                            <small class="form-text text-muted">Format: PDF</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">File Saat Ini</label>
+                                            <div class="current-file" id="current_izin_prinsip">
+                                                <span class="text-muted">Tidak ada file</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Survei Feedback (PDF) -->
+                                <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Survei Feedback (PDF)</label>
+                                            <input type="file" class="form-control" name="survei_feedback" accept=".pdf">
+                                            <small class="form-text text-muted">Format: PDF</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">File Saat Ini</label>
+                                            <div class="current-file" id="current_survei_feedback">
+                                                <span class="text-muted">Tidak ada file</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Foto (JPG, PNG) -->
+                                <div class="dokumentasi-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Foto (JPG, PNG)</label>
+                                            <input type="file" class="form-control" name="foto" accept=".jpg,.jpeg,.png">
+                                            <small class="form-text text-muted">Format: JPG, PNG</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">File Saat Ini</label>
+                                            <div class="current-file" id="current_foto">
+                                                <span class="text-muted">Tidak ada file</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Tab Feedback -->
                         <div class="tab-pane fade" id="edit-feedback" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0">Feedback Program</h6>
+                                <h6><i class="fas fa-comments text-success"></i> Data Feedback TJSL</h6>
                             </div>
                             <div id="editFeedbackContainer">
-                                <!-- Feedback items will be loaded here -->
+                                <div class="feedback-item border p-3 mb-3 rounded bg-light">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Tingkat Kepuasan</label>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="sangat_puas" id="edit_sangat_puas" value="1">
+                                                <label class="form-check-label" for="edit_sangat_puas">
+                                                    Sangat Puas
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="puas" id="edit_puas" value="1">
+                                                <label class="form-check-label" for="edit_puas">
+                                                    Puas
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="kurang_puas" id="edit_kurang_puas" value="1">
+                                                <label class="form-check-label" for="edit_kurang_puas">
+                                                    Kurang Puas
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Saran</label>
+                                            <textarea class="form-control" name="saran" rows="3" placeholder="Masukkan saran..."></textarea>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

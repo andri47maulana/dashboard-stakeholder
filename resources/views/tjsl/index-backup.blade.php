@@ -102,8 +102,9 @@
                                 <div class="col-auto">
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-sm btn-outline-warning edit-program-btn"
-                                            data-id="{{ $tjsl->id }}" data-toggle="modal" data-target="#editTjslModal"
-                                            title="Edit Program">
+                                            data-id="{{ $tjsl->id }}"
+                                            title="Edit Program"
+                                            onclick="handleEditClick({{ $tjsl->id }}); return false;">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-outline-danger delete-program-btn"
@@ -1000,6 +1001,9 @@
     <!-- Leaflet CSS and JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+    
+    <!-- TJSL Scripts -->
+    <script src="{{ asset('js/tjsl-scripts.js') }}?v={{ time() }}"></script>
 
     <script>
         // Util reset Select2
@@ -1228,16 +1232,88 @@
                 applyFilters();
             });
 
-            // Handle Edit Program Button Click
-            $(document).on('click', '.edit-program-btn', function() {
-                const tjslId = $(this).data('id');
-
-                // Set form action URL
-                $('#editTjslForm').attr('action', `/tjsl/${tjslId}`);
-
-                // Load TJSL data
-                loadTjslData(tjslId);
+            // SOLUSI SEDERHANA: Edit button handler yang langsung bekerja
+            // Multiple approaches to ensure event handler works
+            $(document).ready(function() {
+                console.log('=== DOCUMENT READY - SETTING UP HANDLERS ===');
+                
+                // Direct handler
+                $('.edit-program-btn').on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const tjslId = $(this).data('id');
+                    console.log('=== EDIT BUTTON CLICKED (DIRECT) ===');
+                    console.log('TJSL ID:', tjslId);
+                    handleEditClick(tjslId);
+                });
             });
+            
+            // Delegated handler as backup
+            $(document).on('click', '.edit-program-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const tjslId = $(this).data('id');
+                console.log('=== EDIT BUTTON CLICKED (DELEGATED) ===');
+                console.log('TJSL ID:', tjslId);
+                handleEditClick(tjslId);
+            });
+            
+            // Global function untuk inline onclick
+            window.handleEditClick = function(tjslId) {
+                console.log('=== STARTING EDIT PROCESS (INLINE) ===');
+                console.log('TJSL ID:', tjslId);
+                
+                // Set form action
+                $('#editTjslForm').attr('action', `/tjsl/${tjslId}`);
+                
+                // Show modal
+                $('#editTjslModal').modal('show');
+                
+                // Load data langsung dengan AJAX sederhana
+                console.log('Loading data for ID:', tjslId);
+                $.ajax({
+                    url: `/tjsl/${tjslId}/edit-data`,
+                    method: 'GET',
+                    success: function(response) {
+                        console.log('=== DATA LOADED SUCCESSFULLY ===');
+                        console.log('Response:', response);
+                        
+                        // Populate form fields
+                        if (response.success && response.data) {
+                            const data = response.data;
+                            
+                            // Basic fields
+                            $('#edit_nama_program').val(data.nama_program || '');
+                            $('#edit_deskripsi').val(data.deskripsi || '');
+                            $('#edit_tahun').val(data.tahun || '');
+                            $('#edit_status').val(data.status || '').trigger('change');
+                            
+                            // Select2 fields
+                            if (data.sub_pilar_id) {
+                                $('#edit_sub_pilar').val(data.sub_pilar_id).trigger('change');
+                            }
+                            if (data.unit_id) {
+                                $('#edit_unit_id').val(data.unit_id).trigger('change');
+                            }
+                            
+                            // Location fields
+                            $('#edit_lokasi').val(data.lokasi || '');
+                            $('#edit_koordinat').val(data.koordinat || '');
+                            
+                            console.log('=== FORM POPULATED ===');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('=== ERROR LOADING DATA ===');
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        console.error('Response:', xhr.responseText);
+                        alert('Error loading data: ' + error);
+                    }
+                });
+            };
 
             // Handle Delete Program Button Click
             $(document).on('click', '.delete-program-btn', function() {
@@ -1273,159 +1349,246 @@
                     form.submit();
                 }
             });
-            // Function to load TJSL data for editing
-            function loadTjslData(tjslId) {
-                $.ajax({
-                    url: `/tjsl/${tjslId}/edit-data`,
-                    method: 'GET',
-                    beforeSend: function() {
-                        // Show loading overlay without removing modal content
-                        if (!$('#editTjslModal .loading-overlay').length) {
-                            $('#editTjslModal .modal-content').append(
-                                '<div class="loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">' +
-                                '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br><small>Loading...</small></div>' +
-                                '</div>'
-                            );
-                        }
-                    },
-                    success: function(response) {
-                        // Remove loading overlay
-                        $('#editTjslModal .loading-overlay').remove();
+            // OLD FUNCTION - DISABLED TO PREVENT CONFLICTS
+            // function loadTjslData(tjslId) {
+            //     console.log('loadTjslData function called with ID:', tjslId);
+            //     $.ajax({
+            //         url: `/tjsl/${tjslId}/edit-data`,
+            //         method: 'GET',
+            //         beforeSend: function() {
+            //             console.log('AJAX request starting for URL:', `/tjsl/${tjslId}/edit-data`);
+            //             // Show loading overlay without removing modal content
+            //             if (!$('#editTjslModal .loading-overlay').length) {
+            //                 $('#editTjslModal .modal-content').append(
+            //                     '<div class="loading-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); z-index: 9999; display: flex; align-items: center; justify-content: center;">' +
+            //                     '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br><small>Loading...</small></div>' +
+            //                     '</div>'
+            //                 );
+            //             }
+            //         },
+            //         success: function(response) {
+            //             // Remove loading overlay
+            //             $('#editTjslModal .loading-overlay').remove();
+            //
+            //             console.log('TJSL Edit Data Response:', response);
+            //             console.log('Biaya Data:', response.biaya);
+            //             console.log('Publikasi Data:', response.publikasi);
+            //             console.log('Dokumentasi Data:', response.dokumentasi);
+            //             console.log('Feedback Data:', response.feedback);
+            //
+            //
+            //
+            //             // Format dates for HTML date inputs
+            //             let tanggalMulai = response.tanggal_mulai ? response.tanggal_mulai.split('T')[
+            //                 0] : '';
+            //             let tanggalAkhir = response.tanggal_akhir ? response.tanggal_akhir.split('T')[
+            //                 0] : '';
+            //
+            //             // Populate form fields
+            //             $('#edit_nama_program').val(response.nama_program);
+            //
+            //             // Set unit_id dengan dropdown custom
+            //             if (response.unit_id) {
+            //                 // Cari nama unit berdasarkan unit_id
+            //                 var unitText = $('#edit_unit_id option[value="' + response.unit_id + '"]')
+            //                     .text();
+            //                 editUnitDropdown.setValue(response.unit_id, unitText);
+            //             } else {
+            //                 editUnitDropdown.setValue('', '');
+            //             }
+            //
+            //             $('#edit_pilar_id').val(response.pilar_id);
+            //             $('#edit_program_unggulan_id').val(response.program_unggulan_id);
+            //             $('#edit_deskripsi').val(response.deskripsi);
+            //             $('#edit_penerima_dampak').val(response.penerima_dampak);
+            //             $('#edit_tanggal_mulai').val(tanggalMulai);
+            //             $('#edit_tanggal_akhir').val(tanggalAkhir);
+            //             $('#edit_status').val(response.status);
+            //             $('#edit_tpb').val(response.tpb);
+            //
+            //             // Set latitude dan longitude
+            //             $('#edit_latitude').val(response.latitude || '');
+            //             $('#edit_longitude').val(response.longitude || '');
+            //
+            //             // Handle lokasi program
+            //             if (response.lokasi_program) {
+            //                 $('#edit_lokasi_program').val(response.lokasi_program);
+            //             }
+            //
+            //             // Handle sub_pilar (multiple select) - set setelah program unggulan
+            //             if (response.program_unggulan_id) {
+            //                 // Trigger filter sub pilar berdasarkan program unggulan
+            //                 setTimeout(function() {
+            //                     $('#edit_program_unggulan_id').trigger('change');
+            //                     // Set sub pilar setelah filter diterapkan
+            //                     if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
+            //                         $('#edit_sub_pilar').val(response.sub_pilar).trigger(
+            //                             'change');
+            //                     }
+            //                 }, 100);
+            //             } else {
+            //                 // Jika tidak ada program unggulan, set sub pilar langsung
+            //                 if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
+            //                     $('#edit_sub_pilar').val(response.sub_pilar).trigger('change');
+            //                 }
+            //             }
+            //
+            //             // Load related data - sekarang mengisi field statis
+            //             loadEditBiayaDataStatic(response.biaya || []);
+            //             loadEditPublikasiDataStatic(response.publikasi || []);
+            //             loadEditDokumentasiDataStatic(response.dokumentasi || []);
+            //             loadEditFeedbackDataStatic(response.feedback || []);
+            //
+            //             // Inisialisasi peta edit
+            //             setTimeout(function() {
+            //                 const editMapControl = initEditLeafletMap('editMapContainer',
+            //                     'edit_latitude', 'edit_longitude', 'edit_koordinat');
+            //
+            //                 if (response.latitude && response.longitude) {
+            //                     const lat = parseFloat(response.latitude);
+            //                     const lng = parseFloat(response.longitude);
+            //                     editMapControl.setMarker(lat, lng, true);
+            //
+            //                     // Isi field koordinat gabungan juga
+            //                     $('#edit_koordinat_display').val(lat.toFixed(6) + ', ' + lng
+            //                         .toFixed(6));
+            //                 }
+            //             }, 500);
+            //
+            //             // Show modal
+            //             $('#editTjslModal').modal('show');
+            //
+            //             // Preselect wilayah berdasarkan kode jika lokasi_program berformat kode (e.g. 11.01.01.2002)
+            //             if (response.lokasi_program && typeof response.lokasi_program === 'string') {
+            //                 const kode = response.lokasi_program.trim();
+            //                 const isKodeWilayah = /^\d{2}\.\d{2}\.\d{2}\.\d{4}$/.test(kode);
+            //                 if (isKodeWilayah) {
+            //                     parseAndSetWilayahFromCode(kode);
+            //                 }
+            //             }
+            //         },
+            //         error: function(xhr, status, error) {
+            //             // Remove loading overlay
+            //             $('#editTjslModal .loading-overlay').remove();
+            //             alert('Error loading data: ' + error);
+            //             $('#editTjslModal').modal('hide');
+            //         }
+            //     });
+            // }
 
-
-
-                        // Format dates for HTML date inputs
-                        let tanggalMulai = response.tanggal_mulai ? response.tanggal_mulai.split('T')[
-                            0] : '';
-                        let tanggalAkhir = response.tanggal_akhir ? response.tanggal_akhir.split('T')[
-                            0] : '';
-
-                        // Populate form fields
-                        $('#edit_nama_program').val(response.nama_program);
-
-                        // Set unit_id dengan dropdown custom
-                        if (response.unit_id) {
-                            // Cari nama unit berdasarkan unit_id
-                            var unitText = $('#edit_unit_id option[value="' + response.unit_id + '"]')
-                                .text();
-                            editUnitDropdown.setValue(response.unit_id, unitText);
-                        } else {
-                            editUnitDropdown.setValue('', '');
-                        }
-
-                        $('#edit_pilar_id').val(response.pilar_id);
-                        $('#edit_program_unggulan_id').val(response.program_unggulan_id);
-                        $('#edit_deskripsi').val(response.deskripsi);
-                        $('#edit_penerima_dampak').val(response.penerima_dampak);
-                        $('#edit_tanggal_mulai').val(tanggalMulai);
-                        $('#edit_tanggal_akhir').val(tanggalAkhir);
-                        $('#edit_status').val(response.status);
-                        $('#edit_tpb').val(response.tpb);
-
-                        // Set latitude dan longitude
-                        $('#edit_latitude').val(response.latitude || '');
-                        $('#edit_longitude').val(response.longitude || '');
-
-                        // Handle lokasi program
-                        if (response.lokasi_program) {
-                            $('#edit_lokasi_program').val(response.lokasi_program);
-                        }
-
-                        // Handle sub_pilar (multiple select) - set setelah program unggulan
-                        if (response.program_unggulan_id) {
-                            // Trigger filter sub pilar berdasarkan program unggulan
-                            setTimeout(function() {
-                                $('#edit_program_unggulan_id').trigger('change');
-                                // Set sub pilar setelah filter diterapkan
-                                if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
-                                    $('#edit_sub_pilar').val(response.sub_pilar).trigger(
-                                        'change');
-                                }
-                            }, 100);
-                        } else {
-                            // Jika tidak ada program unggulan, set sub pilar langsung
-                            if (response.sub_pilar && Array.isArray(response.sub_pilar)) {
-                                $('#edit_sub_pilar').val(response.sub_pilar).trigger('change');
-                            }
-                        }
-
-                        // Load related data
-                        loadEditBiayaData(response.biaya || []);
-                        loadEditPublikasiData(response.publikasi || []);
-                        loadEditDokumentasiData(response.dokumentasi || []);
-                        loadEditFeedbackData(response.feedback || []);
-
-                        // Inisialisasi peta edit
-                        setTimeout(function() {
-                            const editMapControl = initEditLeafletMap('editMapContainer',
-                                'edit_latitude', 'edit_longitude', 'edit_koordinat');
-
-                            if (response.latitude && response.longitude) {
-                                const lat = parseFloat(response.latitude);
-                                const lng = parseFloat(response.longitude);
-                                editMapControl.setMarker(lat, lng, true);
-
-                                // Isi field koordinat gabungan juga
-                                $('#edit_koordinat_display').val(lat.toFixed(6) + ', ' + lng
-                                    .toFixed(6));
-                            }
-                        }, 500);
-
-                        // Show modal
-                        $('#editTjslModal').modal('show');
-
-                        // Preselect wilayah berdasarkan kode jika lokasi_program berformat kode (e.g. 11.01.01.2002)
-                        if (response.lokasi_program && typeof response.lokasi_program === 'string') {
-                            const kode = response.lokasi_program.trim();
-                            const isKodeWilayah = /^\d{2}\.\d{2}\.\d{2}\.\d{4}$/.test(kode);
-                            if (isKodeWilayah) {
-                                parseAndSetWilayahFromCode(kode);
-                            }
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        // Remove loading overlay
-                        $('#editTjslModal .loading-overlay').remove();
-                        alert('Error loading data: ' + error);
-                        $('#editTjslModal').modal('hide');
-                    }
-                });
+            // Functions to load related data - versi statis untuk struktur modal edit yang baru
+            function loadEditBiayaDataStatic(biayaData) {
+                console.log('Loading Biaya Data:', biayaData);
+                // Isi field statis untuk biaya
+                if (biayaData && biayaData.length > 0) {
+                    const biaya = biayaData[0]; // Ambil data pertama
+                    console.log('First Biaya Item:', biaya);
+                    $('#edit_biaya_sub_pilar').val(biaya.sub_pilar_id || '');
+                    $('#edit_biaya_anggaran').val(biaya.anggaran || '');
+                    $('#edit_biaya_realisasi').val(biaya.realisasi || '');
+                    console.log('Biaya fields populated');
+                } else {
+                    console.log('No biaya data to load');
+                }
             }
 
-            // Functions to load related data
-            function loadEditBiayaData(biayaData) {
-                const container = $('#editBiayaContainer');
-                container.empty();
-
-                biayaData.forEach(function(biaya, index) {
-                    const biayaHtml = `
-                    <div class="biaya-item border p-3 mb-3 rounded bg-light">
-                        <input type="hidden" name="biaya[${index}][id]" value="${biaya.id || ''}">
-                        <div class="row">
-                            <div class="col-md-5">
-                                <label class="form-label">Sub Pilar/TPB</label>
-                                <select class="form-control edit-biaya-sub-pilar" name="biaya[${index}][sub_pilar_id]">
-                                    <option value="">Pilih Sub Pilar</option>
-                                    @foreach ($subpilars as $subPilar)
-                                        <option value="{{ $subPilar->id }}" ${biaya.sub_pilar_id == '{{ $subPilar->id }}' ? 'selected' : ''}>{{ $subPilar->id }}.{{ $subPilar->sub_pilar }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-5">
-                                <label class="form-label">Realisasi (Rp)</label>
-                                <input type="number" class="form-control" name="biaya[${index}][realisasi]"
-                                       value="${biaya.realisasi || ''}" step="0.01" placeholder="0.00">
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button type="button" class="btn btn-danger btn-sm remove-edit-biaya">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+            function loadEditPublikasiDataStatic(publikasiData) {
+                console.log('Loading Publikasi Data:', publikasiData);
+                // Publikasi tetap dinamis karena ada tombol tambah, tapi isi field statis pertama
+                if (publikasiData && publikasiData.length > 0) {
+                    const publikasi = publikasiData[0]; // Ambil data pertama
+                    console.log('First Publikasi Item:', publikasi);
+                    $('#edit_publikasi_media').val(publikasi.media || '');
+                    $('#edit_publikasi_link').val(publikasi.link || '');
+                    console.log('Publikasi fields populated');
+                } else {
+                    console.log('No publikasi data to load');
+                }
+                
+                // Jika ada data lebih dari 1, tambahkan sebagai item dinamis
+                if (publikasiData && publikasiData.length > 1) {
+                    const container = $('#editPublikasiContainer');
+                    
+                    for (let i = 1; i < publikasiData.length; i++) {
+                        const publikasi = publikasiData[i];
+                        const publikasiHtml = `
+                        <div class="publikasi-item border p-3 mb-3 rounded bg-light">
+                            <input type="hidden" name="publikasi[${i}][id]" value="${publikasi.id || ''}">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <label class="form-label">Media</label>
+                                    <input type="text" class="form-control" name="publikasi[${i}][media]"
+                                           value="${publikasi.media || ''}" placeholder="Nama Media">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Link</label>
+                                    <input type="url" class="form-control" name="publikasi[${i}][link]"
+                                           value="${publikasi.link || ''}" placeholder="https://...">
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="button" class="btn btn-danger btn-sm remove-edit-publikasi">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-                    container.append(biayaHtml);
-                });
+                    `;
+                        container.append(publikasiHtml);
+                    }
+                }
+            }
+
+            function loadEditDokumentasiDataStatic(dokumentasiData) {
+                console.log('Loading Dokumentasi Data:', dokumentasiData);
+                // Isi field statis untuk dokumentasi - tampilkan file yang sudah ada
+                if (dokumentasiData && dokumentasiData.length > 0) {
+                    const doc = dokumentasiData[0];
+                    console.log('First Dokumentasi Item:', doc);
+                    
+                    // Update tampilan file saat ini
+                    if (doc.proposal) {
+                        $('#current_proposal').html(`<a href="/storage/dokumen/proposal/${doc.proposal}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> ${doc.proposal}
+                        </a>`);
+                    }
+                    
+                    if (doc.izin_prinsip) {
+                        $('#current_izin_prinsip').html(`<a href="/storage/dokumen/izin_prinsip/${doc.izin_prinsip}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> ${doc.izin_prinsip}
+                        </a>`);
+                    }
+                    
+                    if (doc.survei_feedback) {
+                        $('#current_survei_feedback').html(`<a href="/storage/dokumen/survei_feedback/${doc.survei_feedback}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> ${doc.survei_feedback}
+                        </a>`);
+                    }
+                    
+                    if (doc.foto) {
+                        $('#current_foto').html(`<a href="/storage/dokumen/foto/${doc.foto}" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> ${doc.foto}
+                        </a>`);
+                    }
+                    console.log('Dokumentasi fields populated');
+                } else {
+                    console.log('No dokumentasi data to load');
+                }
+            }
+
+            function loadEditFeedbackDataStatic(feedbackData) {
+                console.log('Loading Feedback Data:', feedbackData);
+                // Isi field statis untuk feedback
+                if (feedbackData && feedbackData.length > 0) {
+                    const feedback = feedbackData[0]; // Ambil data pertama
+                    console.log('First Feedback Item:', feedback);
+                    $('#edit_sangat_puas').prop('checked', feedback.sangat_puas == 1);
+                    $('#edit_puas').prop('checked', feedback.puas == 1);
+                    $('#edit_kurang_puas').prop('checked', feedback.kurang_puas == 1);
+                    $('#editTjslModal textarea[name="saran"]').val(feedback.saran || '');
+                    console.log('Feedback fields populated');
+                } else {
+                    console.log('No feedback data to load');
+                }
             }
 
             function loadEditPublikasiData(publikasiData) {
@@ -1617,10 +1780,10 @@
             let editDokumentasiIndex = 1000;
             let editFeedbackIndex = 1000;
             // Event handler untuk tombol edit program
-            $('.edit-program-btn').click(function() {
-                const tjslId = $(this).data('id');
-                loadTjslData(tjslId);
-            });
+            // $('.edit-program-btn').click(function() {
+            //     const tjslId = $(this).data('id');
+            //     loadTjslData(tjslId);
+            // });
 
             // Event handler untuk tombol tambah di modal input
             // $('#addBiaya').click(function() {
@@ -2756,6 +2919,8 @@
 
         // Tambahkan event handler untuk edit form submit validation
         $('#editTjslForm').on('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
+            
             // Validasi field edit modal
             var isValid = true;
             var invalidFields = [];
@@ -2802,7 +2967,6 @@
             }
 
             if (!isValid) {
-                e.preventDefault();
                 var errorMessage = 'Field berikut wajib diisi:\n• ' + invalidFields.join('\n• ');
                 alert(errorMessage);
 
@@ -2814,6 +2978,74 @@
 
                 return false;
             }
+
+            // If validation passes, submit the form via AJAX
+            var formData = new FormData(this);
+            var tjslId = $('#editTjslForm').attr('action').split('/').pop();
+            
+            // Show loading state
+            $('#editSubmitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Updating...');
+            
+            $.ajax({
+                url: $('#editTjslForm').attr('action'),
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        // Close modal
+                        $('#editTjslModal').modal('hide');
+                        
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message || 'Data TJSL berhasil diupdate',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        
+                        // Reload the table
+                        if (typeof table !== 'undefined') {
+                            table.ajax.reload();
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: response.message || 'Terjadi kesalahan saat mengupdate data'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Update error:', xhr.responseText);
+                    var errorMessage = 'Terjadi kesalahan saat mengupdate data';
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                        var errors = xhr.responseJSON.errors;
+                        var errorList = [];
+                        for (var field in errors) {
+                            errorList.push(errors[field][0]);
+                        }
+                        errorMessage = errorList.join('\n');
+                    }
+                    
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error!',
+                        text: errorMessage
+                    });
+                },
+                complete: function() {
+                    // Reset button state
+                    $('#editSubmitBtn').prop('disabled', false).html('<i class="fas fa-save"></i> Update Program TJSL');
+                }
+            });
         });
 
         // Tambahkan event handler untuk form submit validation (input form saja)

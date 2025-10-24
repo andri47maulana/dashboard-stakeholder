@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    console.log('TJSL Scripts loaded');
+    
     // Initialize variables
     let biayaIndex = 0;
     let publikasiIndex = 0;
