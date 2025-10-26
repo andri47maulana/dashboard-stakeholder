@@ -53,7 +53,7 @@ class TjslController extends Controller
             $query->where('nama_program', 'like', '%' . $request->search . '%');
         }
 
-        $tjsls = $query->orderBy('created_at', 'desc')->paginate(12);
+        $tjsls = $query->orderBy('id', 'asc')->paginate(12);
 
         // Data untuk dropdown filter
         $pilars = \App\Models\Pilar::orderBy('pilar')->get();
@@ -168,7 +168,7 @@ class TjslController extends Controller
 
         try {
             \Log::info('Starting validation process');
-            
+
             $request->validate([
                 // Tab 1 - Data Program (REQUIRED)
                 'nama_program' => 'required|string|max:255',
@@ -189,7 +189,7 @@ class TjslController extends Controller
                 // Tab 2 - Data Biaya (NULLABLE)
                 'biaya.*.sub_pilar_id' => 'nullable|exists:m_sub_pilar,id',
                 'biaya.*.realisasi' => 'nullable|numeric|min:0',
-                
+
                 // Tab 3 - Data Publikasi (NULLABLE)
                 'publikasi.*.media' => 'nullable|string|max:255',
                 'publikasi.*.link' => 'nullable|url|max:500',
@@ -389,7 +389,7 @@ class TjslController extends Controller
                     $sangat_puas = 0;
                     $puas = 0;
                     $kurang_puas = 0;
-                    
+
                     // Handle feedback rating based on 'puas' field value
                     if (isset($feedbackData['puas'])) {
                         $puasValue = $feedbackData['puas'];
@@ -401,7 +401,7 @@ class TjslController extends Controller
                             $kurang_puas = 1; // Value 3 = Kurang Puas
                         }
                     }
-                    
+
                     // Handle individual boolean checkbox fields (if they exist)
                     if (isset($feedbackData['sangat_puas']) && ($feedbackData['sangat_puas'] == '1' || $feedbackData['sangat_puas'] === true)) {
                         $sangat_puas = 1;
@@ -545,7 +545,7 @@ class TjslController extends Controller
 
             // Update biaya TJSL - Always create/update record to maintain ID consistency
             BiayaTjsl::where('tjsl_id', $tjsl->id)->delete();
-            
+
             // Always create at least one BiayaTjsl record
             if ($request->has('biaya') && is_array($request->biaya) && !empty($request->biaya)) {
                 foreach ($request->biaya as $biaya) {
@@ -566,7 +566,7 @@ class TjslController extends Controller
 
             // Update publikasi TJSL - Always create/update record to maintain ID consistency
             PubTjsl::where('tjsl_id', $tjsl->id)->delete();
-            
+
             // Always create at least one PubTjsl record
             if ($request->has('publikasi') && is_array($request->publikasi) && !empty($request->publikasi)) {
                 foreach ($request->publikasi as $publikasi) {
@@ -639,7 +639,7 @@ class TjslController extends Controller
 
             // Update feedback TJSL - Always create/update record to maintain ID consistency
             FeedbackTjsl::where('tjsl_id', $tjsl->id)->delete();
-            
+
             // Always create at least one FeedbackTjsl record
             if ($request->has('feedback') && is_array($request->feedback) && !empty($request->feedback)) {
                 foreach ($request->feedback as $feedbackData) {

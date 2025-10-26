@@ -59,8 +59,11 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-1">
+                    <div class="col-md-2">
                         <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-primary btn-sm" id="applyFilter">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
                             <button type="button" class="btn btn-warning btn-sm" id="resetFilter">
                                 <i class="fas fa-undo"></i> Reset
                             </button>
@@ -86,8 +89,8 @@
                         style="height: 380px; display: flex; flex-direction: column;">
                         <!-- Header dengan Background Warna -->
                         <div class="card-header"
-                            style="background: linear-gradient(135deg, #4ec2df 0%, #224abe 100%); border: none; padding: 0.75rem 1.25rem; flex-shrink: 0; min-height: 70px; display: flex; align-items: center;">
-                            <div class="text-white font-weight-bold"
+                            style="background: #d3d3d3; border: none; padding: 0.75rem 1.25rem; flex-shrink: 0; min-height: 70px; display: flex; align-items: center;">
+                            <div class="text-black font-weight-bold"
                                 style="font-size: 1.1rem; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
                                 {{ $tjsl->nama_program }}
                             </div>
@@ -148,8 +151,8 @@
                                     <div class="text-xs mb-0 text-gray-600 d-flex align-items-center">
                                         @if ($tjsl->hasSubPilarImages())
                                             @foreach ($tjsl->sub_pilar_images as $image)
-                                                <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}" class="me-1"
-                                                    style="width: 50px; height: 50px; object-fit: contain;"
+                                                <img src="{{ $image['path'] }}" alt="{{ $image['alt'] }}"
+                                                    class="me-1" style="width: 50px; height: 50px; object-fit: contain;"
                                                     title="{{ $image['alt'] }}">
                                                 <span style="margin-right: 5px;"> </span>
                                             @endforeach
@@ -207,7 +210,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="d-flex justify-content-center">
-                        {{ $tjsls->links() }}
+                        {{ $tjsls->links('pagination::bootstrap-4') }}
                     </div>
                 </div>
             </div>
@@ -805,4 +808,33 @@
 
     <!-- TJSL Scripts -->
     <script src="{{ asset('js/tjsl-scripts.js') }}?v={{ time() }}"></script>
+
+    <!-- Filter Scripts -->
+    <script>
+        $(document).ready(function() {
+            // Apply Filter Button
+            $('#applyFilter').click(function() {
+                const params = new URLSearchParams();
+
+                const region = $('#filterRegion').val();
+                const pilarId = $('#filterPilar').val();
+                const unitId = $('#filterKebun').val();
+                const tahun = $('#filterTahun').val();
+
+                if (region) params.append('region', region);
+                if (pilarId) params.append('pilar_id', pilarId);
+                if (unitId) params.append('unit_id', unitId);
+                if (tahun) params.append('tahun', tahun);
+
+                const url = '{{ route('tjsl.index') }}' + (params.toString() ? '?' + params.toString() :
+                    '');
+                window.location.href = url;
+            });
+
+            // Reset Filter Button
+            $('#resetFilter').click(function() {
+                window.location.href = '{{ route('tjsl.index') }}';
+            });
+        });
+    </script>
 @endpush
