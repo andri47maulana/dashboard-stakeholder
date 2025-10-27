@@ -224,8 +224,8 @@
                 .then(data => {
                     // update card sesuai response
                     document.getElementById('cardStakeholder').textContent = data.datastakeholderall;
-                    document.getElementById('cardGov').textContent = data.persen_datagovernance + '% GOVERNANCE';
-                    document.getElementById('cardNonGov').textContent = data.persen_datanongovernance + '% NON GOVERNANCE';
+                    document.getElementById('cardGov').textContent = data.persen_datagovernance + '% PEMERINTAH';
+                    document.getElementById('cardNonGov').textContent = data.persen_datanongovernance + '% NON PEMERINTAH';
 
                     // Show popup near marker
                     showMarkerPopup(this, region, data.datastakeholderall, data.persen_datagovernance, data.persen_datanongovernance);
