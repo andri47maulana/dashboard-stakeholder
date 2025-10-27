@@ -70,13 +70,7 @@
             <span>Stakeholder</span>
         </a>
     </li>
-    <hr class="sidebar-divider">
-    <li class="nav-item <?php echo Request::is('derajat-hubungan') ? 'active' : ''; ?>">
-        <a class="nav-link" href="{{url('/')}}/derajat-hubungan">
-            <i class="fas fa-fw fa-book"></i>
-            <span>Derajat Hubungan</span>
-        </a>
-    </li>
+    
     <hr class="sidebar-divider">
     {{-- <li class="nav-item <?php echo Request::is('peta/peta') ? 'active' : ''; ?>">
         <a class="nav-link" href="{{url('/')}}/peta/peta">
@@ -84,13 +78,13 @@
             <span>Peta</span>
         </a>
     </li> --}}
-    <hr class="sidebar-divider">
+    {{-- <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('masterdata/data_kebun') ? 'active' : ''; ?>">
         <a class="nav-link" href="{{url('/')}}/masterdata/data_kebun">
             <i class="fas fa-fw fa-book"></i>
             <span>Data Kebun</span>
         </a>
-    </li>
+    </li> --}}
     <hr class="sidebar-divider">
     <li class="nav-item">
         <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseRegional"
@@ -146,7 +140,7 @@
     <hr class="sidebar-divider">
     <li class="nav-item <?php echo Request::is('polygons') ? 'active' : ''; ?>">
         <a class="nav-link" href="{{url('/')}}/polygons">
-            <i class="fas fa-fw fa-book"></i>
+            <i class="fas fa-fw fa-map"></i>
             <span>Peta</span>
         </a>
     </li>
@@ -207,12 +201,12 @@
         </a>
         <div id="collapseMasterData" class="collapse" aria-labelledby="headingMasterData" data-parent="#accordionSidebar">
             <div class="bg-white py-2 collapse-inner rounded">
-                <a class="collapse-item" href="{{url('/')}}/masterdata/kebun"><i class="fas fa-fw fa-map-pin"></i>Kebun</a>
+                {{-- <a class="collapse-item" href="{{url('/')}}/masterdata/kebun"><i class="fas fa-fw fa-map-pin"></i>Kebun</a> --}}
                 <a class="collapse-item" href="{{url('/')}}/masterdata/data_kebun"><i class="fas fa-fw fa-map-pin"></i>Data Kebun</a>
-                <a class="collapse-item" href="{{url('/')}}/peta/peta"><i class="fas fa-fw fa-map-pin"></i>Peta</a>
+                {{-- <a class="collapse-item" href="{{url('/')}}/peta/peta"><i class="fas fa-fw fa-map-pin"></i>Peta</a> --}}
                 <a class="collapse-item" href="{{url('/')}}/derajat-hubungan"><i class="fas fa-fw fa-map-pin"></i>Data Derajat Hubungan</a>
-                <a class="collapse-item" href="{{url('/')}}/masterdata/perizinan"><i class="fas fa-fw fa-list"></i>Daftar Perizinan</a>
-                <a class="collapse-item" href="{{url('/')}}/masterdata/sertifikasi"><i class="fas fa-fw fa-paperclip"></i>Daftar Sertifikasi</a>
+                {{-- <a class="collapse-item" href="{{url('/')}}/masterdata/perizinan"><i class="fas fa-fw fa-list"></i>Daftar Perizinan</a> --}}
+                {{-- <a class="collapse-item" href="{{url('/')}}/masterdata/sertifikasi"><i class="fas fa-fw fa-paperclip"></i>Daftar Sertifikasi</a> --}}
             </div>
         </div>
     </li>       

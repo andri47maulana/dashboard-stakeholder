@@ -115,8 +115,8 @@
                     <div class="col mr-2">
                         <div class="text font-weight-bold text-warning text-uppercase mb-1">
                             KATEGORI</div>
-                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardGov">{{ $persen_datagovernance }}% GOVERNANCE</div>
-                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardNonGov">{{ $persen_datanongovernance }}% NON GOVERNANCE</div>
+                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardGov">{{ $persen_datagovernance }}% PEMERINTAH</div>
+                        <div class="h7 mb-0 font-weight-bold text-gray-800" id="cardNonGov">{{ $persen_datanongovernance }}% NON PEMERINTAH</div>
                     </div>
                     <div class="col-auto">
                         <i class="fas fa-comments fa-2x text-gray-300"></i>
@@ -147,14 +147,14 @@
         
         <!-- marker contoh -->
         <div class="marker" style="top:30%; left:11%;" data-region="PTPN I Regional 1" title="Regional 1 - Sumatera Utara"></div>
-        <div class="marker" style="top:61%; left:25%;" data-region="PTPN I Regional 2" title="Regional 2 - Jawa Barat"></div>
+        <div class="marker" style="top:62.5%; left:28.5%;" data-region="PTPN I Regional 2" title="Regional 2 - Jawa Barat"></div>
         <div class="marker" style="top:62%; left:34%;" data-region="PTPN I Regional 3" title="Regional 3 - Jawa Tengah"></div>
-        <div class="marker" style="top:65%; left:40%;" data-region="PTPN I Regional 4" title="Regional 4 - Jawa Timur"></div>
-        <div class="marker" style="top:65%; left:42%;" data-region="PTPN I Regional 5" title="Regional 5 - Jawa Timur"></div>
-        <div class="marker" style="top:26%; left:8%;" data-region="PTPN I Regional 6" title="Regional 6 - Aceh"></div>
+        {{-- <div class="marker" style="top:65%; left:40%;" data-region="PTPN I Regional 4" title="Regional 4 - Jawa Timur"></div> --}}
+        <div class="marker" style="top:65%; left:40%;" data-region="PTPN I Regional 5" title="Regional 5 - Jawa Timur"></div>
+        <div class="marker" style="top:26%; left:8%;" data-region="PTPN I Regional 6 KSO" title="Regional 6 KSO - Aceh"></div>
         <div class="marker" style="top:56%; left:23%;" data-region="PTPN I Regional 7" title="Regional 7 - Lampung"></div>
         <div class="marker" style="top:56%; left:53%;" data-region="PTPN I Regional 8" title="Regional 8 - Makasar"></div>
-        <div class="marker" style="top:60%; left:26%;" data-region="PTPN I HO" title="Head Office"></div>
+        <div class="marker" style="top:60%; left:26.8%;" data-region="PTPN I HO" title="Head Office"></div>
     </div>
 </div>
 
@@ -210,6 +210,7 @@
 
 
 <script>
+
     document.querySelectorAll('.marker').forEach(marker => {
         marker.addEventListener('click', function () {
             let region = this.dataset.region;
@@ -225,10 +226,58 @@
                     document.getElementById('cardStakeholder').textContent = data.datastakeholderall;
                     document.getElementById('cardGov').textContent = data.persen_datagovernance + '% GOVERNANCE';
                     document.getElementById('cardNonGov').textContent = data.persen_datanongovernance + '% NON GOVERNANCE';
+
+                    // Show popup near marker
+                    showMarkerPopup(this, region, data.datastakeholderall, data.persen_datagovernance, data.persen_datanongovernance);
                 })
                 .catch(err => console.error(err));
         });
     });
+
+    // Helper to show popup near marker
+    function showMarkerPopup(marker, region, stakeholder, persenGov, persenNonGov) {
+        // Remove any existing popup
+        let old = document.getElementById('markerPopup');
+        if (old) old.remove();
+
+        // Create popup element
+        let popup = document.createElement('div');
+        popup.id = 'markerPopup';
+        popup.style.position = 'absolute';
+        popup.style.zIndex = 9999;
+        popup.style.background = 'rgba(255,255,255,0.97)';
+        popup.style.border = '1px solid #ddd';
+        popup.style.borderRadius = '8px';
+        popup.style.boxShadow = '0 2px 12px rgba(0,0,0,0.15)';
+        popup.style.padding = '12px 18px';
+        popup.style.fontSize = '1em';
+        popup.style.minWidth = '220px';
+        popup.style.pointerEvents = 'auto';
+        popup.innerHTML = `
+            <div style="font-weight:bold; color:#2c3e50; margin-bottom:4px;">${region}</div>
+            <div><span style="color:#16a085; font-weight:bold;">${stakeholder}</span> Stakeholder</div>
+            <div style="margin-top:6px;">
+                <span style="color:#f39c12;">${persenGov}% Pemerintah</span> &nbsp;|
+                <span style="color:#3498db;">${persenNonGov}% Non Pemerintah</span>
+            </div>
+            <button id="closeMarkerPopup" style="margin-top:8px; float:right; background:#e74c3c; color:#fff; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:0.9em;">Tutup</button>
+        `;
+
+        // Position popup near marker
+        let rect = marker.getBoundingClientRect();
+        let parentRect = marker.offsetParent.getBoundingClientRect();
+        // Offset: below and right of marker
+        popup.style.top = (marker.offsetTop + marker.offsetHeight + 8) + 'px';
+        popup.style.left = (marker.offsetLeft + marker.offsetWidth + 8) + 'px';
+
+        // Insert popup into overlay container
+        marker.offsetParent.appendChild(popup);
+
+        // Close button
+        popup.querySelector('#closeMarkerPopup').onclick = function() {
+            popup.remove();
+        };
+    }
 
 </script>
 <script>
