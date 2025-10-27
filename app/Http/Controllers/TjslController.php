@@ -683,6 +683,15 @@ class TjslController extends Controller
                 'updated_data' => $tjsl->fresh()->toArray()
             ]);
 
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Program TJSL berhasil diperbarui',
+                    'data' => $tjsl->fresh()
+                ]);
+            }
+
             return redirect()->route('tjsl.show', $tjsl->id)
                 ->with('success', 'Program TJSL berhasil diperbarui.');
 
@@ -691,8 +700,17 @@ class TjslController extends Controller
             \Log::error('TJSL update failed', [
                 'tjsl_id' => $id,
                 'error_message' => $e->getMessage(),
-                'error_trace' => $e->getTraceAsString()
+                'error_trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
             ]);
+
+            // Return JSON response for AJAX requests
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat memperbarui program TJSL: ' . $e->getMessage()
+                ], 500);
+            }
 
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan saat memperbarui program TJSL: ' . $e->getMessage())

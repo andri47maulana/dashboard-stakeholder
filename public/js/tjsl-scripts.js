@@ -216,6 +216,12 @@ if (typeof jQuery === 'undefined') {
             }
         });
 
+        // Remove any existing validation classes when Select2 changes
+        element.on('select2:select select2:unselect', function() {
+            $(this).removeClass('is-invalid');
+            $(this).next('.select2-container').removeClass('is-invalid');
+        });
+
         // Event handler untuk memastikan search field berfungsi
         element.on('select2:open', function() {
             setTimeout(function() {
