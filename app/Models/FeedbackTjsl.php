@@ -30,9 +30,9 @@ class FeedbackTjsl extends Model
 
     protected $casts = [
         'tjsl_id' => 'integer',
-        'sangat_puas' => 'decimal:2',
-        'puas' => 'decimal:2',
-        'kurang_puas' => 'decimal:2',
+        'sangat_puas' => 'boolean',
+        'puas' => 'boolean',
+        'kurang_puas' => 'boolean',
         'saran' => 'string',
     ];
 

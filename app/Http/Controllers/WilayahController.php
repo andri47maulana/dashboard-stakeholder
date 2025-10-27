@@ -100,5 +100,53 @@ class WilayahController extends Controller
         // Fallback: return as-is
         return $kode;
     }
+
+    // API methods for TJSL dropdown
+    public function getProvinsi()
+    {
+        $provinsi = DB::table('wilayah')
+            ->whereRaw('LENGTH(kode) = 2')
+            ->select('kode as id', 'nama as name')
+            ->orderBy('nama')
+            ->get();
+
+        return response()->json($provinsi);
+    }
+
+    public function getKabupaten($provinsi_id)
+    {
+        $kabupaten = DB::table('wilayah')
+            ->whereRaw('LENGTH(kode) = 5')
+            ->where('kode', 'like', $provinsi_id . '.%')
+            ->select('kode as id', 'nama as name')
+            ->orderBy('nama')
+            ->get();
+
+        return response()->json($kabupaten);
+    }
+
+    public function getKecamatan($kabupaten_id)
+    {
+        $kecamatan = DB::table('wilayah')
+            ->whereRaw('LENGTH(kode) = 8')
+            ->where('kode', 'like', $kabupaten_id . '.%')
+            ->select('kode as id', 'nama as name')
+            ->orderBy('nama')
+            ->get();
+
+        return response()->json($kecamatan);
+    }
+
+    public function getDesa($kecamatan_id)
+    {
+        $desa = DB::table('wilayah')
+            ->whereRaw('LENGTH(kode) = 13')
+            ->where('kode', 'like', $kecamatan_id . '.%')
+            ->select('kode as id', 'nama as name')
+            ->orderBy('nama')
+            ->get();
+
+        return response()->json($desa);
+    }
 }
 

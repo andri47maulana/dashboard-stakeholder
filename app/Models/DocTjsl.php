@@ -22,14 +22,18 @@ class DocTjsl extends Model
 
     protected $fillable = [
         'tjsl_id',
-        'nama_dokumen',
-        'link'
+        'proposal',
+        'izin_prinsip',
+        'survei_feedback',
+        'foto'
     ];
 
     protected $casts = [
         'tjsl_id' => 'integer',
-        'nama_dokumen' => 'string',
-        'link' => 'string'
+        'proposal' => 'string',
+        'izin_prinsip' => 'string',
+        'survei_feedback' => 'string',
+        'foto' => 'string'
     ];
 
     public function tjsl(): BelongsTo

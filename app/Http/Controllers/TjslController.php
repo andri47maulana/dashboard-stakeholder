@@ -53,11 +53,11 @@ class TjslController extends Controller
             $query->where('nama_program', 'like', '%' . $request->search . '%');
         }
 
-        $tjsls = $query->orderBy('created_at', 'desc')->paginate(12);
+        $tjsls = $query->orderBy('id', 'asc')->paginate(12);
 
         // Data untuk dropdown filter
         $pilars = \App\Models\Pilar::orderBy('pilar')->get();
-        $subpilars = \App\Models\SubPilar::orderBy('sub_pilar')->get();
+        $subpilars = \App\Models\SubPilar::orderBy('id')->get();
 
         $units = \App\Models\Unit::orderBy('unit')->get();
 
@@ -94,25 +94,25 @@ class TjslController extends Controller
         $pilars = $tjsl->pilarRelation; // Mendapatkan data pilar lengkap
 
         // Hitung total anggaran
-        $totalAnggaran = $tjsl->biayaTjsl->sum('anggaran');
+        // $totalAnggaran = $tjsl->biayaTjsl->sum('anggaran');
         $totalRealisasi = $tjsl->biayaTjsl->sum('realisasi');
 
         // Hitung persentase realisasi (contoh, sesuaikan dengan logika bisnis)
-        $persentaseRealisasi = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : 0;
+        // $persentaseRealisasi = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : 0;
+        $persentaseRealisasi = 0;
 
         // Hitung persentase RKA (contoh)
-        $persentaseRka = $tjsl->biayaTjsl->where('jenis_biaya', 'rka')->sum('nominal');
-        $persentaseRka = $totalAnggaran > 0 ? ($persentaseRka / $totalAnggaran) * 100 : 0;
+        $persentaseRka = 0;
+        $persentaseRka = 0;
 
-        // Feedback statistics dengan kategori yang lebih detail
+        // Feedback data untuk gauge display (boolean-based)
+        $latestFeedback = $tjsl->feedbackTjsl->last(); // Ambil feedback terbaru
         $feedbackStats = [
-            'total' => $tjsl->feedbackTjsl->count(),
-            'rating_avg' => 0, // Default value karena tidak ada kolom rating
-            'sangat_puas' => $tjsl->feedbackTjsl->sum('sangat_puas'), // Jumlah nilai sangat_puas
-            'puas' => $tjsl->feedbackTjsl->sum('puas'), // Jumlah nilai puas
-            'kurang_puas' => $tjsl->feedbackTjsl->sum('kurang_puas'), // Jumlah nilai kurang_puas
-            'saran' => $tjsl->feedbackTjsl->pluck('saran')->filter()->last(), // Saran terbaru yang tidak kosong
-            'latest_feedback' => $tjsl->feedbackTjsl->sortByDesc('id')->first(), // Feedback terbaru berdasarkan ID
+            'sangat_puas' => $latestFeedback ? $latestFeedback->sangat_puas : false,
+            'puas' => $latestFeedback ? $latestFeedback->puas : false,
+            'kurang_puas' => $latestFeedback ? $latestFeedback->kurang_puas : false,
+            'saran' => $latestFeedback ? $latestFeedback->saran : null,
+            'has_feedback' => $latestFeedback ? true : false,
         ];
 
         $publications = [
@@ -141,7 +141,7 @@ class TjslController extends Controller
 
         return view('tjsl.show', compact(
             'tjsl',
-            'totalAnggaran',
+            'totalRealisasi',
             'persentaseRealisasi',
             'persentaseRka',
             'feedbackStats',
@@ -154,7 +154,8 @@ class TjslController extends Controller
     public function create()
     {
         $units = Unit::all();
-        return view('tjsl.create', compact('units'));
+        $pilars = Pilar::orderBy('pilar')->get();
+        return view('tjsl.create', compact('units', 'pilars'));
     }
 
     public function store(Request $request)
@@ -165,38 +166,67 @@ class TjslController extends Controller
             'user_id' => Auth::id()
         ]);
 
-        $request->validate([
-            'nama_program' => 'required|string|max:255',
-            'unit_id' => 'required|exists:tb_unit,id',
-            'pilar_id' => 'required|exists:m_pilar,id',
-            'deskripsi' => 'nullable|string',
-            'lokasi_program' => 'nullable|string|max:255',
-            'latitude' => 'nullable|numeric|min:-90|max:90',
-            'longitude' => 'nullable|numeric|min:-180|max:180',
-            'program_unggulan_id' => 'nullable|exists:m_program_unggulan,id',
-            'sub_pilar' => 'nullable|array',
-            'sub_pilar.*' => 'exists:m_sub_pilar,id',
-            'tanggal_mulai' => 'nullable|date',
-            'tanggal_akhir' => 'nullable|date',
-            'penerima_dampak' => 'nullable|string|max:255',
-            'tpb' => 'nullable|string|max:255',
-            'status' => 'nullable|integer',
+        try {
+            \Log::info('Starting validation process');
 
-            // Validasi untuk data terkait
-            'biaya.*.anggaran' => 'nullable|numeric|min:0',
-            'biaya.*.realisasi' => 'nullable|numeric|min:0',
-            'publikasi.*.media' => 'nullable|string|max:255',
-            'publikasi.*.link' => 'nullable|url|max:500',
-            'dokumentasi.*.nama_dokumen' => 'nullable|string|max:255',
-            'dokumentasi.*.link' => 'nullable|url|max:500',
-            'feedback.*.sangat_puas' => 'nullable|numeric|min:0|max:100',
-            'feedback.*.puas' => 'nullable|numeric|min:0|max:100',
-            'feedback.*.kurang_puas' => 'nullable|numeric|min:0|max:100',
-            'feedback.*.saran' => 'nullable|string',
-        ]);
+            $request->validate([
+                // Tab 1 - Data Program (REQUIRED)
+                'nama_program' => 'required|string|max:255',
+                'unit_id' => 'required|exists:tb_unit,id',
+                'pilar_id' => 'required|exists:m_pilar,id',
+                'deskripsi' => 'required|string',
+                'lokasi_program' => 'nullable|string|max:255',
+                'latitude' => 'nullable|numeric|min:-90|max:90',
+                'longitude' => 'nullable|numeric|min:-180|max:180',
+                'program_unggulan_id' => 'nullable|exists:m_program_unggulan,id',
+                'sub_pilar' => 'nullable|array',
+                'sub_pilar.*' => 'nullable|exists:m_sub_pilar,id',
+                'tanggal_mulai' => 'nullable|date',
+                'tanggal_akhir' => 'nullable|date',
+                'penerima_dampak' => 'nullable|string|max:255',
+                'status' => 'nullable|integer',
+
+                // Tab 2 - Data Biaya (NULLABLE)
+                'biaya.*.sub_pilar_id' => 'nullable|exists:m_sub_pilar,id',
+                'biaya.*.realisasi' => 'nullable|numeric|min:0',
+
+                // Tab 3 - Data Publikasi (NULLABLE)
+                'publikasi.*.media' => 'nullable|string|max:255',
+                'publikasi.*.link' => 'nullable|url|max:500',
+
+                // Tab 4 - Data Dokumentasi (NULLABLE)
+                'proposal' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'izin_prinsip' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'survei_feedback' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+                'foto' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
+
+                // Tab 5 - Data Feedback (NULLABLE)
+                'feedback.*.sangat_puas' => 'nullable|string',
+                'feedback.*.puas' => 'nullable|string',
+                'feedback.*.kurang_puas' => 'nullable|string',
+                'feedback.*.saran' => 'nullable|string',
+            ]);
+
+            \Log::info('Validation passed, starting transaction');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'message' => $e->getMessage()
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            \Log::error('Unexpected error during validation', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
 
         try {
             \DB::beginTransaction();
+
+            // Debug: Log validation passed
+            \Log::info('TJSL validation passed, starting save process');
 
             // Debug: Log before creating TJSL
             \Log::info('Creating TJSL record', [
@@ -220,9 +250,13 @@ class TjslController extends Controller
                 'tanggal_mulai' => $request->tanggal_mulai,
                 'tanggal_akhir' => $request->tanggal_akhir,
                 'penerima_dampak' => $request->penerima_dampak,
-                'tpb' => $request->tpb,
                 'status' => $request->status ?? 1,
                 'created_by' => Auth::id(),
+            ]);
+
+            \Log::info('TJSL main record created successfully', [
+                'tjsl_id' => $tjsl->id,
+                'nama_program' => $tjsl->nama_program
             ]);
 
             // Debug: Log after TJSL creation
@@ -231,59 +265,186 @@ class TjslController extends Controller
                 'nama_program' => $tjsl->nama_program
             ]);
 
-            // 2. Simpan data biaya TJSL
-            if ($request->has('biaya')) {
+            // 2. Simpan data biaya TJSL (dari array biaya) - SELALU BUAT RECORD KOSONG JIKA TIDAK ADA DATA
+            if ($request->has('biaya') && is_array($request->biaya) && count($request->biaya) > 0) {
+                \Log::info('Processing biaya data', [
+                    'biaya_count' => count($request->biaya),
+                    'biaya_data' => $request->biaya
+                ]);
+
                 foreach ($request->biaya as $biaya) {
-                    if (!empty($biaya['anggaran']) || !empty($biaya['realisasi'])) {
-                        BiayaTjsl::create([
-                            'tjsl_id' => $tjsl->id,
-                            'anggaran' => $biaya['anggaran'] ?? 0,
-                            'realisasi' => $biaya['realisasi'] ?? 0,
-                        ]);
-                    }
+                    $biayaTjsl = BiayaTjsl::create([
+                        'tjsl_id' => $tjsl->id,
+                        'sub_pilar_id' => $biaya['sub_pilar_id'] ?? null,
+                        'realisasi' => $biaya['realisasi'] ?? 0,
+                    ]);
+
+                    \Log::info('BiayaTjsl created', [
+                        'biaya_id' => $biayaTjsl->id,
+                        'sub_pilar_id' => $biayaTjsl->sub_pilar_id,
+                        'realisasi' => $biayaTjsl->realisasi
+                    ]);
                 }
+            } else {
+                // Buat record kosong untuk menjaga konsistensi ID
+                $biayaTjsl = BiayaTjsl::create([
+                    'tjsl_id' => $tjsl->id,
+                    'sub_pilar_id' => null,
+                    'realisasi' => 0,
+                ]);
+                \Log::info('Empty BiayaTjsl record created for consistency', ['biaya_id' => $biayaTjsl->id]);
             }
 
-            // 3. Simpan data publikasi TJSL
-            if ($request->has('publikasi')) {
+            // 3. Simpan data publikasi TJSL - SELALU BUAT RECORD KOSONG JIKA TIDAK ADA DATA
+            if ($request->has('publikasi') && is_array($request->publikasi) && count($request->publikasi) > 0) {
+                \Log::info('Processing publikasi data', [
+                    'publikasi_count' => count($request->publikasi),
+                    'publikasi_data' => $request->publikasi
+                ]);
+
                 foreach ($request->publikasi as $publikasi) {
-                    if (!empty($publikasi['media']) || !empty($publikasi['link'])) {
-                        PubTjsl::create([
-                            'tjsl_id' => $tjsl->id,
-                            'media' => $publikasi['media'],
-                            'link' => $publikasi['link'],
-                        ]);
-                    }
+                    $pubTjsl = PubTjsl::create([
+                        'tjsl_id' => $tjsl->id,
+                        'media' => $publikasi['media'] ?? null,
+                        'link' => $publikasi['link'] ?? null,
+                    ]);
+
+                    \Log::info('PubTjsl created', [
+                        'pub_id' => $pubTjsl->id,
+                        'media' => $pubTjsl->media,
+                        'link' => $pubTjsl->link
+                    ]);
                 }
+            } else {
+                // Buat record kosong untuk menjaga konsistensi ID
+                $pubTjsl = PubTjsl::create([
+                    'tjsl_id' => $tjsl->id,
+                    'media' => null,
+                    'link' => null,
+                ]);
+                \Log::info('Empty PubTjsl record created for consistency', ['pub_id' => $pubTjsl->id]);
             }
 
-            // 4. Simpan data dokumentasi TJSL
-            if ($request->has('dokumentasi')) {
-                foreach ($request->dokumentasi as $dokumentasi) {
-                    if (!empty($dokumentasi['nama_dokumen']) || !empty($dokumentasi['link'])) {
-                        DocTjsl::create([
-                            'tjsl_id' => $tjsl->id,
-                            'nama_dokumen' => $dokumentasi['nama_dokumen'],
-                            'link' => $dokumentasi['link'],
-                        ]);
-                    }
+            // 4. Simpan data dokumentasi TJSL dengan upload file - SELALU BUAT RECORD KOSONG JIKA TIDAK ADA FILE
+            $docData = [];
+            \Log::info('Processing documentation files', [
+                'has_proposal' => $request->hasFile('proposal'),
+                'has_izin_prinsip' => $request->hasFile('izin_prinsip'),
+                'has_survei_feedback' => $request->hasFile('survei_feedback'),
+                'has_foto' => $request->hasFile('foto')
+            ]);
+
+            // Helper function untuk upload file
+            $uploadFile = function($file, $folder) use ($tjsl) {
+                if ($file) {
+                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $extension = $file->getClientOriginalExtension();
+                    $filename = 'TJSL_' . $tjsl->id . '_' . $originalName . '_' . time() . '.' . $extension;
+                    $path = $file->storeAs('dokumen/' . $folder, $filename, 'public');
+                    return $filename;
                 }
+                return null;
+            };
+
+            if ($request->hasFile('proposal')) {
+                $docData['proposal'] = $uploadFile($request->file('proposal'), 'proposal');
+                \Log::info('Proposal file uploaded', ['filename' => $docData['proposal']]);
+            }
+            if ($request->hasFile('izin_prinsip')) {
+                $docData['izin_prinsip'] = $uploadFile($request->file('izin_prinsip'), 'izin_prinsip');
+                \Log::info('Izin prinsip file uploaded', ['filename' => $docData['izin_prinsip']]);
+            }
+            if ($request->hasFile('survei_feedback')) {
+                $docData['survei_feedback'] = $uploadFile($request->file('survei_feedback'), 'survei_feedback');
+                \Log::info('Survei feedback file uploaded', ['filename' => $docData['survei_feedback']]);
+            }
+            if ($request->hasFile('foto')) {
+                $docData['foto'] = $uploadFile($request->file('foto'), 'foto');
+                \Log::info('Foto file uploaded', ['filename' => $docData['foto']]);
             }
 
-            // 5. Simpan data feedback TJSL
-            if ($request->has('feedback')) {
-                foreach ($request->feedback as $feedback) {
-                    if (!empty($feedback['sangat_puas']) || !empty($feedback['puas']) ||
-                        !empty($feedback['kurang_puas']) || !empty($feedback['saran'])) {
-                        FeedbackTjsl::create([
-                            'tjsl_id' => $tjsl->id,
-                            'sangat_puas' => $feedback['sangat_puas'] ?? 0,
-                            'puas' => $feedback['puas'] ?? 0,
-                            'kurang_puas' => $feedback['kurang_puas'] ?? 0,
-                            'saran' => $feedback['saran'],
-                        ]);
+            // Selalu buat record dokumentasi, meskipun tidak ada file yang diupload
+            $docTjsl = DocTjsl::create(array_merge([
+                'tjsl_id' => $tjsl->id,
+                'proposal' => null,
+                'izin_prinsip' => null,
+                'survei_feedback' => null,
+                'foto' => null,
+            ], $docData));
+
+            \Log::info('DocTjsl created', [
+                'doc_id' => $docTjsl->id,
+                'files' => !empty($docData) ? array_keys($docData) : 'no files uploaded'
+            ]);
+
+            // 5. Simpan data feedback TJSL (dari array feedback) - SELALU BUAT RECORD KOSONG JIKA TIDAK ADA DATA
+            if ($request->has('feedback') && is_array($request->feedback) && count($request->feedback) > 0) {
+                \Log::info('Processing feedback data', [
+                    'feedback_count' => count($request->feedback),
+                    'feedback_data' => $request->feedback
+                ]);
+
+                foreach ($request->feedback as $feedbackData) {
+                    // Initialize all feedback values to 0 (default for unchecked checkboxes)
+                    $sangat_puas = 0;
+                    $puas = 0;
+                    $kurang_puas = 0;
+
+                    // Handle feedback rating based on 'puas' field value
+                    if (isset($feedbackData['puas'])) {
+                        $puasValue = $feedbackData['puas'];
+                        if ($puasValue == '1' || $puasValue == 1) {
+                            $sangat_puas = 1; // Value 1 = Sangat Puas
+                        } elseif ($puasValue == '2' || $puasValue == 2) {
+                            $puas = 1; // Value 2 = Puas
+                        } elseif ($puasValue == '3' || $puasValue == 3) {
+                            $kurang_puas = 1; // Value 3 = Kurang Puas
+                        }
                     }
+
+                    // Handle individual boolean checkbox fields (if they exist)
+                    if (isset($feedbackData['sangat_puas']) && ($feedbackData['sangat_puas'] == '1' || $feedbackData['sangat_puas'] === true)) {
+                        $sangat_puas = 1;
+                        $puas = 0;
+                        $kurang_puas = 0;
+                    }
+                    if (isset($feedbackData['puas']) && !is_numeric($feedbackData['puas']) && ($feedbackData['puas'] == '1' || $feedbackData['puas'] === true)) {
+                        $sangat_puas = 0;
+                        $puas = 1;
+                        $kurang_puas = 0;
+                    }
+                    if (isset($feedbackData['kurang_puas']) && ($feedbackData['kurang_puas'] == '1' || $feedbackData['kurang_puas'] === true)) {
+                        $sangat_puas = 0;
+                        $puas = 0;
+                        $kurang_puas = 1;
+                    }
+
+                    $feedbackTjsl = FeedbackTjsl::create([
+                        'tjsl_id' => $tjsl->id,
+                        'sangat_puas' => $sangat_puas,
+                        'puas' => $puas,
+                        'kurang_puas' => $kurang_puas,
+                        'saran' => $feedbackData['saran'] ?? null,
+                    ]);
+
+                    \Log::info('FeedbackTjsl created', [
+                        'feedback_id' => $feedbackTjsl->id,
+                        'sangat_puas' => $feedbackTjsl->sangat_puas,
+                        'puas' => $feedbackTjsl->puas,
+                        'kurang_puas' => $feedbackTjsl->kurang_puas,
+                        'saran' => $feedbackTjsl->saran
+                    ]);
                 }
+            } else {
+                // Buat record kosong untuk menjaga konsistensi ID
+                $feedbackTjsl = FeedbackTjsl::create([
+                    'tjsl_id' => $tjsl->id,
+                    'sangat_puas' => 0,
+                    'puas' => 0,
+                    'kurang_puas' => 0,
+                    'saran' => null,
+                ]);
+                \Log::info('Empty FeedbackTjsl record created for consistency', ['feedback_id' => $feedbackTjsl->id]);
             }
 
             \DB::commit();
@@ -321,9 +482,18 @@ class TjslController extends Controller
 
     public function update(Request $request, $id)
     {
+        \Log::info('TJSL Update Method Called', [
+            'tjsl_id' => $id,
+            'request_data' => $request->all(),
+            'files' => $request->allFiles(),
+            'lokasi_program' => $request->lokasi_program,
+            'sub_pilar' => $request->sub_pilar
+        ]);
+
         $tjsl = Tjsl::findOrFail($id);
 
         $request->validate([
+            // Tab 1: Program Data (Required)
             'nama_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
             'unit_id' => 'required|exists:tb_unit,id',
@@ -335,32 +505,199 @@ class TjslController extends Controller
             'tanggal_mulai' => 'nullable|date',
             'tanggal_akhir' => 'nullable|date',
             'penerima_dampak' => 'nullable|string|max:255',
-            'tpb' => 'nullable|string|max:255',
             'status' => 'nullable|integer',
             'latitude' => 'nullable|numeric|min:-90|max:90',
             'longitude' => 'nullable|numeric|min:-180|max:180',
+
+            // Tab 2-5: Optional fields (nullable for partial saving)
+            'biaya.*.sub_pilar_id' => 'nullable|exists:m_sub_pilar,id',
+            'biaya.*.realisasi' => 'nullable|numeric|min:0',
+            'publikasi.*.media' => 'nullable|string|max:255',
+            'publikasi.*.link' => 'nullable|url|max:500',
+            'proposal' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'izin_prinsip' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'survei_feedback' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
+            'foto' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
+            'feedback.*.sangat_puas' => 'nullable|string',
+            'feedback.*.puas' => 'nullable|string',
+            'feedback.*.kurang_puas' => 'nullable|string',
+            'feedback.*.saran' => 'nullable|string',
         ]);
 
-        $tjsl->update([
-            'nama_program' => $request->nama_program,
-            'deskripsi' => $request->deskripsi,
-            'unit_id' => $request->unit_id,
-            'lokasi_program' => $request->lokasi_program,
-            'pilar_id' => $request->pilar_id,
-            'program_unggulan_id' => $request->program_unggulan_id,
-            'sub_pilar' => $request->sub_pilar ? json_encode($request->sub_pilar) : null,
-            'tanggal_mulai' => $request->tanggal_mulai,
-            'tanggal_akhir' => $request->tanggal_akhir,
-            'penerima_dampak' => $request->penerima_dampak,
-            'tpb' => $request->tpb,
-            'status' => $request->status,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-            'updated_by' => Auth::id(),
-        ]);
+        try {
+            \DB::beginTransaction();
 
-        return redirect()->route('tjsl.show', $tjsl->id)
-            ->with('success', 'Program TJSL berhasil diperbarui.');
+            // Update data TJSL utama
+            \Log::info('Before TJSL Update', [
+                'lokasi_program' => $request->lokasi_program,
+                'sub_pilar' => $request->sub_pilar,
+                'sub_pilar_type' => gettype($request->sub_pilar),
+                'sub_pilar_empty' => empty($request->sub_pilar)
+            ]);
+
+            $tjsl->update([
+                'nama_program' => $request->nama_program,
+                'deskripsi' => $request->deskripsi,
+                'unit_id' => $request->unit_id,
+                'lokasi_program' => $request->lokasi_program,
+                'pilar_id' => $request->pilar_id,
+                'program_unggulan_id' => $request->program_unggulan_id,
+                'sub_pilar' => $request->sub_pilar ? json_encode($request->sub_pilar) : null,
+                'tanggal_mulai' => $request->tanggal_mulai,
+                'tanggal_akhir' => $request->tanggal_akhir,
+                'penerima_dampak' => $request->penerima_dampak,
+                'status' => $request->status,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+                'updated_by' => Auth::id(),
+            ]);
+
+            \Log::info('After TJSL Update', [
+                'lokasi_program_saved' => $tjsl->lokasi_program,
+                'sub_pilar_saved' => $tjsl->sub_pilar
+            ]);
+
+            // Update biaya TJSL - Always create/update record to maintain ID consistency
+            BiayaTjsl::where('tjsl_id', $tjsl->id)->delete();
+
+            // Always create at least one BiayaTjsl record
+            if ($request->has('biaya') && is_array($request->biaya) && !empty($request->biaya)) {
+                foreach ($request->biaya as $biaya) {
+                    BiayaTjsl::create([
+                        'tjsl_id' => $tjsl->id,
+                        'sub_pilar_id' => $biaya['sub_pilar_id'] ?? null,
+                        'realisasi' => $biaya['realisasi'] ?? 0,
+                    ]);
+                }
+            } else {
+                // Create empty record to maintain ID consistency
+                BiayaTjsl::create([
+                    'tjsl_id' => $tjsl->id,
+                    'sub_pilar_id' => null,
+                    'realisasi' => 0,
+                ]);
+            }
+
+            // Update publikasi TJSL - Always create/update record to maintain ID consistency
+            PubTjsl::where('tjsl_id', $tjsl->id)->delete();
+
+            // Always create at least one PubTjsl record
+            if ($request->has('publikasi') && is_array($request->publikasi) && !empty($request->publikasi)) {
+                foreach ($request->publikasi as $publikasi) {
+                    PubTjsl::create([
+                        'tjsl_id' => $tjsl->id,
+                        'media' => $publikasi['media'] ?? null,
+                        'link' => $publikasi['link'] ?? null,
+                    ]);
+                }
+            } else {
+                // Create empty record to maintain ID consistency
+                PubTjsl::create([
+                    'tjsl_id' => $tjsl->id,
+                    'media' => null,
+                    'link' => null,
+                ]);
+            }
+
+            // Update dokumentasi TJSL - Always create/update record to maintain ID consistency
+            $docTjsl = DocTjsl::where('tjsl_id', $tjsl->id)->first();
+            $docData = ['tjsl_id' => $tjsl->id];
+
+            // Handle file uploads untuk update
+            if ($request->hasFile('proposal')) {
+                // Hapus file lama jika ada
+                if ($docTjsl && $docTjsl->proposal) {
+                    \Storage::disk('public')->delete('dokumen/proposal/' . $docTjsl->proposal);
+                }
+                $docData['proposal'] = $this->handleFileUpload($request->file('proposal'), 'proposal', $tjsl->id);
+            } else {
+                $docData['proposal'] = $docTjsl ? $docTjsl->proposal : null;
+            }
+
+            if ($request->hasFile('izin_prinsip')) {
+                // Hapus file lama jika ada
+                if ($docTjsl && $docTjsl->izin_prinsip) {
+                    \Storage::disk('public')->delete('dokumen/izin_prinsip/' . $docTjsl->izin_prinsip);
+                }
+                $docData['izin_prinsip'] = $this->handleFileUpload($request->file('izin_prinsip'), 'izin_prinsip', $tjsl->id);
+            } else {
+                $docData['izin_prinsip'] = $docTjsl ? $docTjsl->izin_prinsip : null;
+            }
+
+            if ($request->hasFile('survei_feedback')) {
+                // Hapus file lama jika ada
+                if ($docTjsl && $docTjsl->survei_feedback) {
+                    \Storage::disk('public')->delete('dokumen/survei_feedback/' . $docTjsl->survei_feedback);
+                }
+                $docData['survei_feedback'] = $this->handleFileUpload($request->file('survei_feedback'), 'survei_feedback', $tjsl->id);
+            } else {
+                $docData['survei_feedback'] = $docTjsl ? $docTjsl->survei_feedback : null;
+            }
+
+            if ($request->hasFile('foto')) {
+                // Hapus file lama jika ada
+                if ($docTjsl && $docTjsl->foto) {
+                    \Storage::disk('public')->delete('dokumen/foto/' . $docTjsl->foto);
+                }
+                $docData['foto'] = $this->handleFileUpload($request->file('foto'), 'foto', $tjsl->id);
+            } else {
+                $docData['foto'] = $docTjsl ? $docTjsl->foto : null;
+            }
+
+            // Always create or update DocTjsl record
+            if ($docTjsl) {
+                $docTjsl->update($docData);
+            } else {
+                DocTjsl::create($docData);
+            }
+
+            // Update feedback TJSL - Always create/update record to maintain ID consistency
+            FeedbackTjsl::where('tjsl_id', $tjsl->id)->delete();
+
+            // Always create at least one FeedbackTjsl record
+            if ($request->has('feedback') && is_array($request->feedback) && !empty($request->feedback)) {
+                foreach ($request->feedback as $feedbackData) {
+                    FeedbackTjsl::create([
+                        'tjsl_id' => $tjsl->id,
+                        'sangat_puas' => isset($feedbackData['sangat_puas']) ? 1 : 0,
+                        'puas' => isset($feedbackData['puas']) ? 1 : 0,
+                        'kurang_puas' => isset($feedbackData['kurang_puas']) ? 1 : 0,
+                        'saran' => $feedbackData['saran'] ?? null,
+                    ]);
+                }
+            } else {
+                // Create empty record to maintain ID consistency
+                FeedbackTjsl::create([
+                    'tjsl_id' => $tjsl->id,
+                    'sangat_puas' => 0,
+                    'puas' => 0,
+                    'kurang_puas' => 0,
+                    'saran' => null,
+                ]);
+            }
+
+            \DB::commit();
+
+            \Log::info('TJSL Update Success', [
+                'tjsl_id' => $id,
+                'updated_data' => $tjsl->fresh()->toArray()
+            ]);
+
+            return redirect()->route('tjsl.show', $tjsl->id)
+                ->with('success', 'Program TJSL berhasil diperbarui.');
+
+        } catch (\Exception $e) {
+            \DB::rollback();
+            \Log::error('TJSL update failed', [
+                'tjsl_id' => $id,
+                'error_message' => $e->getMessage(),
+                'error_trace' => $e->getTraceAsString()
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Terjadi kesalahan saat memperbarui program TJSL: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function destroy($id)
@@ -369,6 +706,23 @@ class TjslController extends Controller
             DB::beginTransaction();
 
             $tjsl = Tjsl::findOrFail($id);
+
+            // Hapus file dokumentasi jika ada
+            $docTjsl = DocTjsl::where('tjsl_id', $id)->first();
+            if ($docTjsl) {
+                if ($docTjsl->proposal && \Storage::disk('public')->exists('dokumen/proposal/' . $docTjsl->proposal)) {
+                    \Storage::disk('public')->delete('dokumen/proposal/' . $docTjsl->proposal);
+                }
+                if ($docTjsl->izin_prinsip && \Storage::disk('public')->exists('dokumen/izin_prinsip/' . $docTjsl->izin_prinsip)) {
+                    \Storage::disk('public')->delete('dokumen/izin_prinsip/' . $docTjsl->izin_prinsip);
+                }
+                if ($docTjsl->survei_feedback && \Storage::disk('public')->exists('dokumen/survei_feedback/' . $docTjsl->survei_feedback)) {
+                    \Storage::disk('public')->delete('dokumen/survei_feedback/' . $docTjsl->survei_feedback);
+                }
+                if ($docTjsl->foto && \Storage::disk('public')->exists('dokumen/foto/' . $docTjsl->foto)) {
+                    \Storage::disk('public')->delete('dokumen/foto/' . $docTjsl->foto);
+                }
+            }
 
             // Delete related data first
             BiayaTjsl::where('tjsl_id', $id)->delete();
@@ -394,104 +748,22 @@ class TjslController extends Controller
         }
     }
 
-    // Method untuk menambah biaya
-    public function addBiaya(Request $request, $id)
-    {
-        $request->validate([
-            'jenis_biaya' => 'required|string',
-            'nominal' => 'required|numeric|min:0',
-            'keterangan' => 'nullable|string',
-        ]);
-
-        BiayaTjsl::create([
-            'tjsl_id' => $id,
-            'jenis_biaya' => $request->jenis_biaya,
-            'nominal' => $request->nominal,
-            'keterangan' => $request->keterangan,
-            'created_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('tjsl.show', $id)
-            ->with('success', 'Biaya berhasil ditambahkan.');
-    }
-
     // Method untuk menambah publikasi
     public function addPublikasi(Request $request, $id)
     {
         $request->validate([
-            'judul_publikasi' => 'required|string',
-            'jenis_publikasi' => 'required|string',
-            'tanggal_publikasi' => 'required|date',
             'media' => 'required|string',
-            'url_publikasi' => 'nullable|url',
-            'keterangan' => 'nullable|string',
-        ]);
+            'link' => 'nullable|url',
+         ]);
 
         PubTjsl::create([
             'tjsl_id' => $id,
-            'judul_publikasi' => $request->judul_publikasi,
-            'jenis_publikasi' => $request->jenis_publikasi,
-            'tanggal_publikasi' => $request->tanggal_publikasi,
             'media' => $request->media,
-            'url_publikasi' => $request->url_publikasi,
-            'keterangan' => $request->keterangan,
-            'created_by' => Auth::id(),
+            'link' => $request->link,
         ]);
 
         return redirect()->route('tjsl.show', $id)
             ->with('success', 'Publikasi berhasil ditambahkan.');
-    }
-
-    // Method untuk menambah dokumen
-    public function addDokumen(Request $request, $id)
-    {
-        $request->validate([
-            'nama_dokumen' => 'required|string',
-            'jenis_dokumen' => 'required|string',
-            'file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
-        ]);
-
-        $file = $request->file('file');
-        $fileName = time() . '_' . $file->getClientOriginalName();
-        $filePath = $file->storeAs('tjsl_documents', $fileName, 'public');
-
-        DocTjsl::create([
-            'tjsl_id' => $id,
-            'nama_dokumen' => $request->nama_dokumen,
-            'jenis_dokumen' => $request->jenis_dokumen,
-            'file_path' => $filePath,
-            'file_name' => $fileName,
-            'file_size' => $file->getSize(),
-            'created_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('tjsl.show', $id)
-            ->with('success', 'Dokumen berhasil ditambahkan.');
-    }
-
-    // Method untuk menambah feedback
-    public function addFeedback(Request $request, $id)
-    {
-        $request->validate([
-            'nama_pemberi_feedback' => 'required|string',
-            'email' => 'required|email',
-            'feedback' => 'required|string',
-            'rating' => 'required|integer|min:1|max:5',
-        ]);
-
-        FeedbackTjsl::create([
-            'tjsl_id' => $id,
-            'nama_pemberi_feedback' => $request->nama_pemberi_feedback,
-            'email' => $request->email,
-            'feedback' => $request->feedback,
-            'rating' => $request->rating,
-            'status' => 1, // aktif
-            'tanggal_feedback' => now(),
-            'created_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('tjsl.show', $id)
-            ->with('success', 'Feedback berhasil ditambahkan.');
     }
 
     public function getEditData($id)
@@ -540,27 +812,27 @@ class TjslController extends Controller
         return response()->json($units);
     }
 
-    // AJAX search for TJSL programs (Select2 format)
-    public function search(Request $request)
+    /**
+     * Handle file upload for TJSL documents
+     */
+    private function handleFileUpload($file, $folder, $tjslId)
     {
-        $q = trim($request->get('q', ''));
-        $query = Tjsl::query();
-        if ($q !== '') {
-            // support search by id (numeric) or partial nama_program
-            if (ctype_digit($q)) {
-                $query->where('id', intval($q));
-            } else {
-                $query->where('nama_program', 'like', "%$q%");
-            }
+        if (!$file) {
+            return null;
         }
-        // Limit and order for Select2
-        $items = $query->orderBy('created_at', 'desc')->limit(20)->get(['id', 'nama_program']);
-        $results = $items->map(function($i){
-            return [
-                'id' => $i->id,
-                'text' => $i->nama_program ? ($i->nama_program ) : ('ID ' . $i->id)
-            ];
-        });
-        return response()->json($results);
+
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+        $filename = 'TJSL_' . $tjslId . '_' . $originalName . '_' . time() . '.' . $extension;
+
+        $path = $file->storeAs('dokumen/' . $folder, $filename, 'public');
+
+        \Log::info('File uploaded successfully', [
+            'folder' => $folder,
+            'filename' => $filename,
+            'tjsl_id' => $tjslId
+        ]);
+
+        return $filename;
     }
 }
