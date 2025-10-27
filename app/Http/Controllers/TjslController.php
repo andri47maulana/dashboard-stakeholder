@@ -485,7 +485,9 @@ class TjslController extends Controller
         \Log::info('TJSL Update Method Called', [
             'tjsl_id' => $id,
             'request_data' => $request->all(),
-            'files' => $request->allFiles()
+            'files' => $request->allFiles(),
+            'lokasi_program' => $request->lokasi_program,
+            'sub_pilar' => $request->sub_pilar
         ]);
 
         $tjsl = Tjsl::findOrFail($id);
@@ -526,6 +528,13 @@ class TjslController extends Controller
             \DB::beginTransaction();
 
             // Update data TJSL utama
+            \Log::info('Before TJSL Update', [
+                'lokasi_program' => $request->lokasi_program,
+                'sub_pilar' => $request->sub_pilar,
+                'sub_pilar_type' => gettype($request->sub_pilar),
+                'sub_pilar_empty' => empty($request->sub_pilar)
+            ]);
+
             $tjsl->update([
                 'nama_program' => $request->nama_program,
                 'deskripsi' => $request->deskripsi,
@@ -541,6 +550,11 @@ class TjslController extends Controller
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'updated_by' => Auth::id(),
+            ]);
+
+            \Log::info('After TJSL Update', [
+                'lokasi_program_saved' => $tjsl->lokasi_program,
+                'sub_pilar_saved' => $tjsl->sub_pilar
             ]);
 
             // Update biaya TJSL - Always create/update record to maintain ID consistency

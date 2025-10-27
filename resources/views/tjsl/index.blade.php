@@ -290,18 +290,34 @@
                                 $('#edit_pilar_id').val(data.pilar_id).trigger('change');
                             }
 
-                            // Select2 fields
-                            if (data.sub_pilar_id) {
-                                $('#edit_sub_pilar').val(data.sub_pilar_id).trigger('change');
-                            }
+                            // Unit field first
                             if (data.unit_id) {
                                 $('#edit_unit_id').val(data.unit_id).trigger('change');
                             }
 
-                            // Program unggulan
+                            // Program unggulan HARUS di-set SEBELUM sub_pilar
                             if (data.program_unggulan_id) {
                                 $('#edit_program_unggulan_id').val(data.program_unggulan_id)
                                     .trigger('change');
+
+                                // Set sub_pilar SETELAH program unggulan dengan delay
+                                setTimeout(function() {
+                                    if (data.sub_pilar && Array.isArray(data
+                                        .sub_pilar)) {
+                                        console.log(
+                                            'Setting sub_pilar after program unggulan:',
+                                            data.sub_pilar);
+                                        $('#edit_sub_pilar').val(data.sub_pilar)
+                                            .trigger('change');
+                                    }
+                                }, 200); // Increase delay to 200ms
+                            } else {
+                                // Jika tidak ada program unggulan, set sub_pilar langsung
+                                if (data.sub_pilar && Array.isArray(data.sub_pilar)) {
+                                    console.log('Setting sub_pilar directly:', data.sub_pilar);
+                                    $('#edit_sub_pilar').val(data.sub_pilar).trigger(
+                                        'change');
+                                }
                             }
 
                             // Date fields (fix field names and format)

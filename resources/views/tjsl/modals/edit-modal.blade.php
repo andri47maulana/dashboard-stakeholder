@@ -465,3 +465,38 @@
         </div>
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        // Function to compose edit lokasi_program from selected wilayah
+        function composeEditLokasiProgram() {
+            // Ambil kode wilayah (value) bukan nama (text)
+            const provKode = $('#edit_lokasi_provinsi').val() || '';
+            const kabKode = $('#edit_lokasi_kabupaten').val() || '';
+            const kecKode = $('#edit_lokasi_kecamatan').val() || '';
+            const desaKode = $('#edit_lokasi_desa').val() || '';
+
+            // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
+            if (desaKode) {
+                $('#edit_lokasi_program').val(desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+            } else if (kecKode) {
+                $('#edit_lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
+            } else if (kabKode) {
+                $('#edit_lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
+            } else if (provKode) {
+                $('#edit_lokasi_program').val(provKode); // Kode provinsi (format: NN)
+            } else {
+                $('#edit_lokasi_program').val('');
+            }
+
+            console.log('Edit lokasi_program composed:', $('#edit_lokasi_program').val());
+        }
+
+        // Bind change events to all edit location selectors
+        $('#edit_lokasi_provinsi, #edit_lokasi_kabupaten, #edit_lokasi_kecamatan, #edit_lokasi_desa').on(
+            'change',
+            function() {
+                composeEditLokasiProgram();
+            });
+    });
+</script>
