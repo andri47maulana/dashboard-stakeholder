@@ -303,7 +303,7 @@
                                 // Set sub_pilar SETELAH program unggulan dengan delay
                                 setTimeout(function() {
                                     if (data.sub_pilar && Array.isArray(data
-                                        .sub_pilar)) {
+                                            .sub_pilar)) {
                                         console.log(
                                             'Setting sub_pilar after program unggulan:',
                                             data.sub_pilar);
@@ -762,6 +762,83 @@
             $('#editTjslForm').on('submit', function(e) {
                 e.preventDefault(); // Prevent default form submission
 
+                console.log('=== FORM SUBMISSION STARTED ===');
+
+                // Clear any previous validation states
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').hide();
+
+                // Compose lokasi_program before submitting
+                const provKode = $('#edit_lokasi_provinsi').val() || '';
+                const kabKode = $('#edit_lokasi_kabupaten').val() || '';
+                const kecKode = $('#edit_lokasi_kecamatan').val() || '';
+                const desaKode = $('#edit_lokasi_desa').val() || '';
+
+                console.log('Location values:', {
+                    provKode,
+                    kabKode,
+                    kecKode,
+                    desaKode
+                });
+
+                // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
+                if (desaKode) {
+                    $('#edit_lokasi_program').val(
+                    desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+                } else if (kecKode) {
+                    $('#edit_lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
+                } else if (kabKode) {
+                    $('#edit_lokasi_program').val(kabKode); // Kode kabupaten (format: NN.NN)
+                } else if (provKode) {
+                    $('#edit_lokasi_program').val(provKode); // Kode provinsi (format: NN)
+                } else {
+                    $('#edit_lokasi_program').val('');
+                }
+
+                console.log('Final lokasi_program before submit:', $('#edit_lokasi_program').val());
+
+                // Validate required fields
+                let isValid = true;
+                const requiredFields = ['edit_nama_program', 'edit_unit_id', 'edit_pilar_id'];
+
+                requiredFields.forEach(fieldId => {
+                    const field = $('#' + fieldId);
+                    const value = field.val();
+
+                    if (!value || value === '') {
+                        console.log('Required field is empty:', fieldId, 'Value:', value);
+                        field.addClass('is-invalid');
+                        isValid = false;
+                    }
+                });
+
+                // Special validation for Select2 fields
+                const select2Fields = ['#edit_unit_id', '#edit_pilar_id'];
+                select2Fields.forEach(selector => {
+                    const field = $(selector);
+                    if (field.hasClass('select2-hidden-accessible')) {
+                        const value = field.val();
+                        if (!value || value === '') {
+                            console.log('Select2 field is empty:', selector);
+                            field.next('.select2-container').addClass('is-invalid');
+                            isValid = false;
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    console.log('Form validation failed');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Gagal',
+                        text: 'Mohon lengkapi semua field yang wajib diisi',
+                        confirmButtonText: 'OK'
+                    });
+                    return false;
+                }
+
+                console.log('Form validation passed, proceeding with submission...');
+
                 var formData = new FormData(this);
                 var tjslId = $('#editTjslForm').attr('action').split('/').pop();
 
@@ -816,6 +893,147 @@
                         // Reset button state
                         $('#editSubmitBtn').prop('disabled', false).html(
                             '<i class="fas fa-save"></i> Update Program TJSL');
+                    }
+                });
+            });
+
+            // Handler untuk form submission create modal
+            $('#tjslForm').on('submit', function(e) {
+                e.preventDefault(); // Prevent default form submission
+
+                console.log('=== CREATE FORM SUBMISSION STARTED ===');
+
+                // Clear any previous validation states
+                $('.is-invalid').removeClass('is-invalid');
+                $('.invalid-feedback').hide();
+
+                // Compose lokasi_program before submitting
+                const provKode = $('#lokasi_provinsi').val() || '';
+                const kabKode = $('#lokasi_kabupaten').val() || '';
+                const kecKode = $('#lokasi_kecamatan').val() || '';
+                const desaKode = $('#lokasi_desa').val() || '';
+
+                console.log('Location values:', {
+                    provKode,
+                    kabKode,
+                    kecKode,
+                    desaKode
+                });
+
+                // Set lokasi_program based on the most specific location selected
+                if (desaKode) {
+                    $('#lokasi_program').val(desaKode);
+                } else if (kecKode) {
+                    $('#lokasi_program').val(kecKode);
+                } else if (kabKode) {
+                    $('#lokasi_program').val(kabKode);
+                } else if (provKode) {
+                    $('#lokasi_program').val(provKode);
+                } else {
+                    $('#lokasi_program').val('');
+                }
+
+                console.log('Final lokasi_program:', $('#lokasi_program').val());
+
+                // Validate required fields
+                let isValid = true;
+                let invalidFields = [];
+
+                // Validate nama_program
+                if (!$('#nama_program').val().trim()) {
+                    $('#nama_program').addClass('is-invalid');
+                    invalidFields.push('Nama Program');
+                    isValid = false;
+                } else {
+                    $('#nama_program').removeClass('is-invalid');
+                }
+
+                // Validate unit_id
+                if (!$('#unit_id').val()) {
+                    $('#unit_id').addClass('is-invalid');
+                    invalidFields.push('Unit/Kebun');
+                    isValid = false;
+                } else {
+                    $('#unit_id').removeClass('is-invalid');
+                }
+
+                // Validate pilar_id
+                if (!$('#pilar_id').val()) {
+                    $('#pilar_id').addClass('is-invalid');
+                    invalidFields.push('Pilar');
+                    isValid = false;
+                } else {
+                    $('#pilar_id').removeClass('is-invalid');
+                }
+
+                console.log('Validation result:', {
+                    isValid,
+                    invalidFields
+                });
+
+                if (!isValid) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Gagal!',
+                        text: 'Field berikut wajib diisi: ' + invalidFields.join(', ')
+                    });
+                    return false;
+                }
+
+                // Prepare form data
+                var formData = new FormData(this);
+
+                // Show loading state
+                $('#submitBtn').prop('disabled', true).html(
+                    '<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        // Close modal
+                        $('#tjslModal').modal('hide');
+
+                        // Show success message
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: 'Program TJSL berhasil disimpan',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            // Redirect to index page
+                            window.location.href = "{{ route('tjsl.index') }}";
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Create error:', xhr.responseText);
+                        var errorMessage = 'Terjadi kesalahan saat menyimpan data';
+
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                            var errors = xhr.responseJSON.errors;
+                            var errorList = [];
+                            for (var field in errors) {
+                                errorList.push(errors[field][0]);
+                            }
+                            errorMessage = errorList.join('\n');
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error!',
+                            text: errorMessage
+                        });
+                    },
+                    complete: function() {
+                        // Reset button state
+                        $('#submitBtn').prop('disabled', false).html(
+                            '<i class="fas fa-save"></i> Simpan Program');
                     }
                 });
             });
