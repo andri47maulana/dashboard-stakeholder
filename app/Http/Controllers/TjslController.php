@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Models\Anggaran;
 
 class TjslController extends Controller
 {
@@ -93,13 +94,29 @@ class TjslController extends Controller
 
         $pilars = $tjsl->pilarRelation; // Mendapatkan data pilar lengkap
 
-        // Hitung total anggaran
-        // $totalAnggaran = $tjsl->biayaTjsl->sum('anggaran');
+        // Total realisasi dari biaya (tb_biaya_tjsl)
         $totalRealisasi = $tjsl->biayaTjsl->sum('realisasi');
 
-        // Hitung persentase realisasi (contoh, sesuaikan dengan logika bisnis)
-        // $persentaseRealisasi = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : 0;
-        $persentaseRealisasi = 0;
+        // Ambil sub_pilar_id dari tb_biaya_tjsl (abaikan null)
+        $subPilarIdsCollection = $tjsl->biayaTjsl->pluck('sub_pilar_id')->filter()->unique();
+        $hasSubPilarAnggaran = $subPilarIdsCollection->isNotEmpty();
+        $subPilarIds = $subPilarIdsCollection->values()->all();
+
+        // Tahun program dari tanggal_mulai (opsional)
+        $programYear = $tjsl->tanggal_mulai ? $tjsl->tanggal_mulai->format('Y') : null;
+
+        // Hitung total anggaran dari tb_anggaran_tjsl sesuai sub_pilar_id biaya
+        $totalAnggaran = 0.0;
+        if ($hasSubPilarAnggaran) {
+            $queryAnggaran = Anggaran::whereIn('sub_pilar_id', $subPilarIds);
+            if ($programYear) {
+                $queryAnggaran->where('tahun', (string) $programYear);
+            }
+            $totalAnggaran = (float) $queryAnggaran->sum('anggaran');
+        }
+
+        // Persentase realisasi
+        $persentaseRealisasi = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : 0;
 
         // Hitung persentase RKA (contoh)
         $persentaseRka = 0;
@@ -141,13 +158,15 @@ class TjslController extends Controller
 
         return view('tjsl.show', compact(
             'tjsl',
+            'totalAnggaran',
             'totalRealisasi',
             'persentaseRealisasi',
             'persentaseRka',
             'feedbackStats',
             'publications',
             'documentations',
-            'pilars' // Tambahkan pilar ke compact
+            'pilars',
+            'hasSubPilarAnggaran'
         ));
     }
 

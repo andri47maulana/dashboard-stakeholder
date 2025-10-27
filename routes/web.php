@@ -13,6 +13,7 @@ use App\Http\Controllers\PolygonController;
 use App\Http\Controllers\DerajatHubunganController;
 use App\Http\Controllers\TjslController;
 use App\Http\Controllers\DashboardTjslController;
+use App\Http\Controllers\MonitoringBiayaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -191,7 +192,19 @@ Route::group(['middleware' => 'auth'], function () {
     // AJAX route untuk pagination provinsi
     Route::get('/tjsl/dashboard/provinces', [DashboardTjslController::class, 'getProvinceData'])->name('tjsl.dashboard.provinces');
 
+    // Route untuk anggaran
+    Route::prefix('anggaran')->group(function(){
+        Route::get('/', [App\Http\Controllers\AnggaranController::class, 'index'])->name('anggaran.index');
+        Route::post('/store', [App\Http\Controllers\AnggaranController::class, 'store'])->name('anggaran.store');
+        Route::put('/update/{id}', [App\Http\Controllers\AnggaranController::class, 'update'])->name('anggaran.update');
+        Route::delete('/delete/{id}', [App\Http\Controllers\AnggaranController::class, 'destroy'])->name('anggaran.delete');
+        Route::get('/show/{id}', [App\Http\Controllers\AnggaranController::class, 'show'])->name('anggaran.show');
+    });
+
 });
+
+// Monitoring Biaya TJSL
+Route::get('/monitoringbiaya/', [MonitoringBiayaController::class, 'index'])->name('monitoringbiaya.index');
 
 
 
