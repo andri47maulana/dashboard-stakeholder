@@ -156,9 +156,16 @@
                                     </div>
                                     <div class="card-body">
                                         <table class="table table-borderless table-sm">
+                                            <!-- Baris tabel Perencanaan Anggaran -->
                                             <tr>
-                                                <td><strong>Perencanaan Anggaran</strong></td>
-                                                <td>: Rp. 100.000.000,-</td>
+                                                <th>Perencanaan Anggaran</th>
+                                                <td>
+                                                    : @if(isset($hasSubPilarAnggaran) && $hasSubPilarAnggaran)
+                                                        Rp. {{ number_format($totalAnggaran, 0, ',', '.') }},-
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Realisasi Anggaran</strong></td>

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SubPilar extends Model
 {
@@ -16,6 +17,12 @@ class SubPilar extends Model
         'pilar_id',
         'sub_pilar'
     ];
+
+    // Relasi untuk anggaran
+    public function anggarans(): HasMany
+    {
+        return $this->hasMany(Anggaran::class, 'sub_pilar_id');
+    }
 
     // public function tjsl(): HasMany
     // {
