@@ -152,6 +152,22 @@
             <span>TJSL</span>
         </a>
     </li>
+    <hr class="sidebar-divider">
+
+    <li class="nav-item <?php echo Request::is('anggaran') || Request::is('anggaran/*') ? 'active' : ''; ?>">
+        <a class="nav-link" href="{{ url('/anggaran') }}">
+            <i class="fas fa-fw fa-file-invoice-dollar"></i>
+            <span>Anggaran</span>
+        </a>
+    </li>
+    <hr class="sidebar-divider">
+
+    <li class="nav-item {{ (request()->is('monitoringbiaya*') || request()->routeIs('monitoringbiaya.*')) ? 'active' : '' }}">
+        <a class="nav-link" href="{{ Route::has('monitoringbiaya.index') ? route('monitoringbiaya.index') : url('/monitoringbiaya') }}">
+            <i class="fas fa-fw fa-chart-line"></i>
+            <span>Monitoring Biaya</span>
+        </a>
+    </li>
 {{-- <hr class="sidebar-divider">
 
 <li class="nav-item">

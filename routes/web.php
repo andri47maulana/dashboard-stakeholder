@@ -180,6 +180,25 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/polygons', [PolygonController::class, 'index']);
     Route::post('/polygons/check-point', [PolygonController::class, 'checkPoint'])->name('polygons.check');
 
+    //Route Anggaran dan MonitoringBiaya
+    // Route Anggaran dan MonitoringBiaya
+    Route::prefix('anggaran')->group(function(){
+        Route::get('/', [App\Http\Controllers\AnggaranController::class, 'index'])->name('anggaran.index');
+        Route::post('/store', [App\Http\Controllers\AnggaranController::class, 'store'])->name('anggaran.store');
+        Route::put('/update/{id}', [App\Http\Controllers\AnggaranController::class, 'update'])->name('anggaran.update');
+        Route::delete('/delete/{id}', [App\Http\Controllers\AnggaranController::class, 'destroy'])->name('anggaran.delete');
+        Route::get('/show/{id}', [App\Http\Controllers\AnggaranController::class, 'show'])->name('anggaran.show');
+    });
+
+    Route::prefix('monitoringbiaya')->group(function(){
+        Route::get('/', [MonitoringBiayaController::class, 'index'])->name('monitoringbiaya.index');
+        Route::get('/data', [MonitoringBiayaController::class, 'getData'])->name('monitoringbiaya.data');
+        Route::post('/store', [MonitoringBiayaController::class, 'store'])->name('monitoringbiaya.store');
+        Route::put('/update/{id}', [MonitoringBiayaController::class, 'update'])->name('monitoringbiaya.update');
+        Route::delete('/delete/{id}', [MonitoringBiayaController::class, 'destroy'])->name('monitoringbiaya.delete');
+        Route::get('/show/{id}', [MonitoringBiayaController::class, 'show'])->name('monitoringbiaya.show');
+    });
+
     // Dashboard TJSL - HARUS SEBELUM route resource
     Route::get('/tjsl/dashboard', [DashboardTjslController::class, 'index'])->name('tjsl.dashboard');
 
