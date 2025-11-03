@@ -108,7 +108,7 @@ body.overflow-hidden { overflow: hidden; }
     transform: scale(1.15);
 }
 
-/* TJSL Permanent Tooltip/Label styling */
+/* TJSL Tooltip/Label styling - muncul saat hover via JavaScript */
 .tjsl-label {
     background: rgba(255, 107, 53, 0.95) !important;
     border: 2px solid #fff !important;
@@ -810,13 +810,25 @@ var map = L.map('map', { zoomControl: true });
         `;
 
         const marker = L.marker([tjsl.latitude, tjsl.longitude], { icon: tjslIcon })
-            .bindPopup(popupContent)
-            .bindTooltip(tjsl.nama_program, {
-                permanent: true,
-                direction: 'top',
-                offset: [0, -45],
-                className: 'tjsl-label'
-            });
+            .bindPopup(popupContent);
+
+        // Tambahkan tooltip yang muncul hanya saat hover
+        const tooltip = L.tooltip({
+            permanent: false,
+            direction: 'top',
+            offset: [0, -45],
+            className: 'tjsl-label',
+            opacity: 1
+        }).setContent(tjsl.nama_program);
+
+        // Event handlers untuk menampilkan/menyembunyikan tooltip
+        marker.on('mouseover', function(e) {
+            this.bindTooltip(tooltip).openTooltip();
+        });
+
+        marker.on('mouseout', function(e) {
+            this.closeTooltip();
+        });
 
         return marker;
     }
