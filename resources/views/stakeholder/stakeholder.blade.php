@@ -301,7 +301,7 @@
                         <div class="form-group row">
                             <label for="dokumenpendukung" class="col-md-4 col-form-label">Dokumen Pendukung</label>
                             <div class="col-md-8">
-                            <input type="file" class="form-control" id="dokumenpendukung" name="dokumenpendukung" required>
+                            <input type="file" class="form-control" id="dokumenpendukung" name="dokumenpendukung">
                             </div>
                         </div>
 
@@ -337,31 +337,31 @@
                         <div class="form-group row">
                             <label for="email" class="col-md-4 col-form-label">Email / Sosial Media</label>
                             <div class="col-md-8">
-                            <input type="text" class="form-control" id="email" name="email" placeholder="Email / Media Sosial..." required>
+                            <input type="text" class="form-control" id="email" name="email" placeholder="Email / Media Sosial...">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="nama_pic" class="col-md-4 col-form-label">Nama PIC 2</label>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" id="nama_pic2" name="nama_pic2" placeholder="Nama PIC..." required>
+                                <input type="text" class="form-control" id="nama_pic2" name="nama_pic2" placeholder="Nama PIC...">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="jabatan_pic" class="col-md-4 col-form-label">Jabatan PIC 2</label>
                             <div class="col-md-8">
-                            <input type="text" class="form-control" id="jabatan_pic2" name="jabatan_pic2" placeholder="Jabatan PIC..." required>
+                            <input type="text" class="form-control" id="jabatan_pic2" name="jabatan_pic2" placeholder="Jabatan PIC...">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="nomorkontak_pic" class="col-md-4 col-form-label">Nomor Kontak</label>
                             <div class="col-md-8">
-                            <input type="number" class="form-control" id="nomorkontak_pic2" name="nomorkontak_pic2" placeholder="Nomor Kontak..." required>
+                            <input type="number" class="form-control" id="nomorkontak_pic2" name="nomorkontak_pic2" placeholder="Nomor Kontak...">
                             </div>
                         </div>
                         <div class="form-group row">
                             <label for="email" class="col-md-4 col-form-label">Email / Sosial Media</label>
                             <div class="col-md-8">
-                            <input type="text" class="form-control" id="email2" name="email2" placeholder="Email / Media Sosial..." required>
+                            <input type="text" class="form-control" id="email2" name="email2" placeholder="Email / Media Sosial...">
                             </div>
                         </div>
                         <br><br>
@@ -642,7 +642,7 @@
                                     <div class="form-group row">
                                         <label class="col-md-4 col-form-label">Email / Sosial Media</label>
                                         <div class="col-md-8">
-                                            <input type="text" class="form-control" name="edit_email" id="edit_email" required>
+                                            <input type="text" class="form-control" name="edit_email" id="edit_email">
                                         </div>
                                     </div>
 
