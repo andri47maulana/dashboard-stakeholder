@@ -161,7 +161,7 @@ class StakeholderController extends Controller
                 $product->derajat_hubungan,
                 $product->kategori,
                 // $product->tipe_stakeholder,
-                $product->skala_kekuatan,
+                // $product->skala_kekuatan,
                 $product->skala_kepentingan,
                 $product->ekspektasi_ptpn,
                 $product->ekspektasi_stakeholder
