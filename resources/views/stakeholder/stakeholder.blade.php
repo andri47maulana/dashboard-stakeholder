@@ -156,8 +156,8 @@
                             <th style="text-align:center">Stakeholder<br>Instansi</th>
                             <th style="text-align:center">Identitas PIC</th>
                             <th style="text-align:center">Jabatan PIC</th>
-                            <th style="text-align:center">Daerah</th>
-                            <th style="text-align:center">Tanggal Input</th>
+                            <th style="text-align:center">Current Condition</th>
+                            <th style="text-align:center">Last Update</th>
                             <th style='text-align:center;'>Aksi</th>
                         </tr>
                     </thead>
@@ -169,8 +169,8 @@
                             <td ><a href="{{url('/dash/form_stakeholder_detail')}}/{{$key->id}}"><i class="fas fa-fw fa-search"></i></a> {{$key->nama_instansi}}</td>
                             <td >{{$key->nama_pic}} <br><span>{{$key->nomorkontak_pic}}</td>
                             <td >{{$key->jabatan_pic}}</td>
-                            <td >{{$key->daerah_instansi}}</td>
-                            <td style="text-align:center">{{$key->input_date}}</td>
+                            <td >{{$key->curent_condition}}</td>
+                            <td style="text-align:center">{{ \Carbon\Carbon::parse($key->modified_date)->timezone('Asia/Jakarta')->format('d M Y, H:i') }}</td>
                             <td style="text-align:center" width="100">
                                 <btn class="btn btn-warning btn-sm editdata" id="{{$key->id}}"><i class="fas fa-fw fa-edit"></i></btn>
                                 <a href="{{url('/dash/deletestakeholder')}}/{{$key->id}}">
@@ -775,13 +775,11 @@
 
 
 
-    
 
+
+@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
 <script>
-    var modaladddata = $('.modaladddata').detach();
-    var modaleditdata = $('.modaleditdata').detach();
-
     @if($errors->any())
         Swal.fire({
             title: "Error",
@@ -827,17 +825,10 @@
         });
     });
     $('.tambahdata').click(function(e){
-        // console.log(modaladddata);
-        $('.modaladddata').remove();
-        $('.modaleditdata').remove();
-        $('body').append(modaladddata);
         $('#exampleModal').modal('show');
-    })
+    });
 
     $('.editdata').click(function(e){
-        $('.modaladddata').remove();
-        $('.modaleditdata').remove();
-        $('body').append(modaleditdata);
         
         
         var id = $(this).attr('id');
@@ -1414,5 +1405,6 @@ $(document).on("click", ".editdata", function () {
 
 </script>
 {{-- <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> --}}
+@endpush
 
 @endsection
