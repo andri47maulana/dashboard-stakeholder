@@ -96,6 +96,37 @@ body.overflow-hidden { overflow: hidden; }
 }
 .pick-ghost-icon { pointer-events: none; }
 
+/* TJSL Marker styling */
+.tjsl-marker-icon {
+    background: transparent !important;
+    border: none !important;
+}
+.tjsl-marker-icon > div {
+    transition: transform 0.2s ease;
+}
+.tjsl-marker-icon:hover > div {
+    transform: scale(1.15);
+}
+
+/* TJSL Permanent Tooltip/Label styling */
+.tjsl-label {
+    background: rgba(255, 107, 53, 0.95) !important;
+    border: 2px solid #fff !important;
+    border-radius: 6px !important;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.3) !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+    white-space: nowrap !important;
+    max-width: 200px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+.tjsl-label::before {
+    display: none !important;
+}
+
 </style>
 
 <div class="container-fluid">
@@ -159,6 +190,10 @@ body.overflow-hidden { overflow: hidden; }
                         <span id="regionChevron" aria-hidden="true">▼</span>
                     </button>
                     <button type="button" id="toggleFullscreen" class="btn btn-sm btn-outline-primary">Full Screen</button>
+                    <div class="d-flex align-items-center gap-2 ms-3">
+                        <span style="background:#ff6b35;width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,0.2);display:inline-block;"></span>
+                        <small class="text-muted">Program TJSL (<span id="tjslMarkerCount">0</span>)</small>
+                    </div>
                     </div>
                     <small class="text-muted">Tampilkan/sembunyikan filter regional</small>
                 </div>
@@ -253,169 +288,32 @@ body.overflow-hidden { overflow: hidden; }
 </div>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+@push('scripts')
+<!-- Load JavaScript libraries in correct order (after jQuery from layout) -->
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js"></script>
 <script src="https://unpkg.com/@turf/turf/turf.min.js"></script>
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-{{-- 
 <script>
+// Wait for document ready and ensure all dependencies are loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if all libraries are loaded
+    if (typeof jQuery === 'undefined' || typeof L === 'undefined' || typeof turf === 'undefined') {
+        console.error('Dependencies not loaded!');
+        return;
+    }
+
 // Pastikan variabel layer didefinisikan di scope yang sama sebelum dipakai
 let marker = null;
 let polyline = null;
 let highlightLayer = null;
 let boundingBoxLayer = null;
-let radiusCircle = null; // <- definisi awal agar tidak ReferenceError
+let radiusCircle = null;
 let withinMarkers = [];
 
-document.addEventListener("DOMContentLoaded", function () {
-    // Flag to signal the submit handler is wired
-    window._checkPointHandlerReady = false;
-    var map = L.map('map', { zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(map);
-    map.fitBounds([[-11,95],[6,141]]);
-
-    let kebunJsons = @json($kebunJsons);
-    // Ensure derajatMap always exists even if server didn't pass it for some route variants
-    window.__derajatMap = @json($derajatMap ?? []);
-    const derajatMap = (typeof window.__derajatMap !== 'undefined' && window.__derajatMap) ? window.__derajatMap : {};
-    let polygonLayers = {};
-
-    kebunJsons.forEach(jsonData=>{
-        if (jsonData.decoded && jsonData.decoded.tileurl) {
-            let layer = L.vectorGrid.protobuf(jsonData.decoded.tileurl, {
-                vectorTileLayerStyles: {
-                    [jsonData.decoded.id]: {
-                        weight: 2, color: "#28a745", fill: true, fillOpacity: 0.3
-                    }
-                }
-            }).addTo(map);
-            polygonLayers[jsonData.decoded.id] = layer;
-        }
-    });
-
-    // (Variabel layer sudah dideklarasikan di atas)
-
-    document.getElementById("checkPointForm").addEventListener("submit", function(e){
-        e.preventDefault();
-        let coords = document.getElementById("coords").value.trim();
-    let [lat, lng] = coords.split(",").map(c => parseFloat(c.trim()));
-    let radius_km = document.getElementById('radius_km').value.trim();
-    if(radius_km === '') radius_km = null; else radius_km = parseFloat(radius_km);
-
-        if (isNaN(lat) || isNaN(lng)) {
-            document.getElementById("result").innerHTML = `<div class="alert alert-danger">Format koordinat tidak valid.</div>`;
-            return;
-        }
-
-        fetch("{{ route('polygons.check') }}", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": "{{ csrf_token() }}"
-            },
-            body: JSON.stringify({ lat: lat, lng: lng })
-        })
-        .then(res => res.json())
-        .then(data => {
-            let resDiv = document.getElementById("result");
-            resDiv.innerHTML = "";
-
-            if (marker) map.removeLayer(marker);
-            if (polyline) map.removeLayer(polyline);
-            if (highlightLayer) map.removeLayer(highlightLayer);
-            if (boundingBoxLayer) map.removeLayer(boundingBoxLayer);
-
-            marker = L.marker([lat, lng]).addTo(map).bindPopup("Titik Anda").openPopup();
-
-            if (data.inside) {
-                resDiv.innerHTML = `<div class="alert alert-success">
-                    Titik berada di dalam kebun: <b>${data.inside.title}</b>
-                </div>`;
-                map.setView([lat, lng], 15);
-
-            } else if (data.nearest && data.nearest.bounds && data.nearest.bounds.length === 4) {
-                
-                const userPoint = turf.point([lng, lat]);
-                const bounds = data.nearest.bounds; 
-                
-                const boundingBoxPolygonCoords = [[
-                    [bounds[0], bounds[1]],
-                    [bounds[2], bounds[1]],
-                    [bounds[2], bounds[3]],
-                    [bounds[0], bounds[3]],
-                    [bounds[0], bounds[1]]
-                ]];
-                const boundingBoxLine = turf.lineString(boundingBoxPolygonCoords[0]);
-                
-                const nearestPointOnEdge = turf.nearestPointOnLine(boundingBoxLine, userPoint);
-                const nearestEdgeCoords = nearestPointOnEdge.geometry.coordinates; 
-                
-                const preciseDistanceKm = turf.distance(userPoint, nearestPointOnEdge, { units: 'kilometers' });
-
-                resDiv.innerHTML = `<div class="alert alert-warning">
-                    Titik tidak berada di dalam kebun manapun.<br>
-                    Kebun terdekat: <b>${data.nearest.title}</b><br>
-                    Jarak ke tepi area terdekat (estimasi): <b>${preciseDistanceKm.toFixed(2)} km</b>
-                </div>`;
-                
-                if (data.nearest.decoded && data.nearest.decoded.tileurl) {
-                    highlightLayer = L.vectorGrid.protobuf(data.nearest.decoded.tileurl, {
-                        vectorTileLayerStyles: {
-                            [data.nearest.decoded.id]: { weight: 3, color: "red", fill: false }
-                        }
-                    }).addTo(map);
-                }
-                
-                // --- PERBAIKAN DI SINI ---
-                // Kode baru ini jauh lebih sederhana dan benar.
-                // Kita langsung mengambil array koordinat, menukar urutan [lng, lat] menjadi [lat, lng]
-                // yang sesuai dengan format Leaflet.
-                const leafletBoundsCoords = boundingBoxPolygonCoords[0].map(coord => [coord[1], coord[0]]);
-                boundingBoxLayer = L.polygon(leafletBoundsCoords, { color: 'blue', weight: 1, dashArray: '5,5', fill: false }).addTo(map);
-
-                const nearestEdgeLatLng = [nearestEdgeCoords[1], nearestEdgeCoords[0]];
-                const lineCoordinates = [[lat, lng], nearestEdgeLatLng];
-
-                if (lineCoordinates.every(coord => !isNaN(coord[0]) && !isNaN(coord[1]))) {
-                    polyline = L.polyline(
-                        lineCoordinates,
-                        { color: "red", dashArray: "5, 5", weight: 2 }
-                    )
-                    .addTo(map)
-                    .bindTooltip(
-                        `${preciseDistanceKm.toFixed(2)} km`,
-                        { permanent: true, className: "distance-tooltip", offset: [0, -10] }
-                    )
-                    .openTooltip();
-
-                    let mapBounds = L.latLngBounds(lineCoordinates);
-                    map.fitBounds(mapBounds, { padding: [50, 50] });
-                } else {
-                    console.error("Gagal membuat polyline karena koordinat tidak valid!");
-                }
-
-            } else {
-                 resDiv.innerHTML = `<div class="alert alert-info">
-                    Tidak ditemukan kebun terdekat atau data bounds tidak lengkap.
-                </div>`;
-                 map.setView([lat, lng], 15);
-            }
-        });
-    });
-});
-</script> --}}
-<script>
-// Deklarasi variabel global untuk layer agar tidak ReferenceError
-let marker, polyline, highlightLayer, boundingBoxLayer, radiusCircle;
-let withinMarkers = [];
-
-document.addEventListener("DOMContentLoaded", function () {
-    var map = L.map('map', { zoomControl: true });
+// Map initialization (called from initPolygonMap wrapper)
+var map = L.map('map', { zoomControl: true });
 
     // --- AWAL PERUBAHAN 1: Membuat Pane Khusus ---
     // Membuat sebuah 'lapisan' baru untuk poligon kita dan memastikan Z-Index nya tinggi
@@ -487,6 +385,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (jsonData.nm_unit) {
                 unitNameToUnitId[String(jsonData.nm_unit).trim().toUpperCase()] = jsonData.unit_id;
             }
+            
             // Unit filter datasets
             if (!regionToUnits[region]) regionToUnits[region] = [];
             regionToUnits[region].push({ unit_id: jsonData.unit_id, nm_unit: jsonData.nm_unit || 'Unit ' + jsonData.unit_id });
@@ -764,13 +663,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Compute additions and removals
                 const toAdd = new Set([...newSelected].filter(x => !selectedRegions.has(x)));
                 const toRemove = new Set([...selectedRegions].filter(x => !newSelected.has(x)));
-                if (toAdd.size) addLayersForRegions(toAdd);
-                if (toRemove.size) removeLayersForRegions(toRemove);
+                if (toAdd.size) {
+                    addLayersForRegions(toAdd);
+                    addTjslMarkersForRegions(toAdd);
+                }
+                if (toRemove.size) {
+                    removeLayersForRegions(toRemove);
+                    removeTjslMarkersForRegions(toRemove);
+                }
                 // Update current selection set
                 selectedRegions.clear();
                 newSelected.forEach(v => selectedRegions.add(v));
                 // Update count badge
                 if (countEl) countEl.textContent = (!regionSelect || regionSelect.options.length === 0) ? '-' : String(selectedRegions.size);
+                // Update TJSL counter
+                updateTjslCounter();
                 // Refresh unit options based on regions
                 refreshUnitOptions();
             });
@@ -821,7 +728,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         jQuery(regionSelect).trigger('change');
                     } else {
                         selectedRegions.add(String(reg));
-                        addLayersForRegions(new Set([String(reg)]));
+                        const regSet = new Set([String(reg)]);
+                        addLayersForRegions(regSet);
+                        addTjslMarkersForRegions(regSet);
+                        updateTjslCounter();
                     }
                 }
                 // Zoom to bounds/center
@@ -842,6 +752,134 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Populate unit options for initial selected regions
     refreshUnitOptions();
+
+    // --- TJSL Locations Markers ---
+    // Ensure this runs after map is initialized
+    let tjslMarkers = [];
+    let tjslMarkersMap = {}; // key: tjsl.id -> marker instance
+    let regionToTjslIds = {}; // key: region value -> array of tjsl ids
+    let idToTjslRegion = {}; // key: tjsl.id -> region value
+    const tjslLocations = @json($tjslLocations ?? []);
+
+    // Custom icon untuk TJSL marker - menggunakan icon calendar event/program
+    const tjslIcon = L.divIcon({
+        className: 'tjsl-marker-icon',
+        html: '<div style="background:#ff6b35;width:32px;height:42px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 4px 12px rgba(255,107,53,0.4);display:flex;align-items:center;justify-content:center;"><svg width="18" height="18" fill="#fff" viewBox="0 0 16 16" style="transform:rotate(45deg);"><path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/></svg></div>',
+        iconSize: [32, 42],
+        iconAnchor: [16, 42],
+        popupAnchor: [0, -42]
+    });
+
+    // Build index of regions to TJSL ids
+    tjslLocations.forEach(tjsl => {
+        const region = tjsl.nm_region ?? null;
+        const id = tjsl.id;
+        if (id && region !== null && region !== undefined && region !== '') {
+            if (!regionToTjslIds[region]) regionToTjslIds[region] = [];
+            regionToTjslIds[region].push(id);
+            idToTjslRegion[id] = region;
+        }
+    });
+
+    // Helper function to create TJSL marker
+    function createTjslMarker(tjsl) {
+        if (!tjsl.latitude || !tjsl.longitude) return null;
+
+        const statusText = tjsl.status == 1 ? 'Aktif' : 'Tidak Aktif';
+        const statusClass = tjsl.status == 1 ? 'success' : 'secondary';
+        const tanggalMulai = tjsl.tanggal_mulai ? new Date(tjsl.tanggal_mulai).toLocaleDateString('id-ID') : '-';
+        const tanggalAkhir = tjsl.tanggal_akhir ? new Date(tjsl.tanggal_akhir).toLocaleDateString('id-ID') : '-';
+
+        const popupContent = `
+            <div style="min-width:200px;">
+                <h6 style="color:#ff6b35;font-weight:bold;margin-bottom:8px;">Program TJSL</h6>
+                <div style="margin-bottom:6px;">
+                    <strong>${tjsl.nama_program}</strong>
+                </div>
+                ${tjsl.lokasi_program ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">Lokasi: ${tjsl.lokasi_program}</div>` : ''}
+                <div style="font-size:11px;color:#888;margin-bottom:4px;">
+                    Periode: ${tanggalMulai} - ${tanggalAkhir}
+                </div>
+                <div style="margin-top:6px;">
+                    <span class="badge bg-${statusClass}" style="font-size:10px;">${statusText}</span>
+                </div>
+                <div style="font-size:10px;color:#999;margin-top:6px;">
+                    Koordinat: ${parseFloat(tjsl.latitude).toFixed(6)}, ${parseFloat(tjsl.longitude).toFixed(6)}
+                </div>
+            </div>
+        `;
+
+        const marker = L.marker([tjsl.latitude, tjsl.longitude], { icon: tjslIcon })
+            .bindPopup(popupContent)
+            .bindTooltip(tjsl.nama_program, {
+                permanent: true,
+                direction: 'top',
+                offset: [0, -45],
+                className: 'tjsl-label'
+            });
+
+        return marker;
+    }
+
+    // Add TJSL markers for selected regions
+    function addTjslMarkersForRegions(selectedRegions) {
+        tjslLocations.forEach(tjsl => {
+            if (!tjsl.id) return;
+            const region = tjsl.nm_region ?? null;
+            if (!selectedRegions.has(String(region))) return;
+            if (tjslMarkersMap[tjsl.id]) return; // already added
+            const marker = createTjslMarker(tjsl);
+            if (marker) {
+                marker.addTo(map);
+                tjslMarkersMap[tjsl.id] = marker;
+                tjslMarkers.push(marker);
+            }
+        });
+    }
+
+    // Remove TJSL markers for unselected regions
+    function removeTjslMarkersForRegions(unselectedRegions) {
+        Object.entries(tjslMarkersMap).forEach(([id, marker]) => {
+            const region = idToTjslRegion[id];
+            if (unselectedRegions.has(String(region))) {
+                map.removeLayer(marker);
+                delete tjslMarkersMap[id];
+                const idx = tjslMarkers.indexOf(marker);
+                if (idx !== -1) tjslMarkers.splice(idx, 1);
+            }
+        });
+    }
+
+    // Add all TJSL markers when no region filters available
+    function addAllTjslMarkers() {
+        tjslLocations.forEach(tjsl => {
+            if (!tjsl.id || tjslMarkersMap[tjsl.id]) return;
+            const marker = createTjslMarker(tjsl);
+            if (marker) {
+                marker.addTo(map);
+                tjslMarkersMap[tjsl.id] = marker;
+                tjslMarkers.push(marker);
+            }
+        });
+    }
+
+    // Update counter display
+    function updateTjslCounter() {
+        const tjslCountEl = document.getElementById('tjslMarkerCount');
+        if (tjslCountEl) tjslCountEl.textContent = tjslMarkers.length;
+    }
+
+    // Initialize TJSL markers based on selected regions or all
+    if (!regionSelect || regionSelect.options.length === 0) {
+        // No region filters: show all TJSL markers
+        addAllTjslMarkers();
+    } else {
+        // Show TJSL markers for initially selected regions
+        addTjslMarkersForRegions(selectedRegions);
+    }
+
+    console.log(`Loaded ${tjslMarkers.length} TJSL location markers`);
+    updateTjslCounter();
 
     // Fullscreen toggle handling: move form into overlay when fullscreen
     const fullscreenBtn = document.getElementById('toggleFullscreen');
@@ -1171,11 +1209,9 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
-});
-</script>
-<script>
-// Init select2 for stakeholder async search
-$(function(){
+
+    // Init select2 for stakeholder async search - in same DOMContentLoaded
+    jQuery(function($){
     $('#stakeholder_select').select2({
         placeholder: 'Cari stakeholder…',
         allowClear: true,
@@ -1348,6 +1384,8 @@ $(function(){
                 tjslId: $tr.data('tjsl-id')
             });
         });
-});
+    }); // End jQuery ready
+}); // End DOMContentLoaded
 </script>
+@endpush
 @endsection

@@ -51,7 +51,15 @@ class PolygonController extends Controller
             ->orderBy('search_logs.created_at','desc')
             ->limit(50)
             ->get();
-        return view('polygon.index',compact('kebunJsons','logs','derajatMap','regions'));
+        // Ambil data TJSL yang memiliki koordinat dengan informasi regional dari unit
+        $tjslLocations = DB::table('tb_tjsl')
+            ->leftJoin('tb_unit', 'tb_unit.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.latitude')
+            ->whereNotNull('tb_tjsl.longitude')
+            ->select('tb_tjsl.id', 'tb_tjsl.nama_program', 'tb_tjsl.lokasi_program', 'tb_tjsl.latitude', 'tb_tjsl.longitude',
+                     'tb_tjsl.tanggal_mulai', 'tb_tjsl.tanggal_akhir', 'tb_tjsl.status', 'tb_tjsl.unit_id', 'tb_unit.region as nm_region')
+            ->get();
+        return view('polygon.index',compact('kebunJsons','logs','derajatMap','regions','tjslLocations'));
     }
 
     public function viewLog($id)
@@ -100,7 +108,15 @@ class PolygonController extends Controller
             ->select('search_logs.*','s.nama_instansi as stakeholder_nama','t.nama_program as tjsl_nama')
             ->where('search_logs.id',$id)
             ->firstOrFail();
-        return view('polygon.index', compact('kebunJsons','logs','activeLog','derajatMap','regions'));
+        // Ambil data TJSL yang memiliki koordinat dengan informasi regional dari unit
+        $tjslLocations = DB::table('tb_tjsl')
+            ->leftJoin('tb_unit', 'tb_unit.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.latitude')
+            ->whereNotNull('tb_tjsl.longitude')
+            ->select('tb_tjsl.id', 'tb_tjsl.nama_program', 'tb_tjsl.lokasi_program', 'tb_tjsl.latitude', 'tb_tjsl.longitude',
+                     'tb_tjsl.tanggal_mulai', 'tb_tjsl.tanggal_akhir', 'tb_tjsl.status', 'tb_tjsl.unit_id', 'tb_unit.region as nm_region')
+            ->get();
+        return view('polygon.index', compact('kebunJsons','logs','activeLog','derajatMap','regions','tjslLocations'));
     }
 
     public function deleteLog($id)
