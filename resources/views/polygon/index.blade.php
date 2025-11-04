@@ -902,7 +902,7 @@ var map = L.map('map', { zoomControl: true });
                     </div>
                     <div class="tjsl-info-row">
                         <div class="tjsl-info-label">Lokasi Program:</div>
-                        <div class="tjsl-info-value">${tjsl.lokasi_program || '-'}</div>
+                        <div class="tjsl-info-value">${tjsl.nama_wilayah || '-'}</div>
                     </div>
                     <div class="tjsl-info-row">
                         <div class="tjsl-info-label">Koordinat:</div>

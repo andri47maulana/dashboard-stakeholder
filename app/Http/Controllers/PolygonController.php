@@ -56,13 +56,17 @@ class PolygonController extends Controller
             ->leftJoin('tb_unit', 'tb_unit.id', '=', 'tb_tjsl.unit_id')
             ->leftJoin('m_pilar', 'm_pilar.id', '=', 'tb_tjsl.pilar_id')
             ->leftJoin('m_program_unggulan', 'm_program_unggulan.id', '=', 'tb_tjsl.program_unggulan_id')
+            ->leftJoin('wilayah', function($join) {
+                $join->on(DB::raw('wilayah.kode COLLATE utf8mb4_general_ci'), '=', 'tb_tjsl.lokasi_program');
+            })
             ->whereNotNull('tb_tjsl.latitude')
             ->whereNotNull('tb_tjsl.longitude')
             ->select('tb_tjsl.id', 'tb_tjsl.nama_program', 'tb_tjsl.deskripsi', 'tb_tjsl.lokasi_program',
                      'tb_tjsl.latitude', 'tb_tjsl.longitude', 'tb_tjsl.tanggal_mulai', 'tb_tjsl.tanggal_akhir',
                      'tb_tjsl.status', 'tb_tjsl.unit_id', 'tb_tjsl.penerima_dampak', 'tb_tjsl.sub_pilar',
                      'tb_unit.region as nm_region', 'tb_unit.unit as nm_unit',
-                     'm_pilar.pilar as nama_pilar', 'm_program_unggulan.program_unggulan')
+                     'm_pilar.pilar as nama_pilar', 'm_program_unggulan.program_unggulan',
+                     'wilayah.nama as nama_wilayah')
             ->get();
         return view('polygon.index',compact('kebunJsons','logs','derajatMap','regions','tjslLocations'));
     }
@@ -118,13 +122,17 @@ class PolygonController extends Controller
             ->leftJoin('tb_unit', 'tb_unit.id', '=', 'tb_tjsl.unit_id')
             ->leftJoin('m_pilar', 'm_pilar.id', '=', 'tb_tjsl.pilar_id')
             ->leftJoin('m_program_unggulan', 'm_program_unggulan.id', '=', 'tb_tjsl.program_unggulan_id')
+            ->leftJoin('wilayah', function($join) {
+                $join->on(DB::raw('wilayah.kode COLLATE utf8mb4_general_ci'), '=', 'tb_tjsl.lokasi_program');
+            })
             ->whereNotNull('tb_tjsl.latitude')
             ->whereNotNull('tb_tjsl.longitude')
             ->select('tb_tjsl.id', 'tb_tjsl.nama_program', 'tb_tjsl.deskripsi', 'tb_tjsl.lokasi_program',
                      'tb_tjsl.latitude', 'tb_tjsl.longitude', 'tb_tjsl.tanggal_mulai', 'tb_tjsl.tanggal_akhir',
                      'tb_tjsl.status', 'tb_tjsl.unit_id', 'tb_tjsl.penerima_dampak', 'tb_tjsl.sub_pilar',
                      'tb_unit.region as nm_region', 'tb_unit.unit as nm_unit',
-                     'm_pilar.pilar as nama_pilar', 'm_program_unggulan.program_unggulan')
+                     'm_pilar.pilar as nama_pilar', 'm_program_unggulan.program_unggulan',
+                     'wilayah.nama as nama_wilayah')
             ->get();
         return view('polygon.index', compact('kebunJsons','logs','activeLog','derajatMap','regions','tjslLocations'));
     }
