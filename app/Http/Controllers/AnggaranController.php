@@ -2,19 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Anggaran;
+use App\Models\AnggaranRegional;
 use App\Models\SubPilar;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class AnggaranController extends Controller
 {
     public function index()
     {
-        $anggarans = Anggaran::with('subPilar')->paginate(10);
+        $anggarans = AnggaranRegional::with('subPilar')->paginate(10);
+
+        $regionals = DB::table('tb_unit')
+            ->whereNotNull('region')
+            ->where('region', 'like', '%regional%')
+            ->selectRaw('RIGHT(region, 1) as regional_id')
+            ->distinct()
+            ->orderBy('regional_id')
+            ->get();
+
         $subPilars = SubPilar::all();
 
-        return view('anggaran.index', compact('anggarans', 'subPilars'));
+        return view('anggaran.index', compact('anggarans', 'regionals', 'subPilars'));
     }
 
     public function store(Request $request)
@@ -23,6 +33,7 @@ class AnggaranController extends Controller
 
         $validator = Validator::make($request->all(), [
             'sub_pilar_id' => 'required|exists:m_sub_pilar,id',
+            'regional_id' => 'required|exists:m_regional,id',
             'tahun' => 'required|digits:4',
             'anggaran' => 'required|numeric|min:0'
         ]);
@@ -38,7 +49,8 @@ class AnggaranController extends Controller
 
         try {
             // Cek duplikasi data
-            $exists = Anggaran::where('sub_pilar_id', $request->sub_pilar_id)
+            $exists = AnggaranRegional::where('sub_pilar_id', $request->sub_pilar_id)
+                             ->where('regional_id', $request->regional_id)
                              ->where('tahun', $request->tahun)
                              ->exists();
 
@@ -53,10 +65,11 @@ class AnggaranController extends Controller
             }
 
 
-            $anggaran = Anggaran::create([
+            $anggaran = AnggaranRegional::create([
                 'sub_pilar_id' => (int) $request->sub_pilar_id,
+                'regional_id' => (int) $request->regional_id,
                 'tahun' => $request->tahun,
-                'anggaran' => (float) $request->anggaran,
+                'anggaran' => (int) $request->anggaran, // ubah dari float ke int
             ]);
 
 
@@ -97,11 +110,12 @@ class AnggaranController extends Controller
         }
 
         try {
-            $anggaran = Anggaran::findOrFail($id);
+            $anggaran = AnggaranRegional::findOrFail($id);
             $anggaran->update([
                 'sub_pilar_id' => (int) $request->sub_pilar_id,
+                'regional_id' => (int) $request->regional_id,
                 'tahun' => $request->tahun,
-                'anggaran' => (float) $request->anggaran,
+                'anggaran' => (int) $request->anggaran, // ubah dari float ke int
             ]);
 
             return response()->json([
@@ -126,7 +140,7 @@ class AnggaranController extends Controller
     public function destroy($id)
     {
         try {
-            $anggaran = Anggaran::findOrFail($id);
+            $anggaran = AnggaranRegional::findOrFail($id);
             $anggaran->delete();
 
             return response()->json([
@@ -144,7 +158,7 @@ class AnggaranController extends Controller
     public function show($id)
     {
         try {
-            $anggaran = Anggaran::with('subPilar')->findOrFail($id);
+            $anggaran = AnggaranRegional::with('subPilar')->findOrFail($id);
 
             return response()->json([
                 'success' => true,

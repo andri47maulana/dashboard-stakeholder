@@ -37,7 +37,23 @@
                                             </tr>
                                             <tr>
                                                 <td><strong>Lokasi Program</strong></td>
-                                                <td>: {{ $tjsl->lokasi_program }}</td>
+                                                <!-- Diganti: tampilkan nama provinsi/kabupaten/kecamatan/desa -->
+                                                <td>:
+                                                    @php
+                                                        $prov = $lokasiNames['provinsi'] ?? null;
+                                                        $kab = $lokasiNames['kabupaten'] ?? null;
+                                                        $kec = $lokasiNames['kecamatan'] ?? null;
+                                                        $desa = $lokasiNames['desa'] ?? null;
+                                                    @endphp
+                                                    @if ($prov || $kab || $kec || $desa)
+                                                        Desa/Kelurahan: {{ $desa ?? '-' }}<br>
+                                                        Kecamatan: {{ $kec ?? '-' }}<br>
+                                                        Kabupaten/Kota: {{ $kab ?? '-' }}<br>
+                                                        Provinsi: {{ $prov ?? '-' }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </td>
                                             </tr>
                                             <tr>
                                                 <td><strong>Tanggal Pelaksanaan</strong></td>
@@ -160,7 +176,7 @@
                                             <tr>
                                                 <th>Perencanaan Anggaran</th>
                                                 <td>
-                                                    : @if(isset($hasSubPilarAnggaran) && $hasSubPilarAnggaran)
+                                                    : @if (isset($hasSubPilarAnggaran) && $hasSubPilarAnggaran)
                                                         Rp. {{ number_format($totalAnggaran, 0, ',', '.') }},-
                                                     @else
                                                         -
