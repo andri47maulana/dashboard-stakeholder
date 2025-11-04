@@ -61,8 +61,8 @@ class PolygonController extends Controller
             ->select('tb_tjsl.id', 'tb_tjsl.nama_program', 'tb_tjsl.deskripsi', 'tb_tjsl.lokasi_program',
                      'tb_tjsl.latitude', 'tb_tjsl.longitude', 'tb_tjsl.tanggal_mulai', 'tb_tjsl.tanggal_akhir',
                      'tb_tjsl.status', 'tb_tjsl.unit_id', 'tb_tjsl.penerima_dampak', 'tb_tjsl.sub_pilar',
-                     'tb_unit.region as nm_region', 'tb_unit.nm_unit',
-                     'm_pilar.nama_pilar', 'm_program_unggulan.nama_program as program_unggulan')
+                     'tb_unit.region as nm_region', 'tb_unit.unit as nm_unit',
+                     'm_pilar.pilar as nama_pilar', 'm_program_unggulan.program_unggulan')
             ->get();
         return view('polygon.index',compact('kebunJsons','logs','derajatMap','regions','tjslLocations'));
     }
@@ -123,8 +123,8 @@ class PolygonController extends Controller
             ->select('tb_tjsl.id', 'tb_tjsl.nama_program', 'tb_tjsl.deskripsi', 'tb_tjsl.lokasi_program',
                      'tb_tjsl.latitude', 'tb_tjsl.longitude', 'tb_tjsl.tanggal_mulai', 'tb_tjsl.tanggal_akhir',
                      'tb_tjsl.status', 'tb_tjsl.unit_id', 'tb_tjsl.penerima_dampak', 'tb_tjsl.sub_pilar',
-                     'tb_unit.region as nm_region', 'tb_unit.nm_unit',
-                     'm_pilar.nama_pilar', 'm_program_unggulan.nama_program as program_unggulan')
+                     'tb_unit.region as nm_region', 'tb_unit.unit as nm_unit',
+                     'm_pilar.pilar as nama_pilar', 'm_program_unggulan.program_unggulan')
             ->get();
         return view('polygon.index', compact('kebunJsons','logs','activeLog','derajatMap','regions','tjslLocations'));
     }
