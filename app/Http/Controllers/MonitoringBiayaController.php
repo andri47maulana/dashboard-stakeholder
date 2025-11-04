@@ -18,115 +18,242 @@ class MonitoringBiayaController extends Controller
         $subPilarId = $request->input('sub_pilar_id');
         $regionFilter = $request->input('region');
 
-        // Agregasi anggaran per tahun & sub_pilar (dengan filter)
-        $anggaranQuery = AnggaranRegional::select(
-                'tahun',
-                'regional_id',
-                'sub_pilar_id',
-                DB::raw('SUM(anggaran) as anggaran_total')
-            )
-            ->groupBy('tahun', 'regional_id', 'sub_pilar_id');
-
+        // Summary cards: total anggaran
+        $anggaranSummary = AnggaranRegional::query();
         if (!empty($tahun)) {
-            $anggaranQuery->where('tahun', $tahun);
+            $anggaranSummary->where('tahun', $tahun);
         }
         if (!empty($subPilarId)) {
-            $anggaranQuery->where('sub_pilar_id', $subPilarId);
+            $anggaranSummary->where('sub_pilar_id', $subPilarId);
         }
-        // Terapkan filter regional ke anggaran (ambil digit terakhir dari string region)
         if (!empty($regionFilter)) {
-            $selectedRegionId = substr(trim((string)$regionFilter), -1);
-            $anggaranQuery->where('regional_id', $selectedRegionId);
+            $selectedRegionId = substr(trim((string) $regionFilter), -1);
+            $anggaranSummary->where('regional_id', $selectedRegionId);
         }
+        $totalAnggaran = (float) $anggaranSummary->sum('anggaran');
 
-        $anggaran = $anggaranQuery->get();
+        // Summary cards: total realisasi
+        $realisasiSummary = BiayaTjsl::join('tb_tjsl', 'tb_tjsl.id', '=', 'tb_biaya_tjsl.tjsl_id')
+            ->join('tb_unit as units', 'units.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.tanggal_mulai');
+        if (!empty($tahun)) {
+            $realisasiSummary->whereYear('tb_tjsl.tanggal_mulai', $tahun);
+        }
+        if (!empty($subPilarId)) {
+            $realisasiSummary->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
+        }
+        if (!empty($regionFilter)) {
+            $realisasiSummary->where('units.region', $regionFilter);
+        }
+        $totalRealisasi = (float) $realisasiSummary->sum('tb_biaya_tjsl.realisasi');
 
-        // Agregasi realisasi per tahun (YEAR(tanggal_mulai)) & sub_pilar (dengan filter)
-        $realisasiQuery = BiayaTjsl::select(
-                DB::raw('YEAR(tb_tjsl.tanggal_mulai) as tahun'),
+        $pctSummary = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : null;
+
+        // Rekap per Sub Pilar
+        $angBySub = AnggaranRegional::select(
+                'sub_pilar_id',
+                DB::raw('SUM(anggaran) as anggaran_total')
+            )->groupBy('sub_pilar_id');
+        if (!empty($tahun)) $angBySub->where('tahun', $tahun);
+        if (!empty($subPilarId)) $angBySub->where('sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $angBySub->where('regional_id', substr(trim((string) $regionFilter), -1));
+        $angBySub = $angBySub->get()->keyBy('sub_pilar_id');
+
+        $realBySub = BiayaTjsl::select(
                 'tb_biaya_tjsl.sub_pilar_id',
-                DB::raw('SUM(tb_biaya_tjsl.realisasi) as realisasi_total'),
-                DB::raw('units.region as region')
+                DB::raw('SUM(tb_biaya_tjsl.realisasi) as realisasi_total')
             )
             ->join('tb_tjsl', 'tb_tjsl.id', '=', 'tb_biaya_tjsl.tjsl_id')
             ->join('tb_unit as units', 'units.id', '=', 'tb_tjsl.unit_id')
             ->whereNotNull('tb_tjsl.tanggal_mulai')
-            ->groupBy(DB::raw('YEAR(tb_tjsl.tanggal_mulai)'), 'tb_biaya_tjsl.sub_pilar_id', 'units.region');
+            ->groupBy('tb_biaya_tjsl.sub_pilar_id');
+        if (!empty($tahun)) $realBySub->whereYear('tb_tjsl.tanggal_mulai', $tahun);
+        if (!empty($subPilarId)) $realBySub->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $realBySub->where('units.region', $regionFilter);
+        $realBySub = $realBySub->get()->keyBy('sub_pilar_id');
 
-        if (!empty($tahun)) {
-            $realisasiQuery->whereYear('tb_tjsl.tanggal_mulai', $tahun);
-        }
-        if (!empty($subPilarId)) {
-            $realisasiQuery->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
-        }
-        // Filter opsional berdasarkan region (full string, contoh: "Regional 5")
-        if (!empty($regionFilter)) {
-            $realisasiQuery->where('units.region', $regionFilter);
-        }
-
-        $realisasi = $realisasiQuery->get();
-
-        // Gabungkan kedua agregasi berdasarkan (tahun, sub_pilar_id, regional_id)
-        $rows = [];
-        foreach ($anggaran as $a) {
-            $key = (string)$a->tahun . '-' . (int)$a->sub_pilar_id . '-' . (string)$a->regional_id;
-            $rows[$key] = [
-                'tahun' => (string)$a->tahun,
-                'regional_id' => (string)$a->regional_id,
-                'sub_pilar_id' => (int)$a->sub_pilar_id,
-                'anggaran_total' => (float)$a->anggaran_total,
-                'realisasi_total' => 0.0,
+        $pilarMap = SubPilar::pluck('sub_pilar', 'id');
+        $datasetSubPilar = collect($pilarMap)->keys()->map(function ($id) use ($angBySub, $realBySub, $pilarMap) {
+            $a = (float) ($angBySub[$id]->anggaran_total ?? 0);
+            $r = (float) ($realBySub[$id]->realisasi_total ?? 0);
+            return [
+                'sub_pilar_id' => (int) $id,
+                'sub_pilar_name' => $pilarMap[$id] ?? '-',
+                'anggaran_total' => $a,
+                'realisasi_total' => $r,
+                'pct' => $a > 0 ? ($r / $a) * 100 : null,
             ];
-        }
+        })->sortBy('sub_pilar_id')->values();
 
-        foreach ($realisasi as $r) {
-            $tahunKey = (string)$r->tahun;
-            // Ambil 1 karakter terakhir dari field region (contoh: "Regional 8" -> "8")
-            $regionId = $r->region !== null ? substr(trim((string)$r->region), -1) : null;
+        // Rekap per Regional
+        $angByRegion = AnggaranRegional::select(
+                'regional_id',
+                DB::raw('SUM(anggaran) as anggaran_total')
+            )
+            ->groupBy('regional_id');
+        if (!empty($tahun)) $angByRegion->where('tahun', $tahun);
+        if (!empty($subPilarId)) $angByRegion->where('sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $angByRegion->where('regional_id', substr(trim((string) $regionFilter), -1));
+        $angByRegion = $angByRegion->get()->keyBy('regional_id');
 
-            $key = $tahunKey . '-' . (int)$r->sub_pilar_id . '-' . (string)$regionId;
-            if (!isset($rows[$key])) {
-                $rows[$key] = [
-                    'tahun' => $tahunKey,
-                    'regional_id' => (string)$regionId,
-                    'sub_pilar_id' => (int)$r->sub_pilar_id,
-                    'anggaran_total' => 0.0,
-                    'realisasi_total' => 0.0,
-                ];
-            }
-            $rows[$key]['realisasi_total'] = (float)$r->realisasi_total;
-        }
+        $realByRegion = BiayaTjsl::select(
+                DB::raw('units.region as region'),
+                DB::raw('SUM(tb_biaya_tjsl.realisasi) as realisasi_total')
+            )
+            ->join('tb_tjsl', 'tb_tjsl.id', '=', 'tb_biaya_tjsl.tjsl_id')
+            ->join('tb_unit as units', 'units.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.tanggal_mulai')
+            ->groupBy('units.region');
+        if (!empty($tahun)) $realByRegion->whereYear('tb_tjsl.tanggal_mulai', $tahun);
+        if (!empty($subPilarId)) $realByRegion->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $realByRegion->where('units.region', $regionFilter);
+        $realByRegion = $realByRegion->get();
 
-        $subPilarMap = SubPilar::pluck('sub_pilar', 'id');
+        $datasetRegion = $realByRegion->map(function ($row) use ($angByRegion) {
+            $rid = $row->region !== null ? substr(trim((string) $row->region), -1) : null;
+            $a = (float) ($angByRegion[$rid]->anggaran_total ?? 0);
+            $r = (float) ($row->realisasi_total ?? 0);
+            return [
+                'regional_id' => (string) $rid,
+                'regional_name' => $rid ? ('Regional ' . $rid) : '-',
+                'anggaran_total' => $a,
+                'realisasi_total' => $r,
+                'pct' => $a > 0 ? ($r / $a) * 100 : null,
+            ];
+        })->sortBy('regional_id')->values();
 
-        $dataset = collect($rows)
-            ->map(function ($row) use ($subPilarMap) {
-                $row['sub_pilar_name'] = $subPilarMap[$row['sub_pilar_id']] ?? '-';
-                $row['regional_name'] = $row['regional_id'] ? ('Regional ' . $row['regional_id']) : '-';
-                return $row;
-            })
-            ->sortBy([['tahun', 'desc'], ['regional_id', 'asc'], ['sub_pilar_id', 'asc']])
-            ->values();
-
-        // Opsi filter list region untuk dropdown
+        // Dropdowns
         $regions = Unit::whereNotNull('region')
-            ->select('region')
-            ->distinct()
-            ->orderBy('region')
-            ->pluck('region');
+            ->select('region')->distinct()->orderBy('region')->pluck('region');
 
-        // Opsi filter: tahun (dari anggaran & YEAR(tanggal_mulai)) dan sub pilar
         $yearsAnggaran = AnggaranRegional::distinct()->pluck('tahun')->toArray();
-        $yearsRealisasi = Tjsl::whereNotNull('tanggal_mulai')
-            ->selectRaw('YEAR(tanggal_mulai) as tahun')
-            ->distinct()
-            ->pluck('tahun')
-            ->toArray();
+        $yearsRealisasi = Tjsl::whereNotNull('tanggal_mulai')->selectRaw('YEAR(tanggal_mulai) as tahun')->distinct()->pluck('tahun')->toArray();
         $years = collect($yearsAnggaran)->merge($yearsRealisasi)->unique()->sort()->values()->all();
 
-        // Urutkan Sub Pilar numerik by id (menghindari urut string)
         $subPilars = SubPilar::orderByRaw('CAST(id AS UNSIGNED)')->get();
 
         return view('monitoringbiaya.index', compact('dataset', 'years', 'subPilars', 'regions'));
+    }
+    public function dashboard(Request $request)
+    {
+        $tahun = $request->input('tahun');
+        $subPilarId = $request->input('sub_pilar_id');
+        $regionFilter = $request->input('region');
+
+        // Summary: total anggaran
+        $anggaranSummary = AnggaranRegional::query();
+        if (!empty($tahun)) $anggaranSummary->where('tahun', $tahun);
+        if (!empty($subPilarId)) $anggaranSummary->where('sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $anggaranSummary->where('regional_id', substr(trim((string)$regionFilter), -1));
+        $totalAnggaran = (float) $anggaranSummary->sum('anggaran');
+
+        // Summary: total realisasi
+        $realisasiSummary = BiayaTjsl::join('tb_tjsl', 'tb_tjsl.id', '=', 'tb_biaya_tjsl.tjsl_id')
+            ->join('tb_unit as units', 'units.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.tanggal_mulai');
+        if (!empty($tahun)) $realisasiSummary->whereYear('tb_tjsl.tanggal_mulai', $tahun);
+        if (!empty($subPilarId)) $realisasiSummary->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $realisasiSummary->where('units.region', $regionFilter);
+        $totalRealisasi = (float) $realisasiSummary->sum('tb_biaya_tjsl.realisasi');
+
+        $pctSummary = $totalAnggaran > 0 ? ($totalRealisasi / $totalAnggaran) * 100 : null;
+
+        // Rekap per Sub Pilar
+        $angBySub = AnggaranRegional::select('sub_pilar_id', DB::raw('SUM(anggaran) as anggaran_total'))
+            ->groupBy('sub_pilar_id');
+        if (!empty($tahun)) $angBySub->where('tahun', $tahun);
+        if (!empty($subPilarId)) $angBySub->where('sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $angBySub->where('regional_id', substr(trim((string)$regionFilter), -1));
+        $angBySub = $angBySub->get()->keyBy('sub_pilar_id');
+
+        $realBySub = BiayaTjsl::select('tb_biaya_tjsl.sub_pilar_id', DB::raw('SUM(tb_biaya_tjsl.realisasi) as realisasi_total'))
+            ->join('tb_tjsl', 'tb_tjsl.id', '=', 'tb_biaya_tjsl.tjsl_id')
+            ->join('tb_unit as units', 'units.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.tanggal_mulai')
+            ->groupBy('tb_biaya_tjsl.sub_pilar_id');
+        if (!empty($tahun)) $realBySub->whereYear('tb_tjsl.tanggal_mulai', $tahun);
+        if (!empty($subPilarId)) $realBySub->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $realBySub->where('units.region', $regionFilter);
+        $realBySub = $realBySub->get()->keyBy('sub_pilar_id');
+
+        $pilarMap = SubPilar::pluck('sub_pilar', 'id');
+        $datasetSubPilar = collect($pilarMap)->keys()->map(function ($id) use ($angBySub, $realBySub, $pilarMap) {
+            $a = (float) ($angBySub[$id]->anggaran_total ?? 0);
+            $r = (float) ($realBySub[$id]->realisasi_total ?? 0);
+            return [
+                'sub_pilar_id' => (int) $id,
+                'sub_pilar_name' => $pilarMap[$id] ?? '-',
+                'anggaran_total' => $a,
+                'realisasi_total' => $r,
+                'pct' => $a > 0 ? ($r / $a) * 100 : null,
+            ];
+        })->sortBy('sub_pilar_id')->values();
+
+        // Rekap per Regional
+        $angByRegion = AnggaranRegional::select('regional_id', DB::raw('SUM(anggaran) as anggaran_total'))
+            ->groupBy('regional_id');
+        if (!empty($tahun)) $angByRegion->where('tahun', $tahun);
+        if (!empty($subPilarId)) $angByRegion->where('sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $angByRegion->where('regional_id', substr(trim((string)$regionFilter), -1));
+        $angByRegion = $angByRegion->get()->keyBy('regional_id');
+
+        $realByRegion = BiayaTjsl::select(DB::raw('units.region as region'), DB::raw('SUM(tb_biaya_tjsl.realisasi) as realisasi_total'))
+            ->join('tb_tjsl', 'tb_tjsl.id', '=', 'tb_biaya_tjsl.tjsl_id')
+            ->join('tb_unit as units', 'units.id', '=', 'tb_tjsl.unit_id')
+            ->whereNotNull('tb_tjsl.tanggal_mulai')
+            ->groupBy('units.region');
+        if (!empty($tahun)) $realByRegion->whereYear('tb_tjsl.tanggal_mulai', $tahun);
+        if (!empty($subPilarId)) $realByRegion->where('tb_biaya_tjsl.sub_pilar_id', $subPilarId);
+        if (!empty($regionFilter)) $realByRegion->where('units.region', $regionFilter);
+        $realByRegion = $realByRegion->get();
+
+        // Key realisasi per regional_id (ambil digit angka dari units.region, aman untuk multi-digit/leading zero)
+        $realKeyed = $realByRegion->mapWithKeys(function ($row) {
+            $regionStr = (string) $row->region;
+            preg_match('/(\d+)/', $regionStr, $m);
+            $rid = isset($m[1]) ? ltrim($m[1], '0') : null; // '07' -> '7'
+            $rid = $rid === '' ? '0' : $rid;
+            return $rid !== null ? [$rid => (float) ($row->realisasi_total ?? 0)] : [];
+        });
+
+        // Union semua regional_id dari anggaran dan realisasi, sort numerik
+        $allRegionIds = collect(array_keys($angByRegion->toArray()))
+            ->merge(collect(array_keys($realKeyed->toArray())))
+            ->unique()
+            ->sort(function ($a, $b) { return (int)$a <=> (int)$b; })
+            ->values();
+
+        $datasetRegion = $allRegionIds->map(function ($rid) use ($angByRegion, $realKeyed) {
+            $a = (float) ($angByRegion[(string)$rid]->anggaran_total ?? 0);
+            $r = (float) ($realKeyed[(string)$rid] ?? 0);
+            return [
+                'regional_id' => (string) $rid,
+                'regional_name' => $rid ? ('Regional ' . $rid) : '-',
+                'anggaran_total' => $a,
+                'realisasi_total' => $r,
+                'pct' => $a > 0 ? ($r / $a) * 100 : null,
+            ];
+        })->sortBy('regional_id')->values();
+
+        // Dropdowns
+        $regions = Unit::whereNotNull('region')
+            ->select('region')->distinct()->orderBy('region')->pluck('region');
+
+        $yearsAnggaran = AnggaranRegional::distinct()->pluck('tahun')->toArray();
+        $yearsRealisasi = Tjsl::whereNotNull('tanggal_mulai')->selectRaw('YEAR(tanggal_mulai) as tahun')->distinct()->pluck('tahun')->toArray();
+        $years = collect($yearsAnggaran)->merge($yearsRealisasi)->unique()->sort()->values()->all();
+
+        $subPilars = SubPilar::orderByRaw('CAST(id AS UNSIGNED)')->get();
+
+        return view('monitoringbiaya.dashboard', compact(
+            'totalAnggaran',
+            'totalRealisasi',
+            'pctSummary',
+            'datasetSubPilar',
+            'datasetRegion',
+            'years',
+            'regions',
+            'subPilars'
+        ));
     }
 }
