@@ -127,6 +127,78 @@ body.overflow-hidden { overflow: hidden; }
     display: none !important;
 }
 
+/* TJSL Popup Detail Styling */
+.tjsl-popup-detail {
+    min-width: 320px;
+    max-width: 400px;
+}
+.tjsl-popup-header {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: #fff;
+    padding: 12px 15px;
+    margin: -15px -20px 12px -20px;
+    border-radius: 12px 12px 0 0;
+}
+.tjsl-popup-header h6 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.tjsl-popup-header .badge {
+    font-size: 9px;
+    padding: 3px 8px;
+}
+.tjsl-popup-body {
+    font-size: 12px;
+    line-height: 1.6;
+}
+.tjsl-info-row {
+    display: flex;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.tjsl-info-row:last-child {
+    border-bottom: none;
+}
+.tjsl-info-label {
+    font-weight: 600;
+    color: #555;
+    min-width: 110px;
+    flex-shrink: 0;
+}
+.tjsl-info-value {
+    color: #333;
+    flex: 1;
+}
+.tjsl-section-title {
+    font-weight: 700;
+    color: #ff6b35;
+    font-size: 13px;
+    margin: 12px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #ff6b35;
+}
+.tjsl-description {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid #ff6b35;
+    font-size: 12px;
+    color: #555;
+    margin: 8px 0;
+    line-height: 1.5;
+}
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+.leaflet-popup-content {
+    margin: 15px 20px;
+}
+
 </style>
 
 <div class="container-fluid">
@@ -159,14 +231,14 @@ body.overflow-hidden { overflow: hidden; }
                         </div>
                         <hr>
                         <div class="mb-3">
-                            <label for="title" class="form-label">Judul Log <small class="text-muted">opsional</small></label>
+                            <label for="title" class="form-label">Topik Pencarian <small class="text-muted">(opsional)</small></label>
                             <input type="text" id="title" name="title" class="form-control" placeholder="Contoh: Cek lokasi proyek A">
                         </div>
-                        <div class="mb-3">
+                        <div class="mb-3" style="display: none" >
                             <label class="form-label">Kaitkan data</label>
                             <div class="row g-2">
                                 <div class="col-12">
-                                    <select id="stakeholder_select" class="form-control" style="width:100%"></select>
+                                    <selectid="stakeholder_select" class="form-control" style="width:100%"></select>
                                     <input type="hidden" id="stakeholder_id" name="stakeholder_id">
                                 </div>
                                 <div class="col-12">
@@ -787,24 +859,85 @@ var map = L.map('map', { zoomControl: true });
 
         const statusText = tjsl.status == 1 ? 'Aktif' : 'Tidak Aktif';
         const statusClass = tjsl.status == 1 ? 'success' : 'secondary';
-        const tanggalMulai = tjsl.tanggal_mulai ? new Date(tjsl.tanggal_mulai).toLocaleDateString('id-ID') : '-';
-        const tanggalAkhir = tjsl.tanggal_akhir ? new Date(tjsl.tanggal_akhir).toLocaleDateString('id-ID') : '-';
+        const tanggalMulai = tjsl.tanggal_mulai ? new Date(tjsl.tanggal_mulai).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
+        const tanggalAkhir = tjsl.tanggal_akhir ? new Date(tjsl.tanggal_akhir).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'}) : '-';
+
+        // Helper untuk menampilkan durasi program
+        const getDuration = () => {
+            if (!tjsl.tanggal_mulai || !tjsl.tanggal_akhir) return '';
+            const start = new Date(tjsl.tanggal_mulai);
+            const end = new Date(tjsl.tanggal_akhir);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffMonths = Math.floor(diffDays / 30);
+            if (diffMonths > 0) return `(${diffMonths} bulan)`;
+            return `(${diffDays} hari)`;
+        };
 
         const popupContent = `
-            <div style="min-width:200px;">
-                <h6 style="color:#ff6b35;font-weight:bold;margin-bottom:8px;">Program TJSL</h6>
-                <div style="margin-bottom:6px;">
-                    <strong>${tjsl.nama_program}</strong>
+            <div class="tjsl-popup-detail">
+                <div class="tjsl-popup-header">
+                    <h6>
+                        <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+                            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                        </svg>
+                        Program TJSL
+                        <span class="badge bg-${statusClass}">${statusText}</span>
+                    </h6>
                 </div>
-                ${tjsl.lokasi_program ? `<div style="font-size:12px;color:#666;margin-bottom:4px;">Lokasi: ${tjsl.lokasi_program}</div>` : ''}
-                <div style="font-size:11px;color:#888;margin-bottom:4px;">
-                    Periode: ${tanggalMulai} - ${tanggalAkhir}
-                </div>
-                <div style="margin-top:6px;">
-                    <span class="badge bg-${statusClass}" style="font-size:10px;">${statusText}</span>
-                </div>
-                <div style="font-size:10px;color:#999;margin-top:6px;">
-                    Koordinat: ${parseFloat(tjsl.latitude).toFixed(6)}, ${parseFloat(tjsl.longitude).toFixed(6)}
+                <div class="tjsl-popup-body">
+                    <div style="font-size:14px;font-weight:700;color:#333;margin-bottom:8px;">${tjsl.nama_program}</div>
+
+                    ${tjsl.deskripsi ? `<div class="tjsl-description">${tjsl.deskripsi}</div>` : ''}
+
+                    <div class="tjsl-section-title">📍 Informasi Lokasi</div>
+                    <div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Unit/Kebun:</div>
+                        <div class="tjsl-info-value"><strong>${tjsl.nm_unit || '-'}</strong></div>
+                    </div>
+                    <div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Regional:</div>
+                        <div class="tjsl-info-value">${tjsl.nm_region ? 'Regional ' + tjsl.nm_region : '-'}</div>
+                    </div>
+                    <div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Lokasi Program:</div>
+                        <div class="tjsl-info-value">${tjsl.lokasi_program || '-'}</div>
+                    </div>
+                    <div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Koordinat:</div>
+                        <div class="tjsl-info-value" style="font-family:monospace;font-size:11px;">${parseFloat(tjsl.latitude).toFixed(6)}, ${parseFloat(tjsl.longitude).toFixed(6)}</div>
+                    </div>
+
+                    <div class="tjsl-section-title">📅 Periode Pelaksanaan</div>
+                    <div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Tanggal Mulai:</div>
+                        <div class="tjsl-info-value">${tanggalMulai}</div>
+                    </div>
+                    <div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Tanggal Akhir:</div>
+                        <div class="tjsl-info-value">${tanggalAkhir}</div>
+                    </div>
+                    ${getDuration() ? `<div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Durasi:</div>
+                        <div class="tjsl-info-value"><strong>${getDuration()}</strong></div>
+                    </div>` : ''}
+
+                    ${tjsl.nama_pilar || tjsl.program_unggulan || tjsl.penerima_dampak ? `
+                    <div class="tjsl-section-title">📊 Detail Program</div>
+                    ${tjsl.nama_pilar ? `<div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Pilar:</div>
+                        <div class="tjsl-info-value"><span style="background:#e3f2fd;color:#1976d2;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${tjsl.nama_pilar}</span></div>
+                    </div>` : ''}
+                    ${tjsl.program_unggulan ? `<div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Program Unggulan:</div>
+                        <div class="tjsl-info-value"><span style="background:#fff3e0;color:#f57c00;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">${tjsl.program_unggulan}</span></div>
+                    </div>` : ''}
+                    ${tjsl.penerima_dampak ? `<div class="tjsl-info-row">
+                        <div class="tjsl-info-label">Penerima Dampak:</div>
+                        <div class="tjsl-info-value"><strong>${tjsl.penerima_dampak}</strong></div>
+                    </div>` : ''}
+                    ` : ''}
                 </div>
             </div>
         `;
