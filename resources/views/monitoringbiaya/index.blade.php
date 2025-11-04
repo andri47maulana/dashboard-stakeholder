@@ -36,7 +36,8 @@
                                         <div class="col-md-4">
                                             <label for="filter_sub_pilar" class="form-label small text-muted">Sub
                                                 Pilar</label>
-                                            <select name="sub_pilar_id" id="filter_sub_pilar" class="form-control">
+                                            <select name="sub_pilar_id" id="filter_sub_pilar"
+                                                class="form-control form-control-sm">
                                                 <option value="">Semua Sub Pilar</option>
                                                 @foreach (($subPilars ?? collect())->sortBy(fn($sp) => (int) $sp->id) as $sp)
                                                     <option value="{{ $sp->id }}"
@@ -47,10 +48,24 @@
                                             </select>
                                         </div>
 
+                                        <!-- Tambahan: Filter Regional -->
+                                        <div class="col-md-3">
+                                            <label for="filter_region" class="form-label small text-muted">Regional</label>
+                                            <select name="region" id="filter_region" class="form-control form-control-sm">
+                                                <option value="">Semua Regional</option>
+                                                @foreach ($regions ?? collect() as $region)
+                                                    <option value="{{ $region }}"
+                                                        {{ request('region') === $region ? 'selected' : '' }}>
+                                                        {{ $region }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
                                         <div class="col-md-3">
                                             <div class="d-flex gap-2">
                                                 <button type="submit" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-filter"></i> Terapkan
+                                                    <i class="fas fa-filter"></i> Filter
                                                 </button>
                                                 <a href="{{ route('monitoringbiaya.index') }}"
                                                     class="btn btn-warning btn-sm">
@@ -68,6 +83,7 @@
                                 <thead>
                                     <tr>
                                         <th>Tahun</th>
+                                        <th class="text-left">Regional</th>
                                         <th class="text-left">Sub Pilar</th>
                                         <th class="text-end">Anggaran</th>
                                         <th class="text-end">Realisasi</th>
@@ -84,6 +100,9 @@
                                         @endphp
                                         <tr>
                                             <td>{{ $row['tahun'] }}</td>
+                                            <td class="text-left" data-order="{{ (int) $row['regional_id'] }}">
+                                                {{ $row['regional_id'] }}
+                                            </td>
                                             <td class="text-left" data-order="{{ (int) $row['sub_pilar_id'] }}">
                                                 {{ $row['sub_pilar_id'] }} - {{ $row['sub_pilar_name'] }}
                                             </td>

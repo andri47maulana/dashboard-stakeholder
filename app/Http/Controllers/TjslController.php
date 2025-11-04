@@ -109,6 +109,7 @@ class TjslController extends Controller
         $totalAnggaran = 0.0;
         if ($hasSubPilarAnggaran) {
             $queryAnggaran = Anggaran::whereIn('sub_pilar_id', $subPilarIds);
+            
             if ($programYear) {
                 $queryAnggaran->where('tahun', (string) $programYear);
             }
@@ -156,6 +157,43 @@ class TjslController extends Controller
             })->values()->toArray(), // Convert ke array dan reset index
         ];
 
+        // Tambahkan: mapping kode lokasi_program ke nama wilayah
+        $lokasiNames = [
+            'provinsi' => null,
+            'kabupaten' => null,
+            'kecamatan' => null,
+            'desa' => null,
+        ];
+        $kodeLokasi = trim($tjsl->lokasi_program ?? '');
+        if ($kodeLokasi !== '') {
+            $parts = strpos($kodeLokasi, '.') !== false ? explode('.', $kodeLokasi) : [$kodeLokasi];
+    
+            // Provinsi
+            if (count($parts) >= 1) {
+                $provCode = $parts[0];
+                $prov = DB::table('wilayah')->where('kode', $provCode)->first();
+                $lokasiNames['provinsi'] = $prov->nama ?? null;
+            }
+            // Kabupaten/Kota
+            if (count($parts) >= 2) {
+                $kabCode = $parts[0] . '.' . $parts[1];
+                $kab = DB::table('wilayah')->where('kode', $kabCode)->first();
+                $lokasiNames['kabupaten'] = $kab->nama ?? null;
+            }
+            // Kecamatan
+            if (count($parts) >= 3) {
+                $kecCode = $parts[0] . '.' . $parts[1] . '.' . $parts[2];
+                $kec = DB::table('wilayah')->where('kode', $kecCode)->first();
+                $lokasiNames['kecamatan'] = $kec->nama ?? null;
+            }
+            // Desa/Kelurahan
+            if (count($parts) >= 4) {
+                $desaCode = $parts[0] . '.' . $parts[1] . '.' . $parts[2] . '.' . $parts[3];
+                $desa = DB::table('wilayah')->where('kode', $desaCode)->first();
+                $lokasiNames['desa'] = $desa->nama ?? null;
+            }
+        }
+
         return view('tjsl.show', compact(
             'tjsl',
             'totalAnggaran',
@@ -166,7 +204,8 @@ class TjslController extends Controller
             'publications',
             'documentations',
             'pilars',
-            'hasSubPilarAnggaran'
+            'hasSubPilarAnggaran',
+            'lokasiNames' // kirim ke view
         ));
     }
 

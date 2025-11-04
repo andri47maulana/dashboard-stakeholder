@@ -31,6 +31,7 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>Regional</th>
                                         <th>Sub Pilar</th>
                                         <th>Tahun</th>
                                         <th>Anggaran</th>
@@ -41,6 +42,8 @@
                                     @forelse($anggarans as $index => $anggaran)
                                         <tr>
                                             <td>{{ $anggarans->firstItem() + $index }}</td>
+                                            <td>{{ $anggaran->regional_id }}
+                                            </td>
                                             <td>{{ $anggaran->subPilar->id . ' - ' . $anggaran->subPilar->sub_pilar ?? '-' }}
                                             </td>
                                             <td>{{ $anggaran->tahun }}</td>
@@ -102,6 +105,21 @@
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
+
+                        <!-- Create Modal: field Regional -->
+                        <div class="form-group">
+                            <label for="regional_id">Regional <span class="text-danger">*</span></label>
+                            <select class="form-control" id="regional_id" name="regional_id" required>
+                                <option value="">Pilih Regional</option>
+                                @foreach ($regionals as $regional)
+                                    <option value="{{ $regional->regional_id }}">
+                                        {{ $regional->regional_id }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
                         <!-- Create Modal: field Tahun -->
                         <div class="form-group">
                             <label for="tahun">Tahun <span class="text-danger">*</span></label>
@@ -133,8 +151,8 @@
     </div>
 
     <!-- Edit Modal -->
-    <div class="modal fade" id="editAnggaranModal" tabindex="-1" role="dialog" aria-labelledby="editAnggaranModalLabel"
-        aria-hidden="true">
+    <div class="modal fade" id="editAnggaranModal" tabindex="-1" role="dialog"
+        aria-labelledby="editAnggaranModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -160,6 +178,21 @@
                             </select>
                             <div class="invalid-feedback"></div>
                         </div>
+
+                        <!-- Edit Modal: field Regional -->
+                        <div class="form-group">
+                            <label for="edit_regional_id">Regional <span class="text-danger">*</span></label>
+                            <select class="form-control" id="edit_regional_id" name="regional_id" required>
+                                <option value="">Pilih Regional</option>
+                                @foreach ($regionals as $regional)
+                                    <option value="{{ $regional->regional_id }}">
+                                        {{ $regional->regional_id }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="invalid-feedback"></div>
+                        </div>
+
                         <!-- Edit Modal: field Tahun -->
                         <div class="form-group">
                             <label for="edit_tahun">Tahun <span class="text-danger">*</span></label>
@@ -174,7 +207,7 @@
                         <div class="form-group">
                             <label for="edit_anggaran">Anggaran <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="edit_anggaran" name="anggaran"
-                                placeholder="Masukkan jumlah anggaran" min="0" step="0.01" required>
+                                placeholder="Masukkan jumlah anggaran" min="0" step="1" required>
                             <div class="invalid-feedback"></div>
                         </div>
                     </div>
@@ -186,10 +219,8 @@
             </div>
         </div>
     </div>
-
 @endsection
 
-{{-- Scripts untuk halaman Anggaran --}}
 @push('scripts')
     <script src="{{ asset('admin/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
     <script>
@@ -273,6 +304,9 @@
                             $('#edit_anggaran_id').val(data.id);
                             $('#edit_sub_pilar_id').val(data.sub_pilar_id);
 
+                            // Set Regional pada form edit
+                            $('#edit_regional_id').val(data.regional_id);
+
                             // Pastikan dropdown tahun memiliki opsi tahun data yang mungkin di luar range
                             const $editTahun = $('#edit_tahun');
                             const tahunVal = String(data.tahun);
@@ -305,14 +339,20 @@
                 $('.form-control').removeClass('is-invalid');
                 $('.invalid-feedback').text('');
 
+                // Bangun payload eksplisit dan pastikan anggaran integer bersih
+                const payload = {
+                    sub_pilar_id: $('#edit_sub_pilar_id').val(),
+                    regional_id: $('#edit_regional_id').val(),
+                    tahun: $('#edit_tahun').val(),
+                    anggaran: $('#edit_anggaran').val().replace(/[^0-9]/g, '')
+                };
+
                 $.ajax({
-                    // Perbaiki: gunakan route yang sesuai untuk update
                     url: `{{ url('anggaran/update') }}/${id}`,
                     method: 'PUT',
-                    data: $(this).serialize(),
+                    data: payload,
                     headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     },
                     success: function(response) {
                         if (response.success) {
@@ -345,6 +385,13 @@
                         }
                     }
                 });
+            });
+
+            // Filter input anggaran menjadi angka murni (tanpa titik/desimal)
+            $('#anggaran, #edit_anggaran').on('input', function() {
+                let value = $(this).val();
+                value = value.replace(/[^0-9]/g, ''); // Hapus semua selain digit
+                $(this).val(value);
             });
 
             // Delete Button Click
