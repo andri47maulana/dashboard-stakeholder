@@ -204,7 +204,8 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 // Monitoring Biaya TJSL
-Route::get('/monitoringbiaya/', [MonitoringBiayaController::class, 'index'])->name('monitoringbiaya.index');
+Route::get('/monitoringbiaya/', [MonitoringBiayaController::class, 'dashboard'])->name('monitoringbiaya.dashboard');
+
 
 
 
