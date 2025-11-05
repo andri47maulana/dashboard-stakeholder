@@ -758,6 +758,55 @@
                 });
             });
 
+            // Handler Hapus Program TJSL
+            $(document).on('click', '.delete-program-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const tjslId = $(this).data('id');
+                const programName = $(this).data('name') || 'Program';
+
+                function submitDelete(id) {
+                    const form = $('<form>', {
+                        method: 'POST',
+                        action: '/tjsl/' + id
+                    });
+                    form.append($('<input>', {
+                        type: 'hidden',
+                        name: '_token',
+                        value: '{{ csrf_token() }}'
+                    }));
+                    form.append($('<input>', {
+                        type: 'hidden',
+                        name: '_method',
+                        value: 'DELETE'
+                    }));
+                    $('body').append(form);
+                    form.submit();
+                }
+
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Hapus Program?',
+                        text: `Apakah Anda yakin ingin menghapus "${programName}"? Tindakan ini tidak dapat dibatalkan.`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Ya, hapus',
+                        cancelButtonText: 'Batal'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            submitDelete(tjslId);
+                        }
+                    });
+                } else {
+                    if (confirm(`Apakah Anda yakin ingin menghapus program "${programName}"?`)) {
+                        submitDelete(tjslId);
+                    }
+                }
+            });
+
             // Handler untuk form submission edit modal
             $('#editTjslForm').on('submit', function(e) {
                 e.preventDefault(); // Prevent default form submission
@@ -784,7 +833,7 @@
                 // Susun kode lokasi dalam format: NN.NN.NN.NNNN (provinsi.kabupaten.kecamatan.desa)
                 if (desaKode) {
                     $('#edit_lokasi_program').val(
-                    desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
+                        desaKode); // Kode desa sudah lengkap (format: NN.NN.NN.NNNN)
                 } else if (kecKode) {
                     $('#edit_lokasi_program').val(kecKode); // Kode kecamatan (format: NN.NN.NN)
                 } else if (kabKode) {
