@@ -114,13 +114,15 @@ class StakeholderController extends Controller
             $searchkategori = $_GET['kategori'];
             $dataallusers = $dataallusers->where('kategori','like',$_GET['kategori']);
         }
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::check() && Auth::user()->hakakses =='Admin')
         {
             $dataallusers = $dataallusers;
         }
         else
         {
-            $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            if(Auth::check()) {
+                $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            }
         }
         $dataallusers = $dataallusers->get();
 

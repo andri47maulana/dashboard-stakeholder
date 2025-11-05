@@ -28,7 +28,7 @@
                     </style>
                     <div class="row" style="font-size: 0.85em;">
                         <div class="col-md-6">
-                        @if(Auth::user()->hakakses =='Admin')
+                        @if(Auth::check() && Auth::user()->hakakses =='Admin')
                             <div class="form-group row">
                                 <label for="region" class="col-md-3 control-label">Region</label>
                                 <select name="region" id="region" class="col-sm-6 form-control">

@@ -34,7 +34,7 @@
 <h1 class="h3 mb-2 text-gray-800">Menu Sertifikasi</h1>
     <div class="card shadow mb-4">
         <div class="card-body row" style="font-size: 0.85em;">
-            @if(Auth::user()->hakakses =='Admin')
+            @if(Auth::check() && Auth::user()->hakakses =='Admin')
             <div class="col-md-3">
                 
                 <div class="form-group row">

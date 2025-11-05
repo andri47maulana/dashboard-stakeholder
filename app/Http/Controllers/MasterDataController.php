@@ -28,14 +28,16 @@ class MasterDataController extends Controller
             $dataallusers = $dataallusers->where('nama_kebun','like',$_COOKIE['kebun']);
         }
 
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::check() && Auth::user()->hakakses =='Admin')
         {
             $dataallusers = $dataallusers;
         }
         else
         {
-            $datakebun = DB::table('kebun')->select('nama_kebun')->groupBy('nama_kebun')->where('region',Auth::user()->region)->get();
-            $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            if(Auth::check()) {
+                $datakebun = DB::table('kebun')->select('nama_kebun')->groupBy('nama_kebun')->where('region',Auth::user()->region)->get();
+                $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            }
         }
 
         $dataallusers = $dataallusers->get();

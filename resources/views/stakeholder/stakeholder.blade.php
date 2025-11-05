@@ -39,7 +39,7 @@
 <h1 class="h3 mb-2 text-gray-800">Menu Stakeholder</h1>
     <div class="card shadow mb-4">
         <div class="card-body row" style="font-size: 0.85em;">
-            @if(Auth::user()->hakakses =='Admin')
+            @if(Auth::check() && Auth::user()->hakakses =='Admin')
             <div class="col-md-3">
                 
                 <div class="form-group row">
@@ -206,7 +206,7 @@
                         <i class="fas fa-building"></i> Data Wilayah
                         </div>
                         <div class="card-body" style="font-size:0.9em;">
-                        @if(Auth::user()->hakakses == 'Admin')
+                        @if(Auth::check() && Auth::user()->hakakses == 'Admin')
                         <div class="form-group row">
                             <label for="region" class="col-md-4 col-form-label">Region</label>
                             <div class="col-md-8">
@@ -506,7 +506,7 @@
                                 <div class="card-body" style="font-size:0.9em;">
                                     
                                     {{-- Region --}}
-                                    @if(Auth::user()->hakakses == 'Admin')
+                                    @if(Auth::check() && Auth::user()->hakakses == 'Admin')
                                         <div class="form-group row">
                                             <label class="col-md-4 col-form-label">Region</label>
                                             <div class="col-md-8">

@@ -34,7 +34,7 @@
 <h1 class="h3 mb-2 text-gray-800">Menu Nota Kesepahaman</h1>
     <div class="card shadow mb-4">
         <div class="card-body row" style="font-size: 0.85em;">
-            @if(Auth::user()->hakakses =='Admin')
+            @if(Auth::check() && Auth::user()->hakakses =='Admin')
             <div class="col-md-3">
                 
                 <div class="form-group row">
@@ -204,7 +204,7 @@
                             </div>                                             
                         </div>
                         <div class="col-md-6">
-                        @if(Auth::user()->hakakses =='Admin')
+                        @if(Auth::check() && Auth::user()->hakakses =='Admin')
                             <div class="form-group row">
                                 <label for="region" class="col-md-3 control-label">Region</label>
                                 <select name="region" id="regionclass" class="col-sm-6 form-control" required>
@@ -347,7 +347,7 @@
                             </div>                                          
                         </div>
                         <div class="col-md-6">
-                        @if(Auth::user()->hakakses =='Admin')
+                        @if(Auth::check() && Auth::user()->hakakses =='Admin')
                             <div class="form-group row">
                                 <label for="region" class="col-md-3 control-label">Region</label>
                                 <select name="region" id="regionclass" class="col-sm-6 form-control" required>

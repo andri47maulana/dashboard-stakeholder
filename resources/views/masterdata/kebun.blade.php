@@ -35,7 +35,7 @@
     <p class="mb-4">Master Data Kebun PT Perkebunan Nusantara I.</p>
     <div class="card shadow mb-4">
         <div class="card-body row" style="font-size: 0.85em;">
-            @if(Auth::user()->hakakses =='Admin')
+            @if(Auth::check() && Auth::user()->hakakses =='Admin')
             <div class="col-md-3">
                 
                 <div class="form-group row">
@@ -156,7 +156,7 @@
                                     id="nama_kebun" name="nama_kebun" aria-describedby="nama_kebun" value=""
                                     placeholder="Nama Kebun..." required>
                             </div>
-                            @if(Auth::user()->hakakses =='Admin')
+                            @if(Auth::check() && Auth::user()->hakakses =='Admin')
                             <div class="form-group row">
                                 <label for="region" class="col-md-3 control-label">Regional</label>
                                 <select name="region" id="regionclass" class="col-sm-6 form-control" required>
@@ -231,7 +231,7 @@
                                     id="nama_kebun" name="nama_kebun" aria-describedby="nama_kebun" value=""
                                     placeholder="Nama Kebun..." required>
                             </div>
-                            @if(Auth::user()->hakakses =='Admin')
+                            @if(Auth::check() && Auth::user()->hakakses =='Admin')
                             <div class="form-group row">
                                 <label for="regionclass" class="col-md-3 control-label">Regional</label>
                                 <select name="regionclass" id="regionclass" class="col-sm-6 form-control" required>

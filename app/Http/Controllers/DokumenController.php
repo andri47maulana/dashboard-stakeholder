@@ -39,15 +39,17 @@ class DokumenController extends Controller
             $searchkategori = $_COOKIE['kategori'];
             $dataallusers = $dataallusers->where('kategori','like',$_COOKIE['kategori']);
         }
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::check() && Auth::user()->hakakses =='Admin')
         {
             $dataallusers = $dataallusers;
         }
         else
         {
-            $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
-            $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
-            $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            if(Auth::check()) {
+                $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
+                $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
+                $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            }
         }
 
         $dataallusers = $dataallusers->get();
@@ -91,15 +93,17 @@ class DokumenController extends Controller
             $searchkategori = $_COOKIE['kategori'];
             $dataallusers = $dataallusers->where('kategori','like',$_COOKIE['kategori']);
         }
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::check() && Auth::user()->hakakses =='Admin')
         {
             $dataallusers = $dataallusers;
         }
         else
         {
-            $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
-            $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
-            $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            if(Auth::check()) {
+                $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
+                $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
+                $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            }
         }
 
         $dataallusers = $dataallusers->get();
@@ -345,15 +349,17 @@ class DokumenController extends Controller
             $searchkategori = $_COOKIE['kategori'];
             $dataallusers = $dataallusers->where('kategori','like',$_COOKIE['kategori']);
         }
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::check() && Auth::user()->hakakses =='Admin')
         {
             $dataallusers = $dataallusers;
         }
         else
         {
-            $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
-            $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
-            $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            if(Auth::check()) {
+                $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
+                $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
+                $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            }
         }
 
         $dataallusers = $dataallusers->get();
@@ -397,15 +403,17 @@ class DokumenController extends Controller
             $searchkategori = $_COOKIE['kategori'];
             $dataallusers = $dataallusers->where('kategori','like',$_COOKIE['kategori']);
         }
-        if(Auth::user()->hakakses =='Admin')
+        if(Auth::check() && Auth::user()->hakakses =='Admin')
         {
             $dataallusers = $dataallusers;
         }
         else
         {
-            $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
-            $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
-            $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            if(Auth::check()) {
+                $datakebun = DB::table('stakeholder')->select('kebun')->groupBy('kebun')->where('region',Auth::user()->region)->get();
+                $datadesa = DB::table('stakeholder')->select('desa')->where('region',Auth::user()->region)->groupBy('desa')->get();
+                $dataallusers = $dataallusers->where('region',Auth::user()->region);
+            }
         }
 
         $dataallusers = $dataallusers->get();

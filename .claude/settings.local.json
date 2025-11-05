@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(php artisan:*)",
-      "Bash(php -l:*)"
+      "Bash(php -l:*)",
+      "Bash(find:*)",
+      "Bash(composer dump-autoload:*)"
     ],
     "deny": [],
     "ask": []

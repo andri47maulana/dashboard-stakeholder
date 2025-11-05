@@ -206,7 +206,7 @@
     </li>           
     -->
     <!-- Divider -->
-    @if(Auth::user()->hakakses =='Admin')
+    @if(Auth::check() && Auth::user()->hakakses =='Admin')
     <!-- Divider -->
     <hr class="sidebar-divider">
     <li class="nav-item">
@@ -278,7 +278,7 @@
     <div class="sidebar-card d-none d-lg-flex" style="margin-top: 1rem; background-color: rgb(41 236 58 / 38%);">
         <p class="text-center mb-2" style="font-size:1.1em; color:#000; margin-bottom: 0 !important;"><strong >Team Member<br>{{$membercount}}</strong></p>
     </div>
-    @if(Auth::user()->hakakses =='Admin')
+    @if(Auth::check() && Auth::user()->hakakses =='Admin')
     <div class="sidebar-card d-none d-lg-flex" style="background-color: rgb(229 41 236 / 38%);">
         <p class="text-center mb-2" style="font-size:1.1em; color:#000; margin-bottom: 0 !important;"><strong >Admin<br>{{$admincount}}</strong></p>
     </div>
