@@ -143,7 +143,7 @@
     
     <!-- Bootstrap (depends on jQuery) -->
     <script src="{{ url('/') }}{{ $public }}/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
+    
     <!-- Custom scripts for all pages-->
     <script src="{{ url('/') }}{{ $public }}/js/sb-admin-2.min.js"></script>
 
@@ -163,6 +163,9 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.print.min.js"></script>
+
+    <!-- SweetAlert2 (global) -->
+    <script src="{{ asset('admin/plugins/sweetalert2/sweetalert2.all.min.js') }}"></script>
 
     <!-- Custom page scripts loaded after all dependencies -->
     @stack('scripts')
