@@ -441,6 +441,7 @@
     </div>
 </div>
 
+@push('scripts')
 <script>
 $(document).ready(function() {
     // Function to compose lokasi_program from selected wilayah
@@ -470,3 +471,4 @@ $(document).ready(function() {
     });
 });
 </script>
+@endpush
