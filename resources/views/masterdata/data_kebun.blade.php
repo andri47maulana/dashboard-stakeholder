@@ -65,7 +65,7 @@
         {{-- <div class="container"> --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0">Daftar Unit</h2>
-            @if(isAdmin())
+            @if(Auth::check() && Auth::user()->hakakses == 'Admin')
             <button type="button" class="btn btn-success" data-toggle="modal" data-target="#addUnitModal">
                 <i class="fas fa-plus"></i> Tambah Data Unit
             </button>
@@ -90,7 +90,7 @@
                         <td>{{ $unit->region }}</td>
                         <td class="d-flex gap-1">
                             <a href="{{ route('units.detail', $unit->id) }}" class="btn btn-sm btn-primary">Detail</a>
-                            @if(isAdmin())
+                            @if(Auth::check() && Auth::user()->hakakses == 'Admin')
                             <button type="button"
                                     class="btn btn-sm btn-warning btn-edit-unit"
                                     data-id="{{ $unit->id }}"
