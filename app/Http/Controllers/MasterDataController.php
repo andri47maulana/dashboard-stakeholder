@@ -518,6 +518,25 @@ class MasterDataController extends Controller
         return view('masterdata/detail_unit', compact('unit', 'kebunJsons'));
     }
 
+    // Store new Unit (tb_unit)
+    public function store_unit(Request $request)
+    {
+        $request->validate([
+            'unit' => 'required|string|max:255',
+            'region' => 'required|string|max:255',
+        ]);
+
+        try {
+            DB::table('tb_unit')->insert([
+                'unit' => $request->input('unit'),
+                'region' => $request->input('region'),
+            ]);
+            return redirect()->route('units.list')->with('success', 'Unit berhasil ditambahkan');
+        } catch (\Throwable $e) {
+            return back()->withErrors(['message' => 'Gagal menambahkan unit: '.$e->getMessage()])->withInput();
+        }
+    }
+
     // Update Unit (tb_unit) name/region
     public function update_unit(Request $request, $id)
     {
@@ -534,6 +553,24 @@ class MasterDataController extends Controller
             return redirect()->route('units.list')->with('success', 'Unit berhasil diperbarui');
         } catch (\Throwable $e) {
             return back()->withErrors(['message' => 'Gagal memperbarui unit: '.$e->getMessage()])->withInput();
+        }
+    }
+
+    // Delete Unit (tb_unit)
+    public function delete_unit($id)
+    {
+        try {
+            // Check if unit has related kebun_json data
+            $hasRelatedData = DB::table('kebun_json')->where('unit_id', $id)->exists();
+
+            if ($hasRelatedData) {
+                return redirect()->route('units.list')->withErrors(['message' => 'Tidak dapat menghapus unit karena masih memiliki data polygon terkait. Hapus data polygon terlebih dahulu.']);
+            }
+
+            DB::table('tb_unit')->where('id', $id)->delete();
+            return redirect()->route('units.list')->with('success', 'Unit berhasil dihapus');
+        } catch (\Throwable $e) {
+            return redirect()->route('units.list')->withErrors(['message' => 'Gagal menghapus unit: '.$e->getMessage()]);
         }
     }
 
