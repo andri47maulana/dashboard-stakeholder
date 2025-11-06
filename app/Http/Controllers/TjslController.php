@@ -550,7 +550,8 @@ class TjslController extends Controller
 
         $tjsl = Tjsl::findOrFail($id);
 
-        $request->validate([
+        // Build validation rules dynamically
+        $rules = [
             // Tab 1: Program Data (Required)
             'nama_program' => 'required|string|max:255',
             'deskripsi' => 'nullable|string',
@@ -572,15 +573,27 @@ class TjslController extends Controller
             'biaya.*.realisasi' => 'nullable|numeric|min:0',
             'publikasi.*.media' => 'nullable|string|max:255',
             'publikasi.*.link' => 'nullable|url|max:500',
-            'proposal' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'izin_prinsip' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'survei_feedback' => 'nullable|file|mimes:pdf,doc,docx|max:10240',
-            'foto' => 'nullable|file|mimes:jpg,jpeg,png,gif|max:5120',
             'feedback.*.sangat_puas' => 'nullable|string',
             'feedback.*.puas' => 'nullable|string',
             'feedback.*.kurang_puas' => 'nullable|string',
             'feedback.*.saran' => 'nullable|string',
-        ]);
+        ];
+
+        // Only add file validation if file is actually present and valid
+        if ($request->hasFile('proposal') && $request->file('proposal')->isValid()) {
+            $rules['proposal'] = 'file|mimes:pdf,doc,docx|max:51200';
+        }
+        if ($request->hasFile('izin_prinsip') && $request->file('izin_prinsip')->isValid()) {
+            $rules['izin_prinsip'] = 'file|mimes:pdf,doc,docx|max:51200';
+        }
+        if ($request->hasFile('survei_feedback') && $request->file('survei_feedback')->isValid()) {
+            $rules['survei_feedback'] = 'file|mimes:pdf,doc,docx|max:51200';
+        }
+        if ($request->hasFile('foto') && $request->file('foto')->isValid()) {
+            $rules['foto'] = 'file|mimes:jpg,jpeg,png,gif,webp|max:10240';
+        }
+
+        $request->validate($rules);
 
         try {
             \DB::beginTransaction();
@@ -693,11 +706,27 @@ class TjslController extends Controller
             }
 
             if ($request->hasFile('foto')) {
-                // Hapus file lama jika ada
-                if ($docTjsl && $docTjsl->foto) {
-                    \Storage::disk('public')->delete('dokumen/foto/' . $docTjsl->foto);
+                \Log::info('Processing foto upload', [
+                    'has_file' => true,
+                    'file_size' => $request->file('foto')->getSize(),
+                    'file_mime' => $request->file('foto')->getMimeType(),
+                    'file_name' => $request->file('foto')->getClientOriginalName()
+                ]);
+
+                try {
+                    // Hapus file lama jika ada
+                    if ($docTjsl && $docTjsl->foto) {
+                        \Storage::disk('public')->delete('dokumen/foto/' . $docTjsl->foto);
+                    }
+                    $docData['foto'] = $this->handleFileUpload($request->file('foto'), 'foto', $tjsl->id);
+                    \Log::info('Foto uploaded successfully', ['filename' => $docData['foto']]);
+                } catch (\Exception $e) {
+                    \Log::error('Foto upload error', [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
+                    ]);
+                    throw new \Exception('Foto upload failed: ' . $e->getMessage());
                 }
-                $docData['foto'] = $this->handleFileUpload($request->file('foto'), 'foto', $tjsl->id);
             } else {
                 $docData['foto'] = $docTjsl ? $docTjsl->foto : null;
             }
@@ -897,18 +926,52 @@ class TjslController extends Controller
             return null;
         }
 
-        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-        $extension = $file->getClientOriginalExtension();
-        $filename = 'TJSL_' . $tjslId . '_' . $originalName . '_' . time() . '.' . $extension;
+        try {
+            // Validate file before upload
+            if (!$file->isValid()) {
+                \Log::error('Invalid file upload', [
+                    'folder' => $folder,
+                    'error' => $file->getErrorMessage()
+                ]);
+                throw new \Exception('File upload is not valid: ' . $file->getErrorMessage());
+            }
 
-        $path = $file->storeAs('dokumen/' . $folder, $filename, 'public');
+            $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $extension = $file->getClientOriginalExtension();
 
-        \Log::info('File uploaded successfully', [
-            'folder' => $folder,
-            'filename' => $filename,
-            'tjsl_id' => $tjslId
-        ]);
+            // Sanitize filename
+            $originalName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $originalName);
+            $filename = 'TJSL_' . $tjslId . '_' . $originalName . '_' . time() . '.' . $extension;
 
-        return $filename;
+            // Ensure directory exists
+            $directory = storage_path('app/public/dokumen/' . $folder);
+            if (!file_exists($directory)) {
+                mkdir($directory, 0755, true);
+            }
+
+            $path = $file->storeAs('dokumen/' . $folder, $filename, 'public');
+
+            if (!$path) {
+                throw new \Exception('Failed to store file');
+            }
+
+            \Log::info('File uploaded successfully', [
+                'folder' => $folder,
+                'filename' => $filename,
+                'tjsl_id' => $tjslId,
+                'path' => $path
+            ]);
+
+            return $filename;
+        } catch (\Exception $e) {
+            \Log::error('File upload failed', [
+                'folder' => $folder,
+                'tjsl_id' => $tjslId,
+                'error' => $e->getMessage(),
+                'file_size' => $file->getSize(),
+                'file_mime' => $file->getMimeType()
+            ]);
+            throw $e;
+        }
     }
 }

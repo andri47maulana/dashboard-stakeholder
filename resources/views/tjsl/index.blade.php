@@ -262,6 +262,9 @@
 
                 const tjslId = $(this).data('id');
 
+                // Clear file inputs to ensure fresh state
+                $('#edit_proposal, #edit_izin_prinsip, #edit_survei_feedback, #edit_foto').val('');
+
                 // Set form action
                 $('#editTjslForm').attr('action', `/tjsl/${tjslId}`);
 
@@ -272,6 +275,7 @@
                 $.ajax({
                     url: `/tjsl/${tjslId}/edit-data`,
                     method: 'GET',
+                    cache: false, // Disable caching to get fresh data
                     success: function(response) {
 
                         // Check if response is the data directly (not wrapped in success/data)
@@ -589,7 +593,7 @@
 
                                 // Proposal
                                 if (doc.proposal) {
-                                    let proposalLink = `<a href="/storage/dokumen/proposal/${doc.proposal}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    let proposalLink = `<a href="/storage/dokumen/proposal/${doc.proposal}?t=${Date.now()}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-download"></i> ${doc.proposal}
                                     </a>`;
                                     $('#current_proposal').html(proposalLink);
@@ -600,7 +604,7 @@
 
                                 // Izin Prinsip
                                 if (doc.izin_prinsip) {
-                                    let izinLink = `<a href="/storage/dokumen/izin_prinsip/${doc.izin_prinsip}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    let izinLink = `<a href="/storage/dokumen/izin_prinsip/${doc.izin_prinsip}?t=${Date.now()}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-download"></i> ${doc.izin_prinsip}
                                     </a>`;
                                     $('#current_izin_prinsip').html(izinLink);
@@ -611,7 +615,7 @@
 
                                 // Survei Feedback
                                 if (doc.survei_feedback) {
-                                    let surveiLink = `<a href="/storage/dokumen/survei_feedback/${doc.survei_feedback}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    let surveiLink = `<a href="/storage/dokumen/survei_feedback/${doc.survei_feedback}?t=${Date.now()}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-download"></i> ${doc.survei_feedback}
                                     </a>`;
                                     $('#current_survei_feedback').html(surveiLink);
@@ -623,7 +627,7 @@
                                 // Foto
                                 if (doc.foto) {
 
-                                    let fotoLink = `<a href="/storage/dokumen/foto/${doc.foto}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    let fotoLink = `<a href="/storage/dokumen/foto/${doc.foto}?t=${Date.now()}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-download"></i> ${doc.foto}
                                     </a>`;
                                     $('#current_foto').html(fotoLink);
@@ -895,12 +899,28 @@
                 $('#editSubmitBtn').prop('disabled', true).html(
                     '<i class="fas fa-spinner fa-spin"></i> Updating...');
 
+                // Show progress bar
+                var progressHtml = '<div id="uploadProgress" class="mt-3"><div class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div></div><small class="text-muted d-block text-center mt-1">Uploading: 0%</small></div>';
+                $('#editSubmitBtn').parent().append(progressHtml);
+
                 $.ajax({
                     url: $('#editTjslForm').attr('action'),
                     type: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
+                    xhr: function() {
+                        var xhr = new window.XMLHttpRequest();
+                        // Upload progress
+                        xhr.upload.addEventListener("progress", function(evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                                $('#uploadProgress .progress-bar').css('width', percentComplete + '%');
+                                $('#uploadProgress small').text('Uploading: ' + percentComplete + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
                     success: function(response) {
                         // Close modal
                         $('#editTjslModal').modal('hide');
@@ -939,6 +959,9 @@
                         });
                     },
                     complete: function() {
+                        // Remove progress bar
+                        $('#uploadProgress').remove();
+
                         // Reset button state
                         $('#editSubmitBtn').prop('disabled', false).html(
                             '<i class="fas fa-save"></i> Update Program TJSL');
@@ -1036,12 +1059,28 @@
                 $('#submitBtn').prop('disabled', true).html(
                     '<i class="fas fa-spinner fa-spin"></i> Menyimpan...');
 
+                // Show progress bar
+                var progressHtml = '<div id="createUploadProgress" class="mt-3"><div class="progress"><div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div></div><small class="text-muted d-block text-center mt-1">Uploading: 0%</small></div>';
+                $('#submitBtn').parent().append(progressHtml);
+
                 $.ajax({
                     url: $(this).attr('action'),
                     type: 'POST',
                     data: formData,
                     processData: false,
                     contentType: false,
+                    xhr: function() {
+                        var xhr = new window.XMLHttpRequest();
+                        // Upload progress
+                        xhr.upload.addEventListener("progress", function(evt) {
+                            if (evt.lengthComputable) {
+                                var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                                $('#createUploadProgress .progress-bar').css('width', percentComplete + '%');
+                                $('#createUploadProgress small').text('Uploading: ' + percentComplete + '%');
+                            }
+                        }, false);
+                        return xhr;
+                    },
                     success: function(response) {
                         // Close modal
                         $('#tjslModal').modal('hide');
@@ -1080,11 +1119,32 @@
                         });
                     },
                     complete: function() {
+                        // Remove progress bar
+                        $('#createUploadProgress').remove();
+
                         // Reset button state
                         $('#submitBtn').prop('disabled', false).html(
                             '<i class="fas fa-save"></i> Simpan Program');
                     }
                 });
+            });
+
+            // Add visual indicator when new file is selected
+            $('input[type="file"][name="proposal"], input[type="file"][name="izin_prinsip"], input[type="file"][name="survei_feedback"], input[type="file"][name="foto"]').on('change', function() {
+                const fileName = $(this).val().split('\\').pop();
+                const fieldName = $(this).attr('name');
+                const currentFileDiv = $(`#current_${fieldName}`);
+
+                if (fileName) {
+                    // Show new file name with indicator
+                    currentFileDiv.html(`
+                        <div class="alert alert-info mb-0 py-1 px-2">
+                            <i class="fas fa-file-upload"></i>
+                            <strong>File baru dipilih:</strong> ${fileName}
+                            <br><small class="text-muted">Klik "Update Program TJSL" untuk menyimpan file ini</small>
+                        </div>
+                    `);
+                }
             });
         });
     </script>

@@ -4,7 +4,12 @@
       "Bash(php artisan:*)",
       "Bash(php -l:*)",
       "Bash(find:*)",
-      "Bash(composer dump-autoload:*)"
+      "Bash(composer dump-autoload:*)",
+      "Bash(php -r \"require ''vendor/autoload.php''; var_dump(function_exists(''isAdmin''));\")",
+      "Bash(php -i:*)",
+      "Bash(php:*)",
+      "Bash(where:*)",
+      "Bash(nul)"
     ],
     "deny": [],
     "ask": []

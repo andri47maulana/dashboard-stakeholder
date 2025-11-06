@@ -225,7 +225,7 @@
                                                         <i class="fas fa-camera"></i> Foto Program
                                                     </h6>
                                                     <div class="photo-container">
-                                                        <img src="{{ asset('storage/dokumen/foto/' . $docTjsl->foto) }}"
+                                                        <img src="{{ asset('storage/dokumen/foto/' . $docTjsl->foto) }}?t={{ time() }}"
                                                             alt="Foto Program TJSL"
                                                             class="img-thumbnail documentation-photo">
                                                     </div>
