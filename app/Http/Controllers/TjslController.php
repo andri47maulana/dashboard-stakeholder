@@ -876,8 +876,11 @@ class TjslController extends Controller
         try {
             Log::info('Getting edit data for TJSL ID: ' . $id);
 
-            $tjsl = Tjsl::with(['biayaTjsl', 'pubTjsl', 'docTjsl', 'feedbackTjsl'])
-                ->findOrFail($id);
+            // Query tanpa cache untuk memastikan data fresh
+            $tjsl = Tjsl::query()
+                ->where('id', $id)
+                ->with(['biayaTjsl', 'pubTjsl', 'docTjsl', 'feedbackTjsl'])
+                ->firstOrFail();
 
             // Format dates for form inputs
             $tjsl->tanggal_mulai = $tjsl->tanggal_mulai ? $tjsl->tanggal_mulai->format('Y-m-d') : '';
@@ -897,9 +900,14 @@ class TjslController extends Controller
             // Remove the original relationship data to avoid confusion
             unset($tjsl->biayaTjsl, $tjsl->pubTjsl, $tjsl->docTjsl, $tjsl->feedbackTjsl);
 
-            Log::info('Successfully retrieved edit data for TJSL ID: ' . $id);
+            Log::info('Successfully retrieved edit data for TJSL ID: ' . $id, [
+                'foto_filename' => $tjsl->dokumentasi && count($tjsl->dokumentasi) > 0 ? $tjsl->dokumentasi[0]->foto : null
+            ]);
 
-            return response()->json($tjsl);
+            return response()->json($tjsl)
+                ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+                ->header('Pragma', 'no-cache')
+                ->header('Expires', 'Sat, 01 Jan 2000 00:00:00 GMT');
         } catch (\Exception $e) {
             Log::error('Error getting edit data for TJSL ID ' . $id . ': ' . $e->getMessage());
             return response()->json(['error' => 'Failed to load data'], 500);

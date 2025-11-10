@@ -590,6 +590,8 @@
 
                             if (data.dokumentasi && data.dokumentasi.length > 0) {
                                 const doc = data.dokumentasi[0]; // First dokumentasi record
+                                console.log('Dokumentasi data received:', doc);
+                                console.log('Foto filename:', doc.foto);
 
                                 // Proposal
                                 if (doc.proposal) {

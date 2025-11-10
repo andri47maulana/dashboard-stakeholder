@@ -274,7 +274,8 @@ body.overflow-hidden { overflow: hidden; }
                     <select id="regionSelect" class="form-control" multiple style="width:100%; min-width:240px; max-width:520px;" data-placeholder="Pilih regional…">
                         @foreach($regionItems as $r)
                             @php($isDefault = (strval($r) === '1' || strtolower(strval($r)) === 'regional 1'))
-                            <option value="{{ $r }}" {{ $isDefault ? 'selected' : '' }}>Reg {{ $r }}</option>
+                            @php($displayName = (strval($r) === 'PTPN I HO') ? 'Head Office PTPN 1' : 'Reg ' . $r)
+                            <option value="{{ $r }}" {{ $isDefault ? 'selected' : '' }}>{{ $displayName }}</option>
                         @endforeach
                     </select>
                     @if($regionItems->isEmpty())

@@ -23,8 +23,16 @@ class PolygonController extends Controller
         $regions = $kebunJsons->pluck('nm_region')
             ->filter(function($r){ return !is_null($r) && $r !== ''; })
             ->unique()
-            ->sort()
             ->values();
+
+        // Urutkan dengan Head Office di awal, lalu regional lainnya
+        $regions = $regions->sort(function($a, $b) {
+            // Head Office selalu di urutan pertama
+            if ($a === 'PTPN I HO') return -1;
+            if ($b === 'PTPN I HO') return 1;
+            // Sisanya diurutkan secara natural
+            return strcmp($a, $b);
+        })->values();
         // Ambil derajat hubungan terbaru per unit (berdasarkan id terbesar)
         $latestDerajat = DB::table('tb_derajat_hubungan as d')
             ->join(DB::raw('(select id_unit, max(id) as max_id from tb_derajat_hubungan group by id_unit) m'), function($join){
@@ -85,8 +93,16 @@ class PolygonController extends Controller
         $regions = $kebunJsons->pluck('nm_region')
             ->filter(function($r){ return !is_null($r) && $r !== ''; })
             ->unique()
-            ->sort()
             ->values();
+
+        // Urutkan dengan Head Office di awal, lalu regional lainnya
+        $regions = $regions->sort(function($a, $b) {
+            // Head Office selalu di urutan pertama
+            if ($a === 'PTPN I HO') return -1;
+            if ($b === 'PTPN I HO') return 1;
+            // Sisanya diurutkan secara natural
+            return strcmp($a, $b);
+        })->values();
         // Ambil derajat hubungan terbaru per unit juga untuk halaman ini
         $latestDerajat = DB::table('tb_derajat_hubungan as d')
             ->join(DB::raw('(select id_unit, max(id) as max_id from tb_derajat_hubungan group by id_unit) m'), function($join){
